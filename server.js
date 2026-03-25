@@ -32,6 +32,18 @@ MongoClient.connect(MONGO_URI)
   .catch(err => { console.error('❌  MongoDB connection failed:', err.message); process.exit(1); });
 
 /* ════════════════════════════════════════════════
+   ROOT ROUTE - FIXES "Cannot GET /" ERROR
+   ════════════════════════════════════════════════ */
+
+/**
+ * GET /
+ * Serves the splash.html page as the homepage
+ */
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'splash.html'));
+});
+
+/* ════════════════════════════════════════════════
    AUTH
    ════════════════════════════════════════════════ */
 
@@ -209,8 +221,15 @@ app.get('/api/leaderboard', async (req, res) => {
   }
 });
 
+/* ════════════════════════════════════════════════
+   404 HANDLER - For any undefined routes
+   ════════════════════════════════════════════════ */
+app.use((req, res) => {
+  res.status(404).sendFile(path.join(__dirname, 'splash.html'));
+});
+
 /* ─── start ─── */
 app.listen(PORT, () => {
   console.log(`🚀  CYBERVERSE server running → http://localhost:${PORT}`);
-  console.log(`    Open http://localhost:${PORT}/auth.html to play`);
+  console.log(`    Open http://localhost:${PORT} to start`);
 });
