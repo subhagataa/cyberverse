@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CYBERVERSE — Select Level</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+/* ===== GLOBAL BACKGROUND (MATCH DASHBOARD) ===== */
+body{
+  margin:0;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(31,143,255,0.08), transparent 40%),
+    radial-gradient(circle at 80% 90%, rgba(0,162,255,0.06), transparent 40%),
+    linear-gradient(180deg,#020611 0%,#040b1d 100%);
+  color:var(--white);
+  position:relative;
+  overflow-x:hidden;
+}
+
+/* GRID OVERLAY */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:
+    linear-gradient(rgba(0,162,255,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,162,255,0.06) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events:none;
+  z-index:0;
+}
+
+/* subtle glow layer */
+body::after{
+  content:"";
+  position:fixed;
+  inset:0;
+  background: radial-gradient(circle at center, rgba(31,143,255,0.05), transparent 60%);
+  pointer-events:none;
+  z-index:0;
+}
+
+/* make sure content sits above */
+.layer, .levels-app, .action-bar, .loading-screen {
+  position:relative;
+  z-index:1;
+}
+
+/* LOADING SCREENS */
+.loading-screen{position:fixed;inset:0;z-index:9000;background:rgba(2,6,17,.96);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;transition:opacity .5s ease;}
+.loading-screen.hidden{opacity:0;pointer-events:none;}
+.load-title{font-family:var(--font-disp);font-size:clamp(1.6rem,5vw,3rem);font-weight:800;letter-spacing:-.03em;background:linear-gradient(135deg,#fff 0%,var(--accent) 50%,var(--accent2) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px;animation:fadeUp .6s ease both;}
+.load-sub{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.22em;color:var(--accent);text-transform:uppercase;margin-bottom:48px;animation:fadeUp .6s .1s ease both;}
+.load-bar-wrap{width:280px;animation:fadeUp .6s .2s ease both;}
+.load-track{height:2px;background:var(--rim);border-radius:1px;overflow:hidden;margin-bottom:14px;}
+.load-fill{height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));border-radius:1px;width:0;transition:width .15s linear;}
+.load-msg{font-family:var(--font-mono);font-size:.65rem;letter-spacing:.14em;color:var(--muted);margin-bottom:6px;}
+.load-step{font-family:var(--font-mono);font-size:.62rem;color:var(--accent);min-height:16px;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* MAIN LAYOUT */
+.levels-app{max-width:960px;margin:0 auto;padding:32px 20px 140px;}
+.back-btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:.7rem;letter-spacing:.12em;color:var(--muted);background:none;border:1px solid var(--rim);padding:7px 14px;border-radius:var(--r);cursor:pointer;transition:all .18s;margin-bottom:32px;}
+.back-btn:hover{color:var(--accent);border-color:var(--accent);}
+.page-heading{font-family:var(--font-disp);font-size:clamp(1.8rem,5vw,2.8rem);font-weight:800;color:var(--white);margin-bottom:8px;letter-spacing:-.03em;}
+.page-sub{font-family:var(--font-mono);font-size:.72rem;color:var(--muted);letter-spacing:.12em;margin-bottom:36px;}
+
+/* COLOURFUL LEVEL CARDS */
+.level-select-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px;margin-bottom:24px;}
+
+.lvl-card{border-radius:18px;padding:24px 20px;cursor:pointer;position:relative;overflow:hidden;transition:transform .22s,box-shadow .22s;user-select:none;border:3px solid transparent;}
+.lvl-card::before{content:'';position:absolute;inset:0;background:linear-gradient(145deg,rgba(255,255,255,.1) 0%,transparent 55%);pointer-events:none;border-radius:15px;}
+.lvl-card:hover{transform:translateY(-6px);}
+.lvl-card:active{transform:scale(.97);}
+
+/* Each level has its own colour */
+.lvl-card.lv1{background:linear-gradient(135deg,#005cad,#00b4d8);box-shadow:0 8px 28px rgba(0,119,182,.4);}
+.lvl-card.lv1:hover{box-shadow:0 14px 40px rgba(0,180,216,.55);}
+.lvl-card.lv2{background:linear-gradient(135deg,#076b35,#2ecc71);box-shadow:0 8px 28px rgba(46,204,113,.35);}
+.lvl-card.lv2:hover{box-shadow:0 14px 40px rgba(46,204,113,.5);}
+.lvl-card.lv3{background:linear-gradient(135deg,#7c19b8,#e040fb);box-shadow:0 8px 28px rgba(191,0,255,.35);}
+.lvl-card.lv3:hover{box-shadow:0 14px 40px rgba(224,64,251,.5);}
+.lvl-card.lv4{background:linear-gradient(135deg,#b01b00,#ff5722);box-shadow:0 8px 28px rgba(230,57,70,.35);}
+.lvl-card.lv4:hover{box-shadow:0 14px 40px rgba(255,87,34,.5);}
+
+/* Selected state — bright white border */
+.lvl-card.selected{border-color:rgba(255,255,255,.8) !important;transform:translateY(-6px);box-shadow:0 0 0 4px rgba(255,255,255,.25),0 14px 40px rgba(0,0,0,.4) !important;}
+
+.lvl-check{position:absolute;top:12px;right:12px;width:22px;height:22px;border-radius:50%;border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:.7rem;color:transparent;transition:all .2s;background:rgba(255,255,255,.1);}
+.lvl-card.selected .lvl-check{background:rgba(255,255,255,.95);border-color:#fff;color:#333;font-weight:700;}
+.lvl-num{font-family:var(--font-mono);font-size:.58rem;letter-spacing:.22em;color:rgba(255,255,255,.7);margin-bottom:10px;text-transform:uppercase;}
+.lvl-icon-big{font-size:2.4rem;margin-bottom:10px;display:block;filter:drop-shadow(0 2px 8px rgba(0,0,0,.3));}
+.lvl-name{font-family:var(--font-disp);font-size:1.05rem;font-weight:800;color:#fff;margin-bottom:8px;text-shadow:0 1px 4px rgba(0,0,0,.25);}
+.lvl-desc{font-size:.82rem;color:rgba(255,255,255,.82);line-height:1.55;margin-bottom:14px;}
+.lvl-diff{display:flex;gap:5px;margin-bottom:12px;}
+.lvl-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.25);}
+.lvl-dot.on{background:#fff;box-shadow:0 0 5px rgba(255,255,255,.6);}
+.lvl-scenes{font-family:var(--font-mono);font-size:.58rem;color:rgba(255,255,255,.6);letter-spacing:.1em;border-top:1px solid rgba(255,255,255,.2);padding-top:10px;}
+.lvl-new-badge{position:absolute;top:11px;left:11px;background:#fff;color:#b01b00;font-family:var(--font-mono);font-size:.55rem;font-weight:700;letter-spacing:.1em;padding:2px 8px;border-radius:3px;text-transform:uppercase;}
+
+.no-select-hint{font-family:var(--font-mono);font-size:.68rem;color:var(--amber);text-align:center;padding:10px;border:1px dashed rgba(244,162,97,.4);border-radius:var(--r);display:none;margin-bottom:16px;}
+.no-select-hint.show{display:block;}
+
+/* A11Y BAR — MATCH DASHBOARD (SLIM BLUE) */
+.a11y-bar{
+  position:fixed;
+  top:50%;
+  right:14px;
+  transform:translateY(-50%);
+  z-index:1000;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+
+  padding:10px 6px;
+  border-radius:20px;
+
+  background:rgba(4,11,29,0.65);
+  border:1px solid rgba(31,143,255,0.25);
+  backdrop-filter:blur(10px);
+
+  box-shadow:
+    0 0 12px rgba(31,143,255,0.25),
+    inset 0 0 8px rgba(31,143,255,0.15);
+}
+
+/* Label */
+.a11y-label{
+  font-size:.55rem;
+  letter-spacing:.18em;
+  color:#1f8fff;
+  opacity:.8;
+  margin-bottom:4px;
+}
+
+/* Buttons */
+.a11y-btn{
+  width:30px;
+  height:30px;
+  border-radius:50%;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-size:.7rem;
+  color:#9fd3ff;
+
+  background:rgba(31,143,255,0.08);
+  border:1px solid rgba(31,143,255,0.25);
+
+  cursor:pointer;
+  transition:all .18s ease;
+}
+
+/* Hover effect */
+.a11y-btn:hover{
+  background:rgba(31,143,255,0.2);
+  color:#fff;
+  border-color:#1f8fff;
+  box-shadow:0 0 10px rgba(31,143,255,0.6);
+  transform:scale(1.08);
+}
+
+/* Active / pressed feel */
+.a11y-btn:active{
+  transform:scale(.92);
+}
+
+/* Divider */
+.a11y-sep{
+  width:60%;
+  height:1px;
+  background:rgba(31,143,255,0.25);
+  margin:4px 0;
+}
+
+/* FIXED BOTTOM ACTION BAR */
+.action-bar{
+  position:fixed;bottom:0;left:0;right:0;z-index:400;
+  background:rgba(10,12,16,.97);
+  border-top:1px solid var(--rim);
+  backdrop-filter:blur(12px);
+  padding:14px 24px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  box-shadow:0 -4px 32px rgba(0,0,0,.5);
+}
+.action-bar-info{display:flex;flex-direction:column;gap:3px;}
+.action-bar-label{font-family:var(--font-mono);font-size:.6rem;letter-spacing:.16em;color:var(--muted);}
+.action-bar-selected{font-family:var(--font-disp);font-size:1rem;font-weight:700;color:var(--white);}
+.btn-start{background:linear-gradient(135deg,var(--accent2),var(--accent));color:var(--ink);font-family:var(--font-mono);font-size:.82rem;font-weight:700;letter-spacing:.1em;padding:13px 32px;border:none;border-radius:var(--r);cursor:pointer;transition:all .18s;opacity:.4;pointer-events:none;display:flex;align-items:center;gap:8px;}
+.btn-start.ready{opacity:1;pointer-events:all;}
+.btn-start.ready:hover{background:linear-gradient(135deg,#0096c7,#48cae4);transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,180,216,.4);}
+
+/* CHARACTER BRIEFING MODAL */
+#briefing-modal{position:fixed;inset:0;z-index:8000;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:20px;}
+#briefing-modal.open{display:flex;}
+.brf-box{background:var(--ink2);border:1px solid rgba(0,180,216,.3);border-radius:22px;max-width:540px;width:100%;overflow:hidden;box-shadow:0 0 80px rgba(0,180,216,.12);position:relative;}
+.brf-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);}
+.brf-header{background:linear-gradient(135deg,rgba(0,119,182,.2),rgba(0,180,216,.08));padding:20px 24px 16px;display:flex;align-items:center;gap:16px;border-bottom:1px solid rgba(0,180,216,.15);}
+.brf-char-img{height:120px;width:auto;object-fit:contain;filter:drop-shadow(0 4px 14px rgba(0,180,216,.35));animation:charBounce .5s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes charBounce{from{transform:scale(0) translateY(20px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.brf-level-tag{font-family:var(--font-mono);font-size:.6rem;letter-spacing:.18em;color:var(--accent);margin-bottom:4px;text-transform:uppercase;}
+.brf-title{font-family:var(--font-disp);font-size:1.3rem;font-weight:800;color:var(--white);margin-bottom:4px;}
+.brf-agent-line{font-family:var(--font-mono);font-size:.68rem;color:var(--muted);}
+.brf-body{padding:22px 24px;}
+.brf-speech{background:rgba(0,180,216,.06);border:1px solid rgba(0,180,216,.18);border-radius:10px;padding:16px 18px;margin-bottom:18px;font-size:.95rem;color:var(--hi);line-height:1.7;position:relative;}
+.brf-speech::before{content:'💬';position:absolute;top:-10px;left:16px;font-size:1.1rem;}
+.brf-tips{margin-bottom:20px;}
+.brf-tip-row{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid var(--rim);font-size:.86rem;color:var(--body);}
+.brf-tip-row:last-child{border-bottom:none;}
+.brf-tip-icon{font-size:1rem;flex-shrink:0;margin-top:1px;}
+.brf-footer{display:flex;gap:10px;}
+.brf-btn-go{flex:1;padding:13px;font-family:var(--font-disp);font-size:.78rem;font-weight:800;letter-spacing:.1em;background:linear-gradient(135deg,var(--accent2),var(--accent));color:var(--ink);border:none;border-radius:10px;cursor:pointer;transition:all .2s;}
+.brf-btn-go:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,180,216,.4);}
+.brf-btn-back{padding:13px 18px;font-family:var(--font-mono);font-size:.72rem;background:transparent;border:1px solid var(--rim2);color:var(--muted);border-radius:10px;cursor:pointer;transition:all .15s;}
+.brf-btn-back:hover{border-color:var(--accent);color:var(--accent);}
+/* PARTICLE CANVAS */
+#particles-bg{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+}
+</style>
+</head>
+<body>
+
+<canvas id="particles-bg"></canvas>
+
+<!-- LOADING SCREEN -->
+<div class="loading-screen" id="loading-screen" role="status">
+  <div class="load-title">LOADING LEVELS</div>
+  <div class="load-bar-wrap">
+    <div class="load-track"><div class="load-fill" id="load-fill"></div></div>
+    <div class="load-msg">CYBERVERSE SIMULATION ENGINE</div>
+    <div class="load-step" id="load-step" aria-live="polite"></div>
+  </div>
+</div>
+
+<!-- PREGAME SCREEN -->
+<div class="loading-screen hidden" id="pregame-screen" role="status">
+  <div class="load-title" id="pg-title">LAUNCHING LEVEL 1</div>
+  <div class="load-bar-wrap">
+    <div class="load-track"><div class="load-fill" id="pg-fill"></div></div>
+    <div class="load-msg">LOADING SCENARIOS</div>
+    <div class="load-step" id="pg-step" aria-live="polite"></div>
+  </div>
+</div>
+
+<!-- CHARACTER BRIEFING MODAL -->
+<div id="briefing-modal" role="dialog" aria-modal="true" aria-label="Mission briefing">
+  <div class="brf-box">
+    <div class="brf-header">
+      <img id="brf-char-img" src="char_boy_full.png" class="brf-char-img" alt="Your agent">
+      <div>
+        <div class="brf-level-tag" id="brf-level-tag">LEVEL 01</div>
+        <div class="brf-title" id="brf-title">Basic Threats</div>
+        <div class="brf-agent-line" id="brf-agent-line">Agent KAI · Briefing</div>
+      </div>
+    </div>
+    <div class="brf-body">
+      <div class="brf-speech" id="brf-speech">Loading briefing...</div>
+      <div class="brf-tips" id="brf-tips"></div>
+      <div class="brf-footer">
+        <button class="brf-btn-back" onclick="closeBriefing()">← Back</button>
+        <button class="brf-btn-go" onclick="launchGame()">▶ &nbsp;START MISSION</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="theme-toggle" id="theme-btn" onclick="toggleTheme()" aria-label="Toggle theme">🌙</button>
+<div class="a11y-bar" role="toolbar">
+  <span class="a11y-label">A11Y</span>
+  <button class="a11y-btn" onclick="setFont('sm')">A</button>
+  <button class="a11y-btn" onclick="setFont('md')">A+</button>
+  <button class="a11y-btn" onclick="setFont('lg')" style="font-weight:700">A++</button>
+  <div class="a11y-sep"></div>
+  <button class="a11y-btn" onclick="toggleContrast()">HC</button>
+  <div class="a11y-sep"></div>
+  <button class="a11y-btn" onclick="showKbdHelp()">⌨</button>
+</div>
+
+<div class="levels-app layer" id="main-content" role="main" style="display:none;">
+  <button class="back-btn" onclick="goBack()">← Back to Hub</button>
+  <div class="page-heading">Select a Level</div>
+
+  <div class="level-select-grid" role="radiogroup">
+    <div class="lvl-card lv1" role="radio" aria-checked="false" tabindex="0" id="lvl-1" onclick="selectLevel(1)" onkeydown="if(event.key==='Enter'||event.key===' ')selectLevel(1)">
+      <div class="lvl-check" aria-hidden="true">✓</div>
+      <span class="lvl-icon-big">🎣</span>
+      <div class="lvl-num">LEVEL 01</div>
+      <div class="lvl-name">Basic Threats</div>
+      <div class="lvl-desc">Phishing emails, SMS prize scams, and credential harvesting attacks.</div>
+      <div class="lvl-diff"><div class="lvl-dot on"></div><div class="lvl-dot"></div><div class="lvl-dot"></div><div class="lvl-dot"></div></div>
+      <div class="lvl-scenes">2 SCENARIOS · ~5 MIN</div>
+    </div>
+    <div class="lvl-card lv2" role="radio" aria-checked="false" tabindex="0" id="lvl-2" onclick="selectLevel(2)" onkeydown="if(event.key==='Enter'||event.key===' ')selectLevel(2)">
+      <div class="lvl-check" aria-hidden="true">✓</div>
+      <span class="lvl-icon-big">📱</span>
+      <div class="lvl-num">LEVEL 02</div>
+      <div class="lvl-name">QR Trap Hunt</div>
+      <div class="lvl-desc">Tampered QR codes on real-world payment and public WiFi surfaces.</div>
+      <div class="lvl-diff"><div class="lvl-dot on"></div><div class="lvl-dot on"></div><div class="lvl-dot"></div><div class="lvl-dot"></div></div>
+      <div class="lvl-scenes">2 SCENARIOS · ~6 MIN</div>
+    </div>
+    <div class="lvl-card lv3" role="radio" aria-checked="false" tabindex="0" id="lvl-3" onclick="selectLevel(3)" onkeydown="if(event.key==='Enter'||event.key===' ')selectLevel(3)">
+      <div class="lvl-check" aria-hidden="true">✓</div>
+      <span class="lvl-icon-big">🤖</span>
+      <div class="lvl-num">LEVEL 03</div>
+      <div class="lvl-name">Deepfake SOS</div>
+      <div class="lvl-desc">AI voice cloning scam calls and deepfake video KYC fraud detection.</div>
+      <div class="lvl-diff"><div class="lvl-dot on"></div><div class="lvl-dot on"></div><div class="lvl-dot on"></div><div class="lvl-dot"></div></div>
+      <div class="lvl-scenes">2 SCENARIOS · ~7 MIN</div>
+    </div>
+    <div class="lvl-card lv4" role="radio" aria-checked="false" tabindex="0" id="lvl-4" onclick="selectLevel(4)" onkeydown="if(event.key==='Enter'||event.key===' ')selectLevel(4)">
+      <div class="lvl-new-badge">NEW</div>
+      <div class="lvl-check" aria-hidden="true">✓</div>
+      <span class="lvl-icon-big">📲</span>
+      <div class="lvl-num">LEVEL 04</div>
+      <div class="lvl-name">Social Media Trap</div>
+      <div class="lvl-desc">Fake brand collabs, advance-fee DMs, and fraudulent job offers targeting teens.</div>
+      <div class="lvl-diff"><div class="lvl-dot on"></div><div class="lvl-dot on"></div><div class="lvl-dot on"></div><div class="lvl-dot on"></div></div>
+      <div class="lvl-scenes">2 SCENARIOS · ~6 MIN</div>
+    </div>
+  </div>
+
+  <div class="no-select-hint" id="no-select-hint">Please select a level above before starting.</div>
+</div>
+
+<!-- FIXED BOTTOM ACTION BAR -->
+<div class="action-bar" role="region" id="action-bar" style="display:none;">
+  <div class="action-bar-info">
+    <div class="action-bar-label">SELECTED LEVEL</div>
+    <div class="action-bar-selected" id="selected-label">None selected</div>
+  </div>
+  <button class="btn-start" id="btn-start" onclick="startGame()" disabled>▶ Start Game</button>
+</div>
+
+<script src="shared.js"></script>
+<script>
+const currentUser = DB.getCurrent();
+if (!currentUser) window.location.href = 'auth.html';
+
+let selectedLevel = null;
+const LEVEL_NAMES = {1:'Level 1 — Basic Threats',2:'Level 2 — QR Trap Hunt',3:'Level 3 — Deepfake SOS',4:'Level 4 — Social Media Trap'};
+
+// ===== SCENARIO FILE PATHS (EXACTLY AS PER OLD STRUCTURE) =====
+// Following the mapping from levels_old.html but ensuring all 4 levels use correct scenario files
+// Mode 1: levels_fix.html (scene1), level2.html (scene2)
+// Mode 2: mode2_level1.html (scene1), mode2_level2.html (scene2)
+// Mode 3: level3_scene1.html (scene1), level3_scene2.html (scene2)
+// Mode 4: mode4_scene1.html (scene1), mode4_level2.html (scene2)
+const LEVEL_FILES = {
+  1: ['mode1/levels_fix.html', 'mode1/level2.html'],
+  2: ['mode2/mode2_level1.html', 'mode2/mode2_level2.html'],
+  3: ['mode3/level3_scene1.html', 'mode3/level3_scene2.html'],
+  4: ['mode4/mode4_scene1.html', 'mode4/mode4_level2.html']
+};
+
+// Briefing content (engaging and consistent with old briefing style)
+const BRIEFINGS = {
+  1:{
+    speech:"Hey! I'm your agent for this mission. In Level 1 you'll face the most common cyber threats — phishing emails and SMS scams. Attackers pretend to be banks or prize companies to steal your personal details. Your job is to spot the tricks before it's too late!",
+    tips:[
+      {icon:'🔍', text:'Always check the sender\'s email address carefully for typos'},
+      {icon:'⏱️', text:'Urgency and deadlines are manipulation tactics — slow down!'},
+      {icon:'🔗', text:'Never click links in emails — go directly to the official website'},
+      {icon:'🏆', text:'Report suspicious messages to earn bonus points!'}
+    ]
+  },
+  2:{
+    speech:"This mission gets trickier! QR code fraud is everywhere — at cafés, metro stations, even shops. Attackers paste fake stickers over real QR codes to redirect your payments to themselves. Look carefully before you scan anything!",
+    tips:[
+      {icon:'👀', text:'Check for raised or peeling sticker edges before scanning'},
+      {icon:'✅', text:'After scanning, verify the "Pay to" name matches the merchant'},
+      {icon:'📶', text:'Never join public WiFi from unknown QR codes'},
+      {icon:'💬', text:'When in doubt, ask the cashier for the correct UPI ID'}
+    ]
+  },
+  3:{
+    speech:"Level 3 is where AI makes things scary! Voice cloning technology can copy someone's voice from just a few seconds of audio. If you get an urgent call from a 'family member' asking for money — it might be a deepfake. Always verify before you pay!",
+    tips:[
+      {icon:'📞', text:'Hang up and call back on the saved number you trust'},
+      {icon:'🤖', text:'AI voices often sound slightly robotic on certain sounds'},
+      {icon:'🔐', text:'Use a family code word to verify real emergencies'},
+      {icon:'💸', text:'Never transfer money based on a voice call alone'}
+    ]
+  },
+  4:{
+    speech:"Final level — Social Media Traps! Scammers target teens on Instagram, WhatsApp and Telegram. They offer fake brand deals, job opportunities and prizes that seem too good to be true. Remember: real brands never ask for money upfront!",
+    tips:[
+      {icon:'💎', text:'Verified blue tick doesn\'t always mean the account is real'},
+      {icon:'💰', text:'Any job that asks you to pay first is always a scam'},
+      {icon:'🔒', text:'Never share your Aadhaar or bank details over DMs'},
+      {icon:'🤔', text:'If an offer seems too good to be true — it is!'}
+    ]
+  }
+};
+
+function getAvatar(){ return localStorage.getItem('cv_avatar')||'boy'; }
+function getAgentName(av){ return av==='girl'?'Agent NOVA':'Agent KAI'; }
+function getCharBust(av){ return av==='girl'?'char_girl_bust.png':'char_boy_full.png'; }
+
+const ENTRY_STEPS = ['Loading level data...','Preparing scenario engine...','Fetching threat database...','Calibrating difficulty AI...','Ready.'];
+function runEntryLoader(){
+  const fill=document.getElementById('load-fill'), step=document.getElementById('load-step');
+  let i=0;
+  const iv=setInterval(()=>{
+    if(i>=ENTRY_STEPS.length){
+      clearInterval(iv);
+      const s=document.getElementById('loading-screen'); s.classList.add('hidden');
+      setTimeout(()=>{
+        s.style.display='none';
+        document.getElementById('main-content').style.display='block';
+        document.getElementById('action-bar').style.display='flex';
+        document.getElementById('main-content').classList.add('page-enter');
+      },500);
+      return;
+    }
+    fill.style.width=((i+1)/ENTRY_STEPS.length*100)+'%'; step.textContent=ENTRY_STEPS[i]; i++;
+  },380);
+}
+
+function selectLevel(lvl){
+  selectedLevel=lvl;
+  [1,2,3,4].forEach(n=>{
+    const c=document.getElementById('lvl-'+n);
+    c.classList.toggle('selected',n===lvl);
+    c.setAttribute('aria-checked',n===lvl?'true':'false');
+  });
+  document.getElementById('selected-label').textContent=LEVEL_NAMES[lvl];
+  const btn=document.getElementById('btn-start'); btn.classList.add('ready'); btn.removeAttribute('disabled');
+  document.getElementById('no-select-hint').classList.remove('show');
+}
+
+function startGame(){
+  if(!selectedLevel){ document.getElementById('no-select-hint').classList.add('show'); return; }
+  // Show character briefing first (same as levels.html but with proper level selection)
+  const av = getAvatar();
+  const brf = BRIEFINGS[selectedLevel];
+  document.getElementById('brf-char-img').src = getCharBust(av);
+  document.getElementById('brf-agent-line').textContent = getAgentName(av)+' · Mission Briefing';
+  document.getElementById('brf-level-tag').textContent = 'LEVEL 0'+selectedLevel;
+  document.getElementById('brf-title').textContent = LEVEL_NAMES[selectedLevel].split('— ')[1] || LEVEL_NAMES[selectedLevel];
+  document.getElementById('brf-speech').textContent = brf.speech;
+  document.getElementById('brf-tips').innerHTML = brf.tips.map(t=>`
+    <div class="brf-tip-row"><span class="brf-tip-icon">${t.icon}</span><span>${t.text}</span></div>
+  `).join('');
+  document.getElementById('briefing-modal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeBriefing(){
+  document.getElementById('briefing-modal').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+const PREGAME_STEPS=['Loading scenarios...','Generating threat vectors...','Building decision tree...','Arming cinematic engine...','Simulation ready — good luck.'];
+function launchGame(){
+  closeBriefing();
+  
+  // Validate that level files exist mapping
+  const sceneFiles = LEVEL_FILES[selectedLevel];
+  if (!sceneFiles || sceneFiles.length === 0) {
+    console.error('No scene files defined for level', selectedLevel);
+    // fallback: show error in console but still try to load
+    alert('Mission files not found. Please check game installation.');
+    return;
+  }
+  
+  const firstSceneFile = sceneFiles[0];
+  
+  const screen=document.getElementById('pregame-screen');
+  document.getElementById('pg-title').textContent='LAUNCHING '+LEVEL_NAMES[selectedLevel].toUpperCase();
+  screen.style.display='flex'; screen.offsetHeight; screen.classList.remove('hidden');
+  const fill=document.getElementById('pg-fill'), step=document.getElementById('pg-step');
+  let i=0;
+  const iv=setInterval(()=>{
+    if(i>=PREGAME_STEPS.length){
+      clearInterval(iv);
+      // Store full game state including the entire sceneFiles array for multi-scene progression (like old system)
+      localStorage.setItem('cv_level', selectedLevel);
+      localStorage.setItem('cv_game_state', JSON.stringify({
+        level: selectedLevel,
+        currentScene: 0,
+        sceneFiles: sceneFiles,
+        health: 100,
+        trust: 100,
+        score: 0,
+        good: 0,
+        bad: 0
+      }));
+      // Navigate to first scene file
+      window.location.href = firstSceneFile;
+      return;
+    }
+    fill.style.width=((i+1)/PREGAME_STEPS.length*100)+'%'; step.textContent=PREGAME_STEPS[i]; i++;
+  },420);
+}
+
+function goBack(){ window.location.href='dashboard.html'; }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeBriefing(); });
+runEntryLoader();
+
+// ===== PARTICLE BACKGROUND (ENHANCED ATMOSPHERE) =====
+const canvas = document.getElementById("particles-bg");
+const ctx = canvas.getContext("2d");
+
+let particles = [];
+const PARTICLE_COUNT = 60;
+
+function resizeCanvas(){
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener("resize", resizeCanvas);
+
+class Particle{
+  constructor(){
+    this.reset();
+  }
+
+  reset(){
+    this.x = Math.random() * canvas.width;
+    this.y = Math.random() * canvas.height;
+    this.radius = Math.random() * 1.5 + 0.5;
+    this.speedY = Math.random() * 0.4 + 0.1;
+    this.opacity = Math.random() * 0.5 + 0.2;
+  }
+
+  update(){
+    this.y -= this.speedY;
+    if(this.y < 0){
+      this.reset();
+      this.y = canvas.height;
+    }
+  }
+
+  draw(){
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(31,143,255,${this.opacity})`;
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = "rgba(31,143,255,0.6)";
+    ctx.fill();
+  }
+}
+
+for(let i=0;i<PARTICLE_COUNT;i++){
+  particles.push(new Particle());
+}
+
+function animateParticles(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  particles.forEach(p=>{
+    p.update();
+    p.draw();
+  });
+  requestAnimationFrame(animateParticles);
+}
+
+animateParticles();
+
+// ===== ACCESSIBILITY FUNCTIONS (global helpers from shared.js will override if exists, but safe fallback) =====
+window.setFont = function(size){
+  if(size === 'sm') document.body.style.fontSize = '14px';
+  else if(size === 'md') document.body.style.fontSize = '16px';
+  else if(size === 'lg') document.body.style.fontSize = '18px';
+  localStorage.setItem('cv_font_pref', size);
+};
+window.toggleContrast = function(){
+  const html = document.documentElement;
+  const current = html.getAttribute('data-theme');
+  if(current === 'dark') html.setAttribute('data-theme', 'high-contrast');
+  else if(current === 'high-contrast') html.setAttribute('data-theme', 'dark');
+  else html.setAttribute('data-theme', 'dark');
+  localStorage.setItem('cv_theme', html.getAttribute('data-theme'));
+};
+window.showKbdHelp = function(){
+  alert("Keyboard shortcuts:\n- Enter/Space: select level\n- Escape: close briefing\n- Tab: navigate cards");
+};
+window.toggleTheme = function(){
+  const html = document.documentElement;
+  const current = html.getAttribute('data-theme');
+  if(current === 'dark') html.setAttribute('data-theme', 'light');
+  else html.setAttribute('data-theme', 'dark');
+  localStorage.setItem('cv_theme', html.getAttribute('data-theme'));
+};
+// init theme from localStorage if any
+const savedTheme = localStorage.getItem('cv_theme');
+if(savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
+const savedFont = localStorage.getItem('cv_font_pref');
+if(savedFont) setFont(savedFont);
+</script>
+</body>
+</html>

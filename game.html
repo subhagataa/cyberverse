@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CYBERVERSE — Simulation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+.sh-label{font-family:var(--font-mono);font-size:.65rem;letter-spacing:.2em;color:var(--accent);margin-bottom:6px;}
+.sh-title{font-family:var(--font-disp);font-size:1.5rem;font-weight:700;color:var(--white);}
+.sh-meta{font-family:var(--font-mono);font-size:.68rem;color:var(--muted);margin-top:4px;}
+.scenario-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap;}
+
+/* ══ CINEMATIC BAD OVERLAY ══ */
+#cin-overlay{position:fixed;inset:0;z-index:5000;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;opacity:0;pointer-events:none;transition:opacity 0.3s ease;}
+#cin-overlay.active{opacity:1;pointer-events:all;}
+#cin-overlay::before{content:'';position:absolute;inset:0;z-index:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.15) 2px,rgba(0,0,0,.15) 4px);pointer-events:none;animation:sl .1s linear infinite;}
+@keyframes sl{0%{background-position:0 0}100%{background-position:0 4px}}
+.cin-vig{position:absolute;inset:0;z-index:1;background:radial-gradient(ellipse at center,transparent 40%,rgba(230,57,70,.4) 100%);animation:vigp .8s ease-in-out infinite alternate;pointer-events:none;}
+@keyframes vigp{0%{opacity:.6}100%{opacity:1}}
+.cin-term{position:relative;z-index:10;width:min(700px,92vw);background:rgba(8,12,18,.97);border:1px solid #e63946;border-radius:8px;box-shadow:0 0 80px rgba(230,57,70,.3),inset 0 0 40px rgba(230,57,70,.04);overflow:hidden;max-height:90vh;display:flex;flex-direction:column;}
+.cin-tbar{background:rgba(230,57,70,.15);border-bottom:1px solid rgba(230,57,70,.3);padding:10px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.cin-dot{width:10px;height:10px;border-radius:50%;}
+.cin-dot.r{background:#e63946}.cin-dot.a{background:#f4a261}.cin-dot.g{background:#2ecc71}
+.cin-tbar-txt{font-family:var(--font-mono);font-size:.65rem;letter-spacing:.2em;color:rgba(230,57,70,.8);margin-left:6px;text-transform:uppercase;}
+.cin-tbar-live{margin-left:auto;font-family:var(--font-mono);font-size:.6rem;color:#e63946;animation:blink .6s ease-in-out infinite;}
+.cin-body{padding:18px 20px;font-family:var(--font-mono);font-size:.76rem;line-height:1.8;color:#e63946;overflow-y:auto;flex:1;}
+.cin-line{display:flex;align-items:flex-start;gap:10px;margin-bottom:2px;opacity:0;transform:translateX(-6px);transition:opacity .2s ease,transform .2s ease;}
+.cin-line.show{opacity:1;transform:translateX(0);}
+.cin-p{color:rgba(230,57,70,.5);flex-shrink:0;min-width:36px;}
+.cr{color:#e63946}.ca{color:#f4a261}.cg{color:#2ecc71}.cd{color:rgba(230,57,70,.4)}.cw{color:#eef4fa}.cc{color:#00b4d8}
+.cin-accs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0;opacity:0;transition:opacity .3s ease;}
+.cin-accs.show{opacity:1;}
+.cin-acc{background:rgba(230,57,70,.06);border:1px solid rgba(230,57,70,.2);border-radius:4px;padding:9px 11px;}
+.cin-acc.comp{border-color:rgba(230,57,70,.6);background:rgba(230,57,70,.12);animation:ap .5s ease-in-out 3;}
+@keyframes ap{0%,100%{box-shadow:none}50%{box-shadow:0 0 14px rgba(230,57,70,.5)}}
+.cin-acc-n{font-family:var(--font-mono);font-size:.6rem;color:rgba(255,255,255,.7);margin-bottom:2px;}
+.cin-acc-s{font-family:var(--font-mono);font-size:.58rem;color:rgba(230,57,70,.5);}
+.cin-acc-s.bad{color:#e63946;font-weight:600;}
+.cin-prog-wrap{margin:12px 0 6px;opacity:0;transition:opacity .3s ease;}
+.cin-prog-wrap.show{opacity:1;}
+.cin-prog-lbl{font-family:var(--font-mono);font-size:.58rem;color:rgba(230,57,70,.6);margin-bottom:4px;letter-spacing:.1em;}
+.cin-prog-track{height:4px;background:rgba(230,57,70,.15);border-radius:2px;overflow:hidden;}
+.cin-prog-fill{height:100%;background:linear-gradient(90deg,#e63946,#ff6b6b);border-radius:2px;width:0%;transition:width 2.5s cubic-bezier(.1,.8,.3,1);box-shadow:0 0 8px rgba(230,57,70,.6);}
+.cin-dmg{text-align:center;margin:14px 0 6px;opacity:0;transition:opacity .4s ease;}
+.cin-dmg.show{opacity:1;}
+.cin-dmg-amt{font-family:var(--font-disp);font-size:clamp(1.8rem,5vw,3rem);font-weight:800;color:#e63946;display:inline-block;}
+.cin-dmg-lbl{font-family:var(--font-mono);font-size:.62rem;letter-spacing:.2em;color:rgba(230,57,70,.6);margin-top:3px;}
+.cin-foot{border-top:1px solid rgba(230,57,70,.2);padding:12px 18px;display:flex;align-items:center;justify-content:space-between;opacity:0;transition:opacity .4s ease;flex-shrink:0;}
+.cin-foot.show{opacity:1;}
+.cin-foot-msg{font-family:var(--font-mono);font-size:.62rem;color:rgba(230,57,70,.5);letter-spacing:.1em;}
+.cin-cont{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;background:rgba(230,57,70,.15);border:1px solid rgba(230,57,70,.5);color:#e63946;padding:9px 18px;border-radius:4px;cursor:pointer;transition:all .2s;}
+.cin-cont:hover{background:rgba(230,57,70,.25);box-shadow:0 0 16px rgba(230,57,70,.3);}
+.glitch{animation:glm .3s ease-in-out 4 .5s;}
+@keyframes glm{0%,100%{transform:translate(0)}20%{transform:translate(-3px,1px);filter:hue-rotate(90deg)}40%{transform:translate(3px,-1px);filter:hue-rotate(-90deg)}60%{transform:translate(-2px,2px)}80%{transform:translate(2px,-2px);filter:hue-rotate(45deg)}}
+
+/* ══ GOOD OUTCOME OVERLAY ══ */
+#cin-good{position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .3s ease;}
+#cin-good.active{opacity:1;pointer-events:all;}
+.cin-shield{font-size:4rem;margin-bottom:18px;animation:sb .6s cubic-bezier(.34,1.56,.64,1) forwards;transform:scale(0);}
+@keyframes sb{to{transform:scale(1)}}
+.cin-gtitle{font-family:var(--font-disp);font-size:clamp(1.6rem,5vw,2.8rem);font-weight:800;color:var(--green);margin-bottom:8px;text-align:center;animation:fu .5s .3s ease both;}
+.cin-gsub{font-family:var(--font-mono);font-size:.72rem;color:rgba(46,204,113,.6);letter-spacing:.2em;text-align:center;margin-bottom:28px;animation:fu .5s .5s ease both;}
+.cin-gtip{max-width:480px;background:rgba(46,204,113,.07);border:1px solid rgba(46,204,113,.2);border-radius:6px;padding:16px 20px;font-size:.86rem;color:rgba(255,255,255,.75);line-height:1.7;text-align:center;animation:fu .5s .7s ease both;margin-bottom:24px;}
+.cin-gtip strong{color:var(--green);}
+.cin-pts{display:inline-flex;align-items:center;gap:8px;background:rgba(46,204,113,.12);border:1px solid rgba(46,204,113,.3);border-radius:30px;padding:10px 24px;font-family:var(--font-mono);font-size:.88rem;color:var(--green);animation:fu .5s .9s ease both;margin-bottom:28px;}
+.cin-parts{position:fixed;inset:0;pointer-events:none;z-index:4999;}
+.cin-part{position:absolute;width:6px;height:6px;border-radius:50%;background:var(--green);animation:pb 1s ease-out forwards;}
+@keyframes pb{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--tx),var(--ty)) scale(0);opacity:0}}
+@keyframes fu{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+/* ══ SOCIAL MEDIA ══ */
+.social-app{background:var(--surface);border:1px solid var(--rim);border-radius:8px;overflow:hidden;margin-bottom:28px;box-shadow:var(--shadow);}
+.social-tbar{background:var(--ink3);border-bottom:1px solid var(--rim);padding:10px 16px;display:flex;align-items:center;gap:10px;}
+.social-tbar-name{font-family:var(--font-disp);font-size:.9rem;font-weight:700;color:var(--white);}
+.social-tbar-sub{font-family:var(--font-mono);font-size:.65rem;color:var(--muted);margin-left:auto;}
+.social-dm{padding:16px 18px;}
+.social-dmh{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--rim);}
+.social-av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#6a11cb,#2575fc);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+.social-sname{font-family:var(--font-disp);font-size:.95rem;font-weight:700;color:var(--white);}
+.social-smeta{font-family:var(--font-mono);font-size:.62rem;color:var(--muted);}
+.social-msg{background:var(--ink3);border:1px solid var(--rim);border-radius:4px 16px 16px 16px;padding:14px 16px;font-size:.88rem;color:var(--body);line-height:1.7;margin-bottom:10px;}
+.social-time{font-family:var(--font-mono);font-size:.6rem;color:var(--muted);margin-bottom:16px;}
+.social-lp{background:var(--ink2);border:1px solid var(--rim2);border-left:3px solid var(--red);border-radius:4px;padding:12px 14px;display:flex;align-items:center;gap:12px;}
+.social-lp-dom{font-family:var(--font-mono);font-size:.62rem;color:var(--red);margin-bottom:3px;}
+.social-lp-ttl{font-size:.82rem;color:var(--hi);font-weight:600;}
+
+/* ══ JOB CARD ══ */
+.job-card{background:var(--surface);border:1px solid var(--rim);border-radius:8px;overflow:hidden;margin-bottom:28px;box-shadow:var(--shadow);}
+.job-head{background:linear-gradient(135deg,#0a2342,#0d3b6e);padding:18px 20px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--rim);}
+.job-logo{width:48px;height:48px;border-radius:8px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;}
+.job-co{font-family:var(--font-disp);font-size:1.05rem;font-weight:700;color:#fff;}
+.job-dom{font-family:var(--font-mono);font-size:.62rem;color:rgba(255,255,255,.5);margin-top:2px;}
+.job-body{padding:18px 20px;}
+.job-ttl{font-family:var(--font-disp);font-size:1.2rem;font-weight:700;color:var(--white);margin-bottom:8px;}
+.job-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.job-tag{font-family:var(--font-mono);font-size:.6rem;letter-spacing:.06em;padding:3px 8px;border-radius:2px;background:rgba(0,180,216,.1);border:1px solid rgba(0,180,216,.2);color:var(--accent);}
+.job-desc{font-size:.88rem;color:var(--body);line-height:1.7;margin-bottom:14px;}
+.job-cta{background:rgba(0,180,216,.08);border:1px solid rgba(0,180,216,.2);border-radius:4px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.job-cta-t{font-family:var(--font-mono);font-size:.72rem;color:var(--accent);}
+.job-cta-l{font-family:var(--font-mono);font-size:.62rem;color:var(--red);word-break:break-all;}
+.job-rf{background:rgba(230,57,70,.07);border:1px solid rgba(230,57,70,.2);border-radius:4px;padding:10px 14px;margin-top:12px;font-size:.8rem;color:var(--amber);line-height:1.6;}
+</style>
+</head>
+<body class="page-enter">
+<a href="#main-content" class="skip-link">Skip to main content</a>
+<button class="theme-toggle" id="theme-btn" onclick="toggleTheme()" aria-label="Toggle dark and light mode">🌙</button>
+<div class="a11y-bar" role="toolbar" aria-label="Accessibility controls">
+  <span class="a11y-label" aria-hidden="true">A11Y</span>
+  <button class="a11y-btn" data-action="font-sm" onclick="setFont('sm')" aria-label="Small font">A</button>
+  <button class="a11y-btn" data-action="font-md" onclick="setFont('md')" aria-label="Medium font">A+</button>
+  <button class="a11y-btn" data-action="font-lg" onclick="setFont('lg')" aria-label="Large font" style="font-weight:700">A++</button>
+  <div class="a11y-sep" role="separator"></div>
+  <button class="a11y-btn" data-action="contrast" onclick="toggleContrast()" aria-label="Toggle high contrast">⬤ HC</button>
+  <div class="a11y-sep" role="separator"></div>
+  <button class="a11y-btn" data-action="kbd" onclick="showKbdHelp()" aria-label="Keyboard shortcuts">⌨</button>
+</div>
+
+<!-- CINEMATIC BAD OVERLAY -->
+<div id="cin-overlay" role="dialog" aria-label="Attack consequence" aria-live="assertive">
+  <div class="cin-vig"></div>
+  <div class="cin-term">
+    <div class="cin-tbar">
+      <div class="cin-dot r"></div><div class="cin-dot a"></div><div class="cin-dot g"></div>
+      <span class="cin-tbar-txt">SYSTEM INTRUSION DETECTED</span>
+      <span class="cin-tbar-live">● LIVE</span>
+    </div>
+    <div class="cin-body" id="cin-body"></div>
+    <div class="cin-foot" id="cin-foot">
+      <span class="cin-foot-msg">// WHAT JUST HAPPENED TO YOU</span>
+      <button class="cin-cont" onclick="closeCinBad()">UNDERSTOOD → CONTINUE</button>
+    </div>
+  </div>
+</div>
+
+<!-- CINEMATIC GOOD OVERLAY -->
+<div id="cin-good" role="dialog" aria-label="Threat neutralised" aria-live="assertive">
+  <div class="cin-parts" id="cin-parts"></div>
+  <div class="cin-shield" id="cin-si">🛡</div>
+  <div class="cin-gtitle" id="cin-gt">THREAT NEUTRALISED</div>
+  <div class="cin-gsub" id="cin-gs">// EXCELLENT DECISION</div>
+  <div class="cin-gtip" id="cin-gtip"></div>
+  <div class="cin-pts" id="cin-pts">+50 PTS</div>
+  <button class="cin-cont" style="border-color:rgba(46,204,113,.5);color:var(--green);background:rgba(46,204,113,.1);" onclick="closeCinGood()">NEXT SCENARIO →</button>
+</div>
+
+<!-- HUD -->
+<div id="hud" class="on" role="banner" aria-label="Game status">
+  <div class="hud-inner">
+    <div class="hud-bar">
+      <div class="hud-bar-label">Security Health <span id="h-val">100%</span></div>
+      <div class="bar-track"><div class="bar-fill" id="h-fill" style="width:100%;background:var(--green)"></div></div>
+    </div>
+    <div class="hud-bar">
+      <div class="hud-bar-label">Trust Level <span id="t-val">100%</span></div>
+      <div class="bar-track"><div class="bar-fill" id="t-fill" style="width:100%;background:var(--accent)"></div></div>
+    </div>
+    <div class="hud-user">
+      <div class="hud-avatar" id="hud-av" aria-hidden="true">?</div>
+      <div class="hud-uname" id="hud-uname">PLAYER</div>
+    </div>
+    <div class="hud-score-block" aria-live="polite">
+      <div class="sc-num" id="sc-num">0</div>
+      <div class="sc-lbl">SCORE</div>
+    </div>
+  </div>
+</div>
+
+<div class="app layer" id="main-content" role="main">
+  <div class="breadcrumb" id="breadcrumb" aria-label="Scenario progress"></div>
+  <div class="scenario-header">
+    <div>
+      <div class="sh-label" id="sh-label">—</div>
+      <div class="sh-title" id="sh-title">—</div>
+      <div class="sh-meta" id="sh-meta">—</div>
+    </div>
+  </div>
+  <div id="scenario-body" aria-live="polite"></div>
+  <div id="feedback-area" aria-live="assertive"></div>
+  <div id="choices-area"></div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+const DATA = {
+  1:{ name:'Basic Threats', scenes:[
+    { type:'email', label:'EMAIL CLIENT // 09:14 AM', title:'Suspicious Bank Notification', meta:'Tuesday · Level 1: Basic Threats',
+      from:'security@b4nk0findia-alerts.net', subject:'⚠ URGENT: Your account has been suspended', time:'Today, 9:14 AM',
+      badge:{text:'PHISHING RISK',cls:'badge-danger'},
+      body:`Dear Valued Customer,<br><br>We have detected <strong>unusual login activity</strong> on your account from an unrecognised device in Pune.<br><br>Your account has been <strong>temporarily suspended</strong>. Verify your identity:`,
+      link:{text:'http://secure-b4nk-verify.xyz/login',malicious:true},
+      note:'FAILURE TO ACT WITHIN 2 HOURS WILL RESULT IN PERMANENT SUSPENSION.',
+      choices:[
+        {k:'A',text:'Click the verification link — account needs restoring urgently',type:'bad', pts:-30,hp:-25,tp:-20},
+        {k:'B',text:'Examine the sender domain — "b4nk0findia-alerts.net" looks odd', type:'good',pts:+25,hp:0,  tp:+5},
+        {k:'C',text:'Report as phishing, forward to the bank\'s official fraud team',  type:'best',pts:+50,hp:0,  tp:+10},
+        {k:'D',text:'Forward to a colleague to get a second opinion',                  type:'warn',pts:-10,hp:-5, tp:-5}
+      ],
+      fb:{
+        bad: {icon:'💀',t:'Credentials Harvested',txt:'You were redirected to a replica login page. Username, password, and OTP captured. Account takeover in progress.',tip:'Legitimate banks never request credentials via email links. Always navigate directly to the bank\'s official URL.',
+          cin:{title:'ACCOUNT TAKEOVER IN PROGRESS',
+            lines:[{p:'[SYS]',t:'Malicious redirect → b4nk0findia-alerts.net',c:'cr'},{p:'[ATK]',t:'Loading phishing page... SSL certificate: FAKE',c:'cr'},{p:'[ATK]',t:'Keylogger active. Capturing credentials...',c:'ca'},{p:'[ATK]',t:'Username captured: ████████',c:'cw'},{p:'[ATK]',t:'Password captured: ●●●●●●●●',c:'cw'},{p:'[ATK]',t:'OTP intercepted via SIM relay. Authenticating...',c:'cr'},{p:'[SYS]',t:'LOGIN SUCCESSFUL — Attacker now inside your account',c:'cr'},{p:'[ATK]',t:'Initiating fund transfer: ₹47,500 → mule account',c:'ca'},{p:'[ATK]',t:'Changing registered mobile & email address...',c:'cr'},{p:'[SYS]',t:'YOU HAVE BEEN LOCKED OUT OF YOUR OWN ACCOUNT',c:'cr'}],
+            accs:['🏦 Bank Account|LOCKED ⛔','📧 Email|COMPROMISED','📱 Mobile OTP|INTERCEPTED','💳 Credit Card|EXPOSED'],
+            dmg:'₹47,500',prog:true}},
+        good:{icon:'🔍',t:'Domain Anomaly Detected',txt:'"b4nk0findia-alerts.net" uses "0" instead of "o" — a classic homograph attack. The real domain is bankofindia.co.in.',tip:'Hover over links to inspect the actual URL before clicking.'},
+        best:{icon:'🛡',t:'Threat Neutralised',txt:'Reporting phishing trains spam filters and allows faster takedown of the malicious domain.',tip:'Report phishing at cybercrime.gov.in and your bank\'s fraud helpline. Include the full email header.'},
+        warn:{icon:'⚠',t:'Lateral Spread Risk',txt:'Forwarding a phishing email risks your colleague clicking the link.',tip:'Never forward suspicious emails. Report through official channels only.'}
+      }
+    },
+    { type:'email', label:'SMS / NOTIFICATION // 10:47 AM', title:'Prize Winner Alert', meta:'Tuesday · Level 1',
+      from:'+91-98XXXXXXXX (Unknown)', subject:'🎉 You\'ve won ₹50,000! Claim within 30 minutes', time:'Today, 10:47 AM',
+      badge:{text:'SOCIAL ENGINEERING',cls:'badge-danger'},
+      body:`Congratulations! You have been selected as our <strong>LUCKY DRAW WINNER</strong> for ₹50,000 cash!<br><br>To claim, reply with:<br>• Full name and Aadhaar number<br>• Bank account number and IFSC<br><br><strong>Offer expires in 30 minutes.</strong>`,
+      link:{text:'Reply NOW to claim →',malicious:true},note:null,
+      choices:[
+        {k:'A',text:'Reply with required details — ₹50,000 is too good to miss',             type:'bad', pts:-40,hp:-35,tp:-25},
+        {k:'B',text:'Call the number back to verify before sharing anything',                type:'warn',pts:-15,hp:-10,tp:-10},
+        {k:'C',text:'Block the number — you never entered any contest',                      type:'good',pts:+30,hp:0,  tp:+5},
+        {k:'D',text:'Report to Cybercrime Helpline 1930 with screenshot evidence',           type:'best',pts:+55,hp:0,  tp:+15}
+      ],
+      fb:{
+        bad: {icon:'💳',t:'Identity Theft Initiated',txt:'You shared Aadhaar and bank details. Sufficient for a complete financial identity theft.',tip:'You cannot win a prize from a contest you never entered.',
+          cin:{title:'IDENTITY THEFT PIPELINE ACTIVATED',
+            lines:[{p:'[ATK]',t:'Data received: Full name, Aadhaar, bank account, IFSC',c:'cr'},{p:'[ATK]',t:'Cross-referencing dark web database...',c:'ca'},{p:'[ATK]',t:'Profile complete. Creating synthetic identity...',c:'cr'},{p:'[ATK]',t:'Applying for instant loan via NBFC portal... APPROVED ₹2,00,000',c:'cw'},{p:'[ATK]',t:'SIM swap request submitted with Aadhaar OTP...',c:'cr'},{p:'[SYS]',t:'Your mobile number now routes to attacker\'s device',c:'cr'},{p:'[ATK]',t:'All bank OTPs now intercepted. Financial exposure: TOTAL',c:'ca'}],
+            accs:['🪪 Aadhaar|COMPROMISED','📱 SIM|HIJACKED','🏦 Bank|EXPOSED','💰 Credit|FRAUDULENT LOAN'],
+            dmg:'₹2,00,000',prog:true}},
+        warn:{icon:'⚠',t:'Engaging the Scammer',txt:'Calling back confirms your number is active and gives them a social engineering opportunity.',tip:'Do not engage with unknown scam numbers at all.'},
+        good:{icon:'✅',t:'Scam Blocked',txt:'Unsolicited prize notifications with 30-minute deadlines are textbook scams.',tip:'Artificial urgency is a manipulation technique. When time pressure is created — pause and think.'},
+        best:{icon:'🏆',t:'First Reporter — Badge!',txt:'Reporting to 1930 with evidence helps authorities trace the scam network and protect others.',tip:'Keep a screenshot before blocking. Report at cybercrime.gov.in or call 1930.'}
+      }
+    }
+  ]},
+  2:{ name:'QR Trap Hunt', scenes:[
+    { type:'qr', label:'CAFÉ COUNTER // 11:05 AM', title:'Payment QR Code', meta:'Wednesday · Level 2: QR Trap Hunt',
+      qrReal:{url:'upi://pay?pa=mocha-cafe@okaxis&pn=MochaCafe&am=340',label:'MochaCafe@okaxis',caption:'VERIFIED UPI ID'},
+      qrFake:{url:'http://fake-payment-redirect.xyz/collect?trap=1',label:'Unknown redirect URL',caption:'TAMPERED STICKER DETECTED'},
+      context:'A QR code sticker is affixed to the café counter. You notice the sticker\'s edge is slightly raised — as though placed over another sticker.',
+      details:[{k:'Location',v:'Mocha Café, Connaught Place'},{k:'Amount',v:'₹340 for your order'},{k:'Observation',v:'Sticker edge raised at corner'},{k:'Cashier',v:'Busy — not watching'}],
+      warning:'⚠ Physical QR tampering: Attackers print fake stickers and paste over legitimate merchant codes.',
+      choices:[
+        {k:'A',text:'Scan and pay immediately — looks official enough',                    type:'bad', pts:-35,hp:-25,tp:-20},
+        {k:'B',text:'Ask the cashier to confirm the correct UPI ID before scanning',       type:'best',pts:+55,hp:0,  tp:+15},
+        {k:'C',text:'Peel the sticker corner to check if there\'s another underneath',    type:'good',pts:+35,hp:0,  tp:+10},
+        {k:'D',text:'Pay cash and quietly inform the manager',                             type:'good',pts:+40,hp:0,  tp:+12}
+      ],
+      fb:{
+        bad: {icon:'💸',t:'QR Fraud — ₹340 Lost',txt:'The sticker was placed by an attacker over the real café QR. UPI transfers are irreversible.',tip:'Always verify the "Pay to:" name after scanning before confirming payment.',
+          cin:{title:'UPI PAYMENT INTERCEPTED',
+            lines:[{p:'[SYS]',t:'QR scanned → redirecting to attacker payment gateway',c:'cr'},{p:'[PAY]',t:'UPI app loaded. Pay to: UNKNOWN_MERCHANT@paytm',c:'ca'},{p:'[YOU]',t:'Payment confirmed: ₹340',c:'cw'},{p:'[SYS]',t:'Transaction ID: FRAUDULENT — no merchant record exists',c:'cr'},{p:'[ATK]',t:'Funds received at mule account. Laundering initiated.',c:'cr'},{p:'[SYS]',t:'UPI fraud: 0% reversal rate. Money is GONE.',c:'ca'},{p:'[SYS]',t:'Same attacker placed 14 more stickers across this area.',c:'cd'}],
+            accs:['💳 UPI Payment|₹340 LOST','🏦 Bank Balance|DEBITED','📜 Transaction|UNRECOVERABLE','🔎 Attacker|UNTRACED'],
+            dmg:'₹340',prog:false}},
+        best:{icon:'🛡',t:'QR Guardian — Badge!',txt:'Asking the cashier to confirm UPI details is the most reliable defence.',tip:'Safe habit: after scanning, check the "Pay to:" field. Personal name instead of business = stop.'},
+        good:{icon:'🔍',t:'Physical Anomaly Found',txt:'You spotted the tampered sticker — a real attack vector.',tip:'Look for raised edges, misaligned text, or different paper quality on QR stickers.'},
+        warn:{icon:'✅',t:'Safe Fallback',txt:'Paying cash eliminated the risk. Reporting to the manager protects future customers.',tip:'When in doubt about a QR code, cash is always zero-risk.'}
+      }
+    },
+    { type:'qr', label:'METRO STATION // 08:35 AM', title:'Free Public WiFi QR', meta:'Thursday · Level 2',
+      qrReal:{url:'https://dmrc.co.in/wifi-registration',label:'dmrc.co.in/wifi-registration',caption:'OFFICIAL DMRC PORTAL'},
+      qrFake:{url:'http://metro-free-wifi.xyz/connect?trap=1',label:'http://metro-free-wifi.xyz/connect',caption:'ROGUE HOTSPOT URL'},
+      context:'A professional-looking poster at the metro entrance: "FREE HIGH-SPEED WIFI — 1GB Daily. Scan to connect." Two side-by-side posters with slightly different QR codes.',
+      details:[{k:'Location',v:'Rajiv Chowk Metro entrance'},{k:'Poster type',v:'A3 laminated — looks professional'},{k:'Logo check',v:'DMRC logo present, no hologram'},{k:'Two posters',v:'Both claim official — different QRs'}],
+      warning:'⚠ Rogue Access Point: Connecting attacker-controlled hotspot allows full interception of network traffic.',
+      choices:[
+        {k:'A',text:'Scan and connect — 1GB free data is genuinely useful',                          type:'bad', pts:-30,hp:-20,tp:-20},
+        {k:'B',text:'Check DMRC\'s official website first to find the real WiFi registration link',  type:'best',pts:+55,hp:0,  tp:+15},
+        {k:'C',text:'Don\'t scan — use mobile data and ignore the poster',                           type:'good',pts:+25,hp:0,  tp:+5},
+        {k:'D',text:'Scan but close all apps and don\'t log into anything',                          type:'warn',pts:-12,hp:-8, tp:-8}
+      ],
+      fb:{
+        bad: {icon:'📡',t:'Man-in-the-Middle Active',txt:'You connected to a rogue hotspot. All HTTP traffic intercepted. Session cookies and credentials compromised.',tip:'Never join public WiFi from QR codes. Enable VPN if you must use public WiFi.',
+          cin:{title:'ROGUE HOTSPOT: MAN-IN-THE-MIDDLE ACTIVE',
+            lines:[{p:'[NET]',t:'Connected to: DMRC_FREE_WIFI_5G (ROGUE)',c:'ca'},{p:'[ATK]',t:'All traffic now routed through attacker\'s proxy',c:'cr'},{p:'[ATK]',t:'Scanning for unencrypted HTTP sessions...',c:'ca'},{p:'[ATK]',t:'Session cookie captured: Gmail (HTTP fallback)',c:'cr'},{p:'[ATK]',t:'WhatsApp Web token intercepted via backup API',c:'cr'},{p:'[ATK]',t:'Instagram session cloned. Attacker logged in silently.',c:'cw'},{p:'[SYS]',t:'3 accounts compromised while you read this.',c:'cr'}],
+            accs:['📧 Gmail|SESSION STOLEN','💬 WhatsApp|CLONED','📸 Instagram|HIJACKED','🌐 DNS|POISONED'],
+            dmg:'3 Accounts',prog:true}},
+        best:{icon:'🏆',t:'Source Verification Master',txt:'Checking the official website before scanning ensures you get the real URL.',tip:'For government QR codes, verify the URL against the official site first.'},
+        good:{icon:'✅',t:'Threat Avoided',txt:'Not scanning unverified public QR codes is a safe default.',tip:'Default stance toward public QR codes should be scepticism.'},
+        warn:{icon:'⚠',t:'Partial Exposure',txt:'Background app refresh and OS-level traffic can still leak data even with apps closed.',tip:'The only safe choice is not to connect at all.'}
+      }
+    }
+  ]},
+  3:{ name:'Deepfake SOS', scenes:[
+    { type:'call', label:'INCOMING CALL // 16:18', title:'Emergency Call — Bhai', meta:'Friday · Level 3: Deepfake SOS',
+      caller:{name:'Rahul (Bhai)',num:'+91-98XXXXXXXX',avatar:'👤'},
+      script:'"Hey it\'s me... I\'m in serious trouble. Had a small accident near Nehru Place — police are here and they need ₹25,000 for bail right now. Please transfer it immediately. Don\'t tell Ma and Papa, they\'ll panic. I\'ll pay you back tonight. Please yaar, it\'s urgent—"',
+      audioNote:'Voice sounds slightly robotic on sibilant sounds. Background noise is inconsistent with a police station. No incoming call from his saved number.',
+      choices:[
+        {k:'A',text:'Transfer ₹25,000 immediately — it sounds exactly like Rahul',            type:'bad', pts:-50,hp:-35,tp:-30},
+        {k:'B',text:'Tell the caller to ring back from Rahul\'s real saved number',           type:'good',pts:+40,hp:0,  tp:+10},
+        {k:'C',text:'Hang up and immediately call Rahul on his saved contact',                type:'best',pts:+65,hp:0,  tp:+20},
+        {k:'D',text:'Ask a question only Rahul would know — childhood nickname or school',    type:'good',pts:+45,hp:0,  tp:+15}
+      ],
+      fb:{
+        bad: {icon:'🤖',t:'AI Voice Cloning Scam',txt:'This was a deepfake voice attack. Attackers cloned Rahul\'s voice from 6 seconds of audio on his Instagram. The real Rahul is at home.',tip:'AI voice cloning requires only 3–6 seconds of audio. Never transfer money based on a voice call alone.',
+          cin:{title:'AI VOICE CLONE ATTACK — FUNDS TRANSFERRED',
+            lines:[{p:'[AI ]',t:'Voice model: Rahul Sharma — 6 sec sample (Instagram)',c:'cd'},{p:'[AI ]',t:'Emotion layer: DISTRESSED. Confidence: 97%',c:'ca'},{p:'[ATK]',t:'Transfer instruction given. Victim complied.',c:'cr'},{p:'[UPI]',t:'₹25,000 sent → mule account XYZ-7823',c:'cr'},{p:'[ATK]',t:'Funds laundered through 3 accounts in 90 seconds.',c:'cr'},{p:'[SYS]',t:'Real Rahul is at home, unaware this happened.',c:'cw'},{p:'[AI ]',t:'Cost to clone your voice — ₹0. Free AI tool.',c:'cd'}],
+            accs:['🤖 AI Model|ACTIVE','📞 Fake Call|SUCCESS','💸 Transfer|₹25,000 GONE','🔍 Attacker|UNTRACEABLE'],
+            dmg:'₹25,000',prog:false}},
+        good:{icon:'🔍',t:'Verification Tactic',txt:'Asking to call back from a known number exposes the scam.',tip:'For any emergency financial request, insist on callback from a verified number.'},
+        best:{icon:'🛡',t:'Deepfake Detector — Badge!',txt:'Calling Rahul on his saved number takes 10 seconds and instantly confirms the call was a scam.',tip:'Establish a family protocol: all emergency money requests confirmed via callback on a saved number.'},
+        warn:{icon:'🔐',t:'Smart Friction',txt:'A good instinct. However, sophisticated attackers research targets via social media before calling.',tip:'Set a secret family verification word shared only in person. This defeats all voice cloning attacks.'}
+      }
+    },
+    { type:'call', label:'VIDEO CALL // 20:45', title:'Bank KYC Verification Call', meta:'Friday · Level 3',
+      caller:{name:'Axis Bank — KYC Team',num:'1800-XXX-XXXX (Unknown)',avatar:'🏦'},
+      script:'"Good evening. I\'m calling from Axis Bank KYC Department. Your annual KYC is due and your account may be suspended by midnight. I\'ll need you to show your PAN card, Aadhaar card on camera, and confirm the OTP we\'ve just sent to complete the process in two minutes."',
+      audioNote:'Facial movements are slightly delayed from speech. Background is a generic stock-photo office. Uniform looks real but lapel badge is blurred.',
+      choices:[
+        {k:'A',text:'Comply — show documents and share the OTP before account suspension',  type:'bad', pts:-60,hp:-40,tp:-35},
+        {k:'B',text:'Refuse, end the call, ring Axis Bank on official number 1860-419-5555',type:'best',pts:+65,hp:0,  tp:+20},
+        {k:'C',text:'Ask for the caller\'s employee ID and official branch code',            type:'good',pts:+40,hp:0,  tp:+15},
+        {k:'D',text:'Hang up immediately without saying anything further',                  type:'good',pts:+35,hp:0,  tp:+10}
+      ],
+      fb:{
+        bad: {icon:'☠',t:'Full Account Takeover',txt:'You showed documents and shared OTP on a deepfake video call. Complete takeover in 8 seconds.',tip:'Banks NEVER conduct KYC via video call. An OTP request during a call = 100% fraud.',
+          cin:{title:'DEEPFAKE KYC CALL — FULL ACCOUNT TAKEOVER',
+            lines:[{p:'[DF ]',t:'Deepfake model: "Bank Officer" — real-time video synthesis',c:'cd'},{p:'[ATK]',t:'PAN card captured via screen recording. OCR running...',c:'cr'},{p:'[ATK]',t:'Aadhaar number extracted: ████ ████ 7823',c:'cr'},{p:'[OTP]',t:'OTP shared by victim. Bank login: AUTHENTICATED',c:'ca'},{p:'[ATK]',t:'Account accessed. Balance: ₹1,84,000',c:'cw'},{p:'[ATK]',t:'NEFT transfer initiated: ₹1,84,000 → external account',c:'cr'},{p:'[SYS]',t:'Total time for complete takeover: 8 seconds.',c:'ca'}],
+            accs:['🪪 PAN Card|PHOTOGRAPHED','🆔 Aadhaar|EXTRACTED','💰 ₹1,84,000|TRANSFERRED','🔐 Account|LOCKED'],
+            dmg:'₹1,84,000',prog:true}},
+        best:{icon:'🏆',t:'Scam Disrupted — Badge!',txt:'Calling the official Axis Bank number verifies everything independently.',tip:'Axis Bank: 1860-419-5555 · SBI: 1800-11-2211 · HDFC: 1800-202-6161. Save them now.'},
+        good:{icon:'🔍',t:'Authentication Attempted',txt:'Requesting employee ID creates friction scammers cannot resolve.',tip:'When a caller increases pressure after you request verification — that\'s your confirmation it\'s a scam.'},
+        warn:{icon:'✅',t:'Clean Exit',txt:'Ending the call without sharing anything is always safe.',tip:'Real banks will never penalise you for calling back on an official number.'}
+      }
+    }
+  ]},
+  4:{ name:'Social Media Trap', scenes:[
+    { type:'social', label:'INSTAGRAM DM // 14:22', title:'Brand Collab Offer', meta:'Saturday · Level 4: Social Media Trap',
+      platform:'Instagram', sender:{name:'brand.collab.india_official',handle:'@brand.collab.india_official',followers:'12.4K',avatar:'🎁'},
+      badge:{text:'FAKE BRAND SCAM',cls:'badge-danger'},
+      message:`Hi! 😊 We came across your profile and LOVE your content! We'd like to send you FREE products worth ₹8,000 for an honest review.<br><br>Just click below to fill your shipping details + pay a small ₹199 <em>refundable</em> courier fee and we'll dispatch immediately!`,
+      linkPreview:{domain:'brand-collab-verify.in/register',title:'Brand Partnership Registration — Claim Your Free Products',icon:'🎁'},
+      redFlags:['No blue verification tick','Account created 3 weeks ago','"Refundable" fee is standard scam bait','Real brands never charge couriers to influencers','Domain is not a known brand site'],
+      choices:[
+        {k:'A',text:'Pay the ₹199 and fill shipping details — free products sound great',  type:'bad', pts:-35,hp:-20,tp:-25},
+        {k:'B',text:'Check if the brand has an official verified account first',           type:'good',pts:+35,hp:0,  tp:+10},
+        {k:'C',text:'Report the account and block — this is a textbook advance-fee scam', type:'best',pts:+55,hp:0,  tp:+15},
+        {k:'D',text:'Ask them to send the products first before you pay anything',         type:'warn',pts:-5, hp:-5, tp:-5}
+      ],
+      fb:{
+        bad: {icon:'📦',t:'Advance Fee Trap Sprung',txt:'You paid ₹199 and entered your address. No products will arrive. Your card details may also be stored for future fraud.',tip:'Legitimate brands never charge a "courier fee." Any upfront payment for a prize or freebie is a scam.',
+          cin:{title:'ADVANCE FEE FRAUD + DATA HARVEST',
+            lines:[{p:'[ATK]',t:'Victim paid ₹199 "refundable courier fee"',c:'cr'},{p:'[ATK]',t:'Card details stored: 16-digit number + CVV + expiry',c:'cr'},{p:'[ATK]',t:'Home address collected. Building target dossier...',c:'ca'},{p:'[ATK]',t:'₹199 payment processed — shell gateway — UNREFUNDABLE',c:'cr'},{p:'[ATK]',t:'Card charged again after 7 days: ₹3,499 "membership"',c:'cw'},{p:'[SYS]',t:'Products will never arrive. DM sent to 4,000 accounts.',c:'cd'},{p:'[SYS]',t:'Address sold to spam list. Expect courier scam calls.',c:'ca'}],
+            accs:['💳 Card Details|HARVESTED','🏠 Address|SOLD','💰 ₹3,699|CHARGED','📦 Products|NEVER ARRIVING'],
+            dmg:'₹3,699',prog:false}},
+        good:{icon:'🔍',t:'Source Verified',txt:'The real brand\'s account will be verified with thousands of followers and official website links.',tip:'Always verify brand accounts via the brand\'s official website. Absence of a verified tick on a brand is a major red flag.'},
+        best:{icon:'🛡',t:'Scam Reported — Badge!',txt:'Reporting the fake account helps Instagram remove it faster, protecting others.',tip:'On Instagram: tap ⋮ on the profile → Report → It\'s a scam. Takes 30 seconds.'},
+        warn:{icon:'⚠',t:'Engaging the Scammer',txt:'Asking them to send first keeps you in dialogue with a scammer. They will manufacture reasons why you must pay first.',tip:'Cut contact immediately. Engaging gives scammers information and time to manipulate.'}
+      }
+    },
+    { type:'job', label:'JOB PORTAL DM // 11:30 AM', title:'Work From Home Offer', meta:'Saturday · Level 4',
+      badge:{text:'FAKE JOB SCAM',cls:'badge-danger'},
+      company:{name:'GlobalTechHR Solutions',domain:'global-techhr-solutions.in',logo:'🏢'},
+      jobTitle:'Remote Data Entry Specialist — ₹45,000/month',
+      tags:['WORK FROM HOME','NO EXPERIENCE','IMMEDIATE JOINING','DAILY PAYOUT'],
+      description:`We are hiring for our expanding operations! Earn <strong>₹1,500 per day</strong> working just 2–3 hours from home. No qualifications required.<br><br>Task: Simple data entry and product review submission. <strong>Daily payments directly to your account.</strong><br><br>To activate your account, a <strong>one-time refundable registration fee of ₹999</strong> is required for background verification.`,
+      ctaText:'Apply Now — Limited Slots',
+      ctaLink:'global-techhr-solutions.in/register?fee=999',
+      redFlags:['Unregistered company — not found on MCA portal','₹1,500/day with no skills is unrealistic','Registration fee for jobs is always a scam','Daily payout promises are bait','Domain created 2 months ago'],
+      choices:[
+        {k:'A',text:'Pay ₹999 registration fee — ₹45K/month is worth the risk',              type:'bad', pts:-40,hp:-25,tp:-30},
+        {k:'B',text:'Search "GlobalTechHR Solutions" on MCA portal to verify registration',   type:'best',pts:+60,hp:0,  tp:+20},
+        {k:'C',text:'Ask for an official offer letter on company letterhead before paying',   type:'good',pts:+40,hp:0,  tp:+15},
+        {k:'D',text:'Apply but refuse to pay any registration fee',                           type:'good',pts:+30,hp:0,  tp:+10}
+      ],
+      fb:{
+        bad: {icon:'💼',t:'Job Scam — Money Lost',txt:'You paid ₹999. No login kit will arrive. The company does not exist. This scam runs across 50+ fake job portals.',tip:'Legitimate employers NEVER charge a registration fee. Report fake jobs at cybercrime.gov.in.',
+          cin:{title:'FAKE JOB SCAM — REGISTRATION FEE STOLEN',
+            lines:[{p:'[ATK]',t:'Registration fee collected: ₹999',c:'cr'},{p:'[ATK]',t:'Victim\'s phone added to "premium scam list"',c:'ca'},{p:'[ATK]',t:'Follow-up call in 3 days: "Training fee ₹1,499"',c:'cr'},{p:'[ATK]',t:'Then: "Security deposit ₹2,999" — avg total loss ₹8,000',c:'cw'},{p:'[SYS]',t:'Company "GlobalTechHR" NOT in MCA database',c:'cd'},{p:'[ATK]',t:'No job. No refund. You are now a "warm lead".',c:'cr'}],
+            accs:['💼 Job Offer|FAKE','💰 ₹999|STOLEN','📞 Your Number|SOLD','🔄 Repeat Fraud|INCOMING'],
+            dmg:'₹8,000+',prog:false}},
+        best:{icon:'🏆',t:'Fraud Exposed — Badge!',txt:'The MCA portal lets you verify any registered Indian company in seconds.',tip:'MCA portal: mca.gov.in → Company Search. If a company isn\'t there, it doesn\'t exist legally.'},
+        good:{icon:'🔍',t:'Smart Friction',txt:'A legitimate company will provide this instantly. A scammer will delay, pressure, or ghost you.',tip:'Offer letters from real companies have CIN numbers, HR contact details, and official email domains.'},
+        warn:{icon:'✅',t:'Right Instinct',txt:'Refusing the fee is correct. However, continuing to engage gives scammers your phone number for future attacks.',tip:'Best response: report the listing to the job portal and stop contact entirely.'}
+      }
+    }
+  ]}
+};
+
+let G={level:1,idx:0,health:100,trust:100,score:0,good:0,bad:0,pending:false};
+function loadState(){try{const s=JSON.parse(localStorage.getItem('cv_game_state')||'null');if(s)G={...G,...s};}catch(e){}}
+function saveState(){localStorage.setItem('cv_game_state',JSON.stringify(G));}
+
+let audioCtx=null;
+function getCtx(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx;}
+function playRingtone(loop){const a=new Audio('ringtone.mpeg');a.loop=loop;a.volume=0.8;a.play().catch(e=>{});return{stop(){a.pause();a.currentTime=0;}};}
+function playDecline(){const c=getCtx(),o=c.createOscillator(),g=c.createGain();o.type='sawtooth';o.frequency.value=380;o.connect(g);g.connect(c.destination);g.gain.setValueAtTime(0.08,c.currentTime);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.5);o.start();o.stop(c.currentTime+0.5);}
+function playAccept(){const c=getCtx();[0,0.12,0.24].forEach((d,i)=>{const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=[523,659,784][i];o.connect(g);g.connect(c.destination);g.gain.setValueAtTime(0.09,c.currentTime+d);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+d+0.12);o.start(c.currentTime+d);o.stop(c.currentTime+d+0.14);});}
+function playAlarmBad(){const c=getCtx();[0,.15,.3,.45].forEach(d=>{const o=c.createOscillator(),g=c.createGain();o.type='square';o.frequency.value=220;o.frequency.setValueAtTime(220,c.currentTime+d);o.frequency.setValueAtTime(180,c.currentTime+d+0.07);o.connect(g);g.connect(c.destination);g.gain.setValueAtTime(0.12,c.currentTime+d);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+d+0.14);o.start(c.currentTime+d);o.stop(c.currentTime+d+0.16);});}
+function playGoodChime(){const c=getCtx();[523.25,659.25,783.99,1046.50].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=f;o.connect(g);g.connect(c.destination);g.gain.setValueAtTime(0,c.currentTime+i*.1);g.gain.linearRampToValueAtTime(.12,c.currentTime+i*.1+.05);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+i*.1+.4);o.start(c.currentTime+i*.1);o.stop(c.currentTime+i*.1+.42);});}
+
+function makeWaveform(active){const h=[6,14,10,20,8,16,12,22,6,18,10,14,8,20,12];return`<div class="call-waveform">${h.map((v,i)=>`<div class="wv-bar ${active?'active':''}" style="height:${active?4:v}px;animation-delay:${i*.06}s"></div>`).join('')}</div>`;}
+let ringtoneHandle=null,callTimer=null,callSeconds=0;
+function stopRingtone(){try{if(window._ringtone){window._ringtone.stop();window._ringtone=null;}}catch(e){}clearInterval(callTimer);}
+
+function updateHUD(){
+  const h=Math.max(0,G.health),t=Math.max(0,G.trust);
+  document.getElementById('h-fill').style.width=h+'%';
+  document.getElementById('h-fill').style.background=h>60?'var(--green)':h>30?'var(--amber)':'var(--red)';
+  document.getElementById('h-val').textContent=h+'%';
+  document.getElementById('t-fill').style.width=t+'%';
+  document.getElementById('t-fill').style.background=t>60?'var(--accent)':t>30?'var(--amber)':'var(--red)';
+  document.getElementById('t-val').textContent=t+'%';
+  document.getElementById('sc-num').textContent=Math.max(0,G.score);
+  saveState();
+}
+
+/* ══ CINEMATIC ENGINE ══ */
+function launchCinBad(cin,onDone){
+  const ov=document.getElementById('cin-overlay'),body=document.getElementById('cin-body'),foot=document.getElementById('cin-foot');
+  body.innerHTML='';foot.classList.remove('show');ov.classList.add('active');
+  playAlarmBad();
+
+  const title=document.createElement('div');
+  title.style.cssText='font-family:var(--font-disp);font-size:1rem;font-weight:700;color:#e63946;margin-bottom:12px;letter-spacing:-.02em;';
+  title.className='glitch';title.textContent='⚠ '+cin.title;body.appendChild(title);
+
+  if(cin.accs&&cin.accs.length){
+    const ag=document.createElement('div');ag.className='cin-accs';ag.id='cin-ag';
+    cin.accs.forEach(a=>{const[n,s]=a.split('|');const c=document.createElement('div');c.className='cin-acc';c.innerHTML=`<div class="cin-acc-n">${n}</div><div class="cin-acc-s bad">${s}</div>`;ag.appendChild(c);});
+    body.appendChild(ag);
+    if(cin.prog){const p=document.createElement('div');p.className='cin-prog-wrap';p.id='cin-pw';p.innerHTML=`<div class="cin-prog-lbl">ATTACK PROGRESS</div><div class="cin-prog-track"><div class="cin-prog-fill" id="cin-pf"></div></div>`;body.appendChild(p);}
+  }
+  if(cin.dmg){const d=document.createElement('div');d.className='cin-dmg';d.id='cin-d';d.innerHTML=`<div class="cin-dmg-amt">${cin.dmg}</div><div class="cin-dmg-lbl">ESTIMATED LOSS / EXPOSURE</div>`;body.appendChild(d);}
+
+  const lc=document.createElement('div');lc.style.marginTop='8px';body.appendChild(lc);
+  let li=0;
+  function nl(){
+    if(li>=cin.lines.length){
+      setTimeout(()=>{
+        const ag=document.getElementById('cin-ag');
+        if(ag){ag.classList.add('show');ag.querySelectorAll('.cin-acc').forEach((c,i)=>setTimeout(()=>c.classList.add('comp'),i*200));}
+        const pw=document.getElementById('cin-pw');if(pw){pw.classList.add('show');setTimeout(()=>{document.getElementById('cin-pf').style.width='100%';},100);}
+        const d=document.getElementById('cin-d');if(d)d.classList.add('show');
+        setTimeout(()=>foot.classList.add('show'),1000);
+      },400);
+      window._cinBadDone=onDone;return;
+    }
+    const line=cin.lines[li];
+    const el=document.createElement('div');el.className='cin-line';
+    el.innerHTML=`<span class="cin-p">${line.p}</span><span class="${line.c}">${line.t}</span>`;
+    lc.appendChild(el);requestAnimationFrame(()=>setTimeout(()=>el.classList.add('show'),20));
+    li++;setTimeout(nl,270+Math.random()*110);
+  }
+  setTimeout(nl,500);
+}
+function closeCinBad(){document.getElementById('cin-overlay').classList.remove('active');if(window._cinBadDone){window._cinBadDone();window._cinBadDone=null;}}
+
+function launchCinGood(fb,pts,onDone){
+  const ov=document.getElementById('cin-good');playGoodChime();
+  document.getElementById('cin-si').textContent=fb.icon||'🛡';
+  document.getElementById('cin-gt').textContent=fb.t;
+  document.getElementById('cin-gs').textContent='// '+(pts>=50?'BEST RESPONSE':'CORRECT DECISION');
+  document.getElementById('cin-gtip').innerHTML=`<strong>Security Insight:</strong> ${fb.tip}`;
+  document.getElementById('cin-pts').textContent='+'+pts+' PTS';
+  const pc=document.getElementById('cin-parts');pc.innerHTML='';
+  for(let i=0;i<30;i++){const p=document.createElement('div');p.className='cin-part';const angle=Math.random()*Math.PI*2,dist=80+Math.random()*200;p.style.cssText=`left:50%;top:50%;--tx:${Math.cos(angle)*dist}px;--ty:${Math.sin(angle)*dist}px;background:${['#2ecc71','#00b4d8','#ffd166'][Math.floor(Math.random()*3)]};animation-delay:${Math.random()*.3}s;animation-duration:${.6+Math.random()*.5}s;`;pc.appendChild(p);}
+  ov.classList.add('active');window._cinGoodDone=onDone;
+}
+function closeCinGood(){document.getElementById('cin-good').classList.remove('active');if(window._cinGoodDone){window._cinGoodDone();window._cinGoodDone=null;}}
+
+/* ══ RENDER ══ */
+function renderScene(){
+  const lvl=DATA[G.level];
+  if(G.idx>=lvl.scenes.length){finishGame();return;}
+  const sc=lvl.scenes[G.idx];G.pending=false;
+  document.getElementById('breadcrumb').innerHTML=lvl.scenes.map((s,i)=>{const cls=i<G.idx?'done':i===G.idx?'now':'';return`<span class="bc-item ${cls}">${i+1}. ${s.title}</span>${i<lvl.scenes.length-1?'<span class="bc-sep">›</span>':''}`}).join('');
+  document.getElementById('sh-label').textContent=sc.label;
+  document.getElementById('sh-title').textContent=sc.title;
+  document.getElementById('sh-meta').textContent=sc.meta;
+  document.getElementById('feedback-area').innerHTML='';
+  document.getElementById('choices-area').innerHTML='';
+  if(sc.type==='email')renderEmail(sc);
+  if(sc.type==='qr')renderQR(sc);
+  if(sc.type==='call')renderCall(sc);
+  if(sc.type==='social')renderSocial(sc);
+  if(sc.type==='job')renderJob(sc);
+  renderChoices(sc);
+}
+
+function renderEmail(sc){
+  document.getElementById('scenario-body').innerHTML=`
+    <div class="email-client" role="article">
+      <div class="ec-titlebar" aria-hidden="true"><div class="ec-dots"><div class="ec-dot"></div><div class="ec-dot"></div><div class="ec-dot"></div></div><div class="ec-url">mail.cyberverse-sim.local</div></div>
+      <div class="ec-header">
+        <div class="ec-badge ${sc.badge.cls}" role="alert">⚠ ${sc.badge.text}</div>
+        <div class="ec-from">FROM: <span>${sc.from}</span></div>
+        <div class="ec-subject">${sc.subject}</div>
+        <div class="ec-time">${sc.time}</div>
+      </div>
+      <div class="ec-body">${sc.body}<br><br>
+        <a class="ec-link ${sc.link.malicious?'malicious':''}" aria-label="Suspicious link">${sc.link.text}</a>
+        ${sc.note?`<br><br><small style="color:var(--amber);font-family:var(--font-mono);font-size:.72rem;">${sc.note}</small>`:''}
+      </div>
+    </div>`;}
+
+function renderQR(sc){
+  document.getElementById('scenario-body').innerHTML=`
+    <div style="margin-bottom:16px;background:var(--surface);border:1px solid var(--rim);border-radius:6px;padding:16px 18px;">
+      <div class="t-label" style="margin-bottom:8px;">SCENE CONTEXT</div>
+      <p style="font-size:.88rem;color:var(--body);line-height:1.7;">${sc.context}</p>
+      <div class="qr-warning" style="margin-top:12px;" role="alert">${sc.warning}</div>
+    </div>
+    <div class="qr-scene">
+      <div class="qr-poster" role="img"><div class="qr-tamper-badge">TAMPERED</div><div class="qr-poster-name">SUSPICIOUS QR</div><div class="qr-poster-sub">FOUND AT LOCATION</div><div class="qr-holder" id="qr-fake-holder"></div><div class="qr-caption">${sc.qrFake.caption}</div><div style="font-family:var(--font-mono);font-size:.62rem;color:var(--muted);margin-top:6px;word-break:break-all;">${sc.qrFake.label}</div></div>
+      <div class="qr-info-card">
+        <div class="t-label" style="margin-bottom:8px;">SCENARIO DETAILS</div>
+        ${sc.details.map(d=>`<div class="qr-detail"><span class="qr-detail-key">${d.k}</span><span>${d.v}</span></div>`).join('')}
+        <div style="margin-top:14px;"><div class="t-label" style="margin-bottom:6px;color:var(--green);">✓ LEGITIMATE QR (REFERENCE)</div><div style="display:flex;align-items:center;gap:10px;"><div class="qr-holder" id="qr-real-holder" style="padding:6px;"></div><div><div style="font-family:var(--font-mono);font-size:.68rem;color:var(--green);margin-bottom:3px;">✓ ${sc.qrReal.caption}</div><div style="font-family:var(--font-mono);font-size:.62rem;color:var(--muted);word-break:break-all;">${sc.qrReal.label}</div></div></div></div>
+      </div>
+    </div>`;
+  setTimeout(()=>{try{new QRCode(document.getElementById('qr-fake-holder'),{text:sc.qrFake.url,width:140,height:140,colorDark:'#1a0505',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});}catch(e){}try{new QRCode(document.getElementById('qr-real-holder'),{text:sc.qrReal.url,width:90,height:90,colorDark:'#050f0a',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});}catch(e){}},80);}
+
+function renderCall(sc){
+  document.getElementById('scenario-body').innerHTML=`
+    <div class="phone-wrap"><div class="phone"><div class="phone-notch" aria-hidden="true"><div class="phone-notch-pill"></div></div>
+      <div class="phone-screen" id="phone-screen">
+        <div class="phone-call"><div class="call-status t-mono">INCOMING CALL</div><div class="call-avatar" aria-hidden="true">${sc.caller.avatar}</div><div class="call-name">${sc.caller.name}</div><div class="call-num t-mono">${sc.caller.num}</div>${makeWaveform(false)}<div class="call-subtitle t-mono">Audio simulation active<br>Listen carefully for anomalies</div>
+          <div class="call-btns"><button class="call-btn call-decline" onclick="handleDecline()">📵</button><button class="call-btn call-accept" onclick="handleAccept()">📞</button></div>
+        </div>
+      </div>
+    </div></div>
+    <div style="background:var(--surface);border:1px solid var(--rim);border-radius:6px;padding:14px 16px;margin-bottom:20px;">
+      <div class="t-label" style="margin-bottom:6px;">AUDIO ANALYSIS NOTE</div>
+      <p style="font-size:.84rem;color:var(--body);line-height:1.6;">${sc.audioNote}</p>
+    </div>`;
+  try{ringtoneHandle=playRingtone(true);window._ringtone=ringtoneHandle;}catch(e){}}
+
+function handleDecline(){stopRingtone();playDecline();const ps=document.getElementById('phone-screen');if(ps)ps.innerHTML=`<div class="phone-idle" style="text-align:center;padding:40px 20px;"><div style="font-size:2rem;margin-bottom:10px;">📵</div><div style="font-family:var(--font-mono);font-size:.72rem;color:var(--muted);">CALL DECLINED</div></div>`;setTimeout(()=>document.getElementById('choices-area').scrollIntoView({behavior:'smooth',block:'start'}),300);}
+function handleAccept(){stopRingtone();playAccept();const sc=DATA[G.level].scenes[G.idx];callSeconds=0;const ps=document.getElementById('phone-screen');ps.innerHTML=`<div class="phone-answered"><div class="ans-status">CONNECTED</div><div class="ans-name">${sc.caller.name}</div><div class="ans-timer t-mono" id="ctd">0:00</div>${makeWaveform(true)}<div class="ans-script" id="call-script" style="opacity:0;transition:opacity .5s;"></div><button class="ans-endcall" onclick="handleEndCall()">📵</button></div>`;callTimer=setInterval(()=>{callSeconds++;const el=document.getElementById('ctd');if(el)el.textContent=`${Math.floor(callSeconds/60)}:${String(callSeconds%60).padStart(2,'0')}`;},1000);const script=sc.script,se=document.getElementById('call-script');if(se){se.style.opacity='1';let i=0;const ti=setInterval(()=>{if(!document.getElementById('call-script')){clearInterval(ti);return;}document.getElementById('call-script').textContent=script.slice(0,i);i+=2;if(i>script.length)clearInterval(ti);},30);}}
+function handleEndCall(){stopRingtone();playDecline();const ps=document.getElementById('phone-screen');if(ps)ps.innerHTML=`<div class="phone-idle" style="text-align:center;padding:40px 20px;"><div style="font-size:2rem;margin-bottom:10px;">📵</div><div style="font-family:var(--font-mono);font-size:.72rem;color:var(--muted);">CALL ENDED</div></div>`;}
+
+function renderSocial(sc){
+  document.getElementById('scenario-body').innerHTML=`
+    <div class="social-app" role="article">
+      <div class="social-tbar"><span style="font-size:1.2rem;">📷</span><div class="social-tbar-name">${sc.platform}</div><div class="social-tbar-sub">Direct Messages</div></div>
+      <div class="social-dm">
+        <div class="ec-badge ${sc.badge.cls}" role="alert" style="margin-bottom:14px;">⚠ ${sc.badge.text}</div>
+        <div class="social-dmh"><div class="social-av">${sc.sender.avatar}</div><div><div class="social-sname">${sc.sender.name} <span style="color:rgba(255,255,255,.3);font-size:.75rem;" title="Not verified">○</span></div><div class="social-smeta">${sc.sender.followers} followers · Joined recently</div></div></div>
+        <div class="social-msg">${sc.message}</div>
+        <div class="social-time">Today, 2:22 PM</div>
+        <div class="social-lp"><div style="font-size:1.8rem;">${sc.linkPreview.icon}</div><div><div class="social-lp-dom">${sc.linkPreview.domain}</div><div class="social-lp-ttl">${sc.linkPreview.title}</div></div></div>
+        <div style="margin-top:14px;background:rgba(244,162,97,.07);border:1px solid rgba(244,162,97,.2);border-radius:4px;padding:12px 14px;">
+          <div class="t-label" style="color:var(--amber);margin-bottom:6px;">⚠ RED FLAGS</div>
+          ${sc.redFlags.map(f=>`<div style="font-size:.8rem;color:var(--body);padding:2px 0;">• ${f}</div>`).join('')}
+        </div>
+      </div>
+    </div>`;}
+
+function renderJob(sc){
+  document.getElementById('scenario-body').innerHTML=`
+    <div class="job-card" role="article">
+      <div class="ec-badge ${sc.badge.cls}" role="alert" style="margin:16px 18px 0;display:inline-flex;">⚠ ${sc.badge.text}</div>
+      <div class="job-head"><div class="job-logo">${sc.company.logo}</div><div><div class="job-co">${sc.company.name}</div><div class="job-dom">${sc.company.domain}</div></div></div>
+      <div class="job-body">
+        <div class="job-ttl">${sc.jobTitle}</div>
+        <div class="job-tags">${sc.tags.map(t=>`<span class="job-tag">${t}</span>`).join('')}</div>
+        <div class="job-desc">${sc.description}</div>
+        <div class="job-cta"><div class="job-cta-t">${sc.ctaText}</div><div class="job-cta-l">${sc.ctaLink}</div></div>
+        <div class="job-rf"><strong style="color:var(--red);">⚠ Red Flags:</strong> ${sc.redFlags.join(' · ')}</div>
+      </div>
+    </div>`;}
+
+function renderChoices(sc){
+  document.getElementById('choices-area').innerHTML=`
+    <div class="choices-section" role="group" aria-labelledby="choices-lbl">
+      <div class="choices-label" id="choices-lbl">// SELECT YOUR RESPONSE — press 1–4 or Tab+Enter</div>
+      <div class="choice-list">${sc.choices.map((c,i)=>`<button class="choice" data-idx="${i}" onclick="handleChoice(${JSON.stringify(c).replace(/"/g,'&quot;')})" aria-label="Option ${c.k}: ${c.text}"><span class="choice-key" aria-hidden="true">${c.k}</span><span>${c.text}</span></button>`).join('')}</div>
+      <div style="font-family:var(--font-mono);font-size:.6rem;color:var(--muted);margin-top:10px;">⌨ Press <kbd style="background:var(--rim);padding:1px 5px;border-radius:2px;">1</kbd>–<kbd style="background:var(--rim);padding:1px 5px;border-radius:2px;">${sc.choices.length}</kbd> to select</div>
+    </div>`;
+  setTimeout(()=>{const f=document.querySelector('.choice');if(f)f.focus();},80);}
+
+function handleChoice(c){
+  if(G.pending)return;G.pending=true;stopRingtone();
+  G.health=Math.min(100,Math.max(0,G.health+(c.hp||0)));
+  G.trust=Math.min(100,Math.max(0,G.trust+(c.tp||0)));
+  G.score+=c.pts;
+  if(c.type==='good'||c.type==='best')G.good++;else G.bad++;
+  updateHUD();
+  document.querySelectorAll('.choice').forEach(b=>{b.disabled=true;b.style.opacity='0.4';b.style.cursor='default';});
+  const sc=DATA[G.level].scenes[G.idx],fb=sc.fb[c.type]||sc.fb.good;
+  announceToSR(`${c.type==='good'||c.type==='best'?'Correct':'Incorrect'} response. Score: ${Math.max(0,G.score)}. Health: ${Math.max(0,G.health)}%.`);
+  if(c.type==='bad'&&fb.cin){launchCinBad(fb.cin,()=>showFB(fb,c.type));}
+  else if(c.type==='good'||c.type==='best'){launchCinGood(fb,c.pts,()=>showFB(fb,c.type));}
+  else{showFB(fb,c.type);}
+}
+
+function showFB(fb,type){
+  const cls=(type==='best'||type==='good')?'good':type==='warn'?'warn':'bad';
+  document.getElementById('feedback-area').innerHTML=`
+    <div class="feedback-card ${cls}" role="region">
+      <div class="fc-header"><div class="fc-icon">${fb.icon}</div><div class="fc-title ${cls}">${fb.t}</div></div>
+      <div class="fc-text">${fb.txt}</div>
+      <div class="tip-card"><div class="tip-label">// SECURITY TIP</div><p>${fb.tip}</p></div>
+      <div class="fc-actions"><button class="btn btn-primary" onclick="nextScene()">Next Scenario →</button></div>
+    </div>`;
+  document.getElementById('feedback-area').scrollIntoView({behavior:'smooth',block:'start'});}
+
+function nextScene(){G.idx++;saveState();renderScene();window.scrollTo({top:0,behavior:'smooth'});}
+
+function finishGame(){
+  stopRingtone();
+  localStorage.setItem('cv_result',JSON.stringify({level:G.level,health:Math.max(0,G.health),trust:Math.max(0,G.trust),score:Math.max(0,G.score),good:G.good,bad:G.bad}));
+  window.location.href='ending.html';}
+
+document.addEventListener('keydown',e=>{
+  if(e.key>='1'&&e.key<='4'){const idx=parseInt(e.key)-1;const choices=document.querySelectorAll('.choice:not([disabled])');if(choices[idx])choices[idx].click();}
+  if(e.key==='Escape'){if(document.getElementById('cin-overlay').classList.contains('active'))closeCinBad();if(document.getElementById('cin-good').classList.contains('active'))closeCinGood();}
+});
+
+const currentUser=DB.getCurrent();
+if(!currentUser){window.location.href='auth.html';}
+else{
+  document.getElementById('hud-av').textContent=currentUser.name.charAt(0).toUpperCase();
+  document.getElementById('hud-uname').textContent=currentUser.name.split(' ')[0].toUpperCase();
+  loadState();updateHUD();renderScene();
+}
+</script>
+</body>
+</html>

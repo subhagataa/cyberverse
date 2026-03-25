@@ -1,0 +1,2810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CyberVerse — Mode 01 · Level 2</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&family=Space+Grotesk:wght@400;500;600&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="shared.css" />
+  <link rel="stylesheet" href="mode1.css" />
+  <style>
+/* ═══ TWO-COLUMN LAYOUT (same as level 1) ═══ */
+#level2 { padding:0; align-items:stretch; }
+.l1-layout {
+  display:grid; grid-template-columns:380px 1fr;
+  min-height:calc(100vh - 53px); width:100%;
+}
+.l1-phone-col {
+  padding:20px 12px 20px 20px;
+  display:flex; flex-direction:column; align-items:center;
+  background:var(--ink); border-right:1px solid var(--rim);
+}
+.l1-side-col {
+  padding:20px; display:flex; flex-direction:column; gap:14px;
+  background:var(--ink2); overflow-y:auto;
+}
+
+/* ===== NEW HUD STYLES - COMPLETE ===== */
+#hud {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 900;
+  background: rgba(6,14,26,.97);
+  border-bottom: 1px solid rgba(0,180,216,.15);
+  backdrop-filter: blur(12px);
+  pointer-events: auto;  /* Keep this */
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.hud-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 8px 20px;
+  flex-wrap: wrap;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Left section with mode info and Aadhar button */
+.hud-bar:first-child {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  min-width: auto;
+  flex-direction: row;
+  margin-right: auto;
+}
+
+.hud-mode, .hud-sep, .hud-lname {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+}
+
+.hud-sep {
+  color: var(--muted);
+  margin: 0 2px;
+}
+
+/* Security Health and Trust Level bars - make them wider */
+.hud-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 160px;
+  flex: 1;
+  max-width: 200px;
+}
+
+.hud-bar-label {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: rgba(255,255,255,.5);
+  letter-spacing: 0.08em;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+
+.hud-bar-label span {
+  color: var(--white);
+  font-weight: 600;
+}
+
+.bar-track {
+  height: 6px;
+  background: rgba(255,255,255,0.12);
+  border-radius: 4px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.4s ease, background 0.4s ease;
+}
+
+/* User section - fixed width */
+.hud-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  border-left: 1px solid rgba(255,255,255,0.1);
+  border-right: 1px solid rgba(255,255,255,0.1);
+  margin: 0 8px;
+}
+
+.hud-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #0077b6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.hud-uname {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgba(255,255,255,.7);
+  letter-spacing: 0.05em;
+}
+
+/* Score block */
+.hud-score-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 12px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 8px;
+  min-width: 60px;
+}
+
+.sc-num {
+  font-family: var(--font-disp);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #f9c74f;
+  line-height: 1;
+}
+
+.sc-lbl {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  color: rgba(255,255,255,.4);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Timer warning state */
+#game-timer {
+  position: fixed;
+  bottom: 18px;
+  left: 18px;
+  z-index: 1000;
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 700;
+  color: #2ecc71;
+  background: rgba(0,0,0,.85);
+  border: 2px solid rgba(46,204,113,.4);
+  border-radius: 30px;
+  padding: 8px 18px;
+  letter-spacing: .1em;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+#game-timer.red {
+  color: #e63946;
+  border-color: rgba(230,57,70,.8);
+  animation: timerPulse 0.8s ease-in-out infinite;
+}
+
+@keyframes timerPulse {
+  0%, 100% { 
+    box-shadow: none;
+    transform: scale(1);
+  }
+  50% { 
+    box-shadow: 0 0 20px rgba(230,57,70,.5);
+    transform: scale(1.02);
+  }
+}
+
+/* Push content below fixed HUD */
+body {
+  padding-top: 70px !important;
+  margin: 0;
+  min-height: 100vh;
+}
+
+@media (max-width: 900px) {
+  body {
+    padding-top: 95px !important;
+  }
+  
+  .hud-inner {
+    gap: 12px;
+    padding: 8px 12px;
+  }
+  
+  .hud-bar {
+    min-width: 130px;
+  }
+}
+
+@media (max-width: 700px) {
+  body {
+    padding-top: 120px !important;
+  }
+  
+  .hud-inner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  
+  .hud-bar:first-child {
+    margin-right: 0;
+    justify-content: center;
+  }
+  
+  .hud-bar {
+    min-width: 100%;
+    max-width: 100%;
+  }
+  
+  .hud-user {
+    justify-content: center;
+    border-left: none;
+    border-right: none;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin: 4px 0;
+    padding: 8px 0;
+  }
+  
+  .hud-score-block {
+    align-self: center;
+    width: fit-content;
+  }
+}
+
+/* Ensure the level layout starts below HUD */
+#level2, .level-screen, .l1-layout {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.l1-layout {
+  min-height: calc(100vh - 70px);
+}
+
+@media (max-width: 900px) {
+  .l1-layout {
+    min-height: calc(100vh - 95px);
+  }
+}
+
+@media (max-width: 700px) {
+  .l1-layout {
+    min-height: calc(100vh - 120px);
+  }
+}
+
+/* Keep the Aadhar mini view positioned correctly */
+/* ═══ AADHAR MINI VIEW (HUD button popup) ═══ */
+/* ═══ AADHAR MINI VIEW (HUD button popup) ═══ */
+.aadhar-mini {
+  position: fixed;
+  top: 65px;
+  left: 20px;
+  z-index: 9999 !important;  /* Much higher than HUD */
+  background: var(--surface);
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  padding: 16px 18px;
+  max-width: 320px;
+  min-width: 260px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+  display: none;
+  backdrop-filter: blur(16px);
+  background: rgba(10, 20, 30, 0.98);
+  pointer-events: auto;  /* Ensure it can be clicked */
+}
+
+.aadhar-mini.show { 
+  display: block !important;
+  animation: slideDown 0.25s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.aadhar-mini-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 4px 8px;
+  border-radius: 20px;
+  transition: all 0.2s;
+  z-index: 10000;
+}
+
+.aadhar-mini-close:hover {
+  color: var(--red);
+  background: rgba(230,57,70,0.2);
+}
+
+.aadhar-mini h4 {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--accent);
+  letter-spacing: 0.15em;
+  margin-bottom: 14px;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(0,180,216,0.3);
+  padding-bottom: 8px;
+}
+
+.aadhar-mini-row {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--body);
+  margin-bottom: 10px;
+  line-height: 1.6;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.aadhar-mini-row span {
+  color: #fff;
+  font-weight: 600;
+  text-align: right;
+  flex: 1;
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+}
+
+/* Ensure PIN setup screen covers everything */
+.pin-setup-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9500;
+  padding-top: 0 !important;
+}
+
+/* ═══ AADHAR CARD ═══ */
+.aadhar-card-screen {
+  position:fixed; inset:0; z-index:9600;
+  display:none; align-items:center; justify-content:center;
+  background:rgba(0,0,0,0.92); backdrop-filter:blur(8px);
+}
+.aadhar-card-screen.show { display:flex; animation:reveal 0.3s ease; }
+.aadhar-card-wrap {
+  display:flex; flex-direction:column; align-items:center; gap:20px;
+  max-width:480px; width:90%;
+}
+.aadhar-card-title {
+  font-family:var(--font-disp); font-size:1rem; font-weight:700;
+  color:var(--white); text-align:center;
+}
+.aadhar-card-sub {
+  font-size:0.8rem; color:var(--muted); text-align:center; line-height:1.5;
+  margin-top:-10px;
+}
+.aadhar-card {
+  width:100%; background:linear-gradient(135deg,#1a237e,#283593);
+  border-radius:14px; padding:20px 22px;
+  border:1px solid rgba(255,255,255,0.1);
+  box-shadow:0 12px 40px rgba(0,0,0,0.5);
+  font-family:var(--font-mono);
+}
+.aadhar-card-header {
+  display:flex; align-items:center; gap:12px; margin-bottom:18px;
+  border-bottom:1px solid rgba(255,255,255,0.15); padding-bottom:14px;
+}
+.aadhar-emblem { font-size:2rem; }
+.aadhar-gov-text { display:flex; flex-direction:column; }
+.aadhar-gov-hi { font-size:0.65rem; color:rgba(255,255,255,0.6); letter-spacing:0.05em; }
+.aadhar-gov-en { font-size:0.9rem; font-weight:700; color:#fff; letter-spacing:0.05em; }
+.aadhar-badge {
+  margin-left:auto; background:rgba(255,165,0,0.2); border:1px solid rgba(255,165,0,0.4);
+  border-radius:4px; padding:3px 8px; font-size:0.58rem; color:#ffa500; letter-spacing:0.1em;
+}
+.aadhar-photo-row {
+  display:flex; gap:16px; align-items:flex-start; margin-bottom:16px;
+}
+.aadhar-photo {
+  width:72px; height:72px; background:rgba(255,255,255,0.1);
+  border-radius:8px; border:1px solid rgba(255,255,255,0.2);
+  display:flex; align-items:center; justify-content:center;
+  font-size:2rem; flex-shrink:0;
+}
+.aadhar-fields { flex:1; display:flex; flex-direction:column; gap:6px; }
+.aadhar-field-row { display:flex; flex-direction:column; gap:1px; }
+.aadhar-field-label { font-size:0.55rem; color:rgba(255,255,255,0.5); letter-spacing:0.12em; text-transform:uppercase; }
+.aadhar-field-val { font-size:0.78rem; color:#fff; font-weight:600; }
+.aadhar-number-row {
+  background:rgba(255,255,255,0.08); border-radius:8px;
+  padding:10px 14px; text-align:center;
+  border:1px solid rgba(255,255,255,0.15);
+}
+.aadhar-number-label { font-size:0.55rem; color:rgba(255,255,255,0.5); letter-spacing:0.15em; margin-bottom:4px; }
+.aadhar-number { font-size:1.4rem; font-weight:700; color:#fff; letter-spacing:0.3em; }
+.aadhar-proceed-btn {
+  width:100%; background:var(--accent); color:var(--ink);
+  border:none; font-family:var(--font-mono); font-size:0.73rem; font-weight:700;
+  padding:13px; border-radius:20px; cursor:pointer;
+  transition:background 0.2s;
+}
+.aadhar-proceed-btn:hover { background:#48cae4; }
+.aadhar-note {
+  font-family:var(--font-mono); font-size:0.62rem; color:var(--muted);
+  text-align:center; line-height:1.5;
+}
+
+/* ═══ AADHAR MINI VIEW (HUD button popup) ═══ */
+.aadhar-mini {
+  position:fixed; top:60px; left:12px; z-index:500;
+  background:var(--surface); border:1px solid var(--rim2);
+  border-radius:var(--r); padding:14px 16px;
+  max-width:280px; box-shadow:0 8px 30px rgba(0,0,0,0.5);
+  display:none;
+}
+.aadhar-mini.show { display:block; animation:reveal 0.2s ease; }
+.aadhar-mini-close {
+  position:absolute; top:8px; right:10px;
+  background:none; border:none; color:var(--muted); cursor:pointer; font-size:0.85rem;
+}
+.aadhar-mini h4 {
+  font-family:var(--font-mono); font-size:0.6rem; color:var(--accent);
+  letter-spacing:0.15em; margin-bottom:10px;
+}
+.aadhar-mini-row { font-family:var(--font-mono); font-size:0.65rem; color:var(--body); margin-bottom:5px; line-height:1.4; }
+.aadhar-mini-row span { color:var(--hi); font-weight:600; }
+
+/* ═══ HINT BOX ═══ */
+.hint-box {
+  background:var(--surface); border:1px solid var(--rim2);
+  border-left:3px solid var(--amber); border-radius:var(--r);
+}
+.hint-box-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:11px 14px; cursor:pointer; transition:background 0.15s; user-select:none;
+}
+.hint-box-header:hover { background:var(--ink3); }
+.hint-box-title {
+  font-family:var(--font-mono); font-size:0.67rem; font-weight:600;
+  color:var(--amber); letter-spacing:0.1em; display:flex; align-items:center; gap:8px;
+}
+.hint-cost-tag { font-size:0.57rem; color:var(--muted); background:var(--ink3); padding:2px 7px; border-radius:10px; font-weight:400; }
+.hint-header-right { display:flex; align-items:center; gap:8px; }
+.hint-count-tag { font-family:var(--font-mono); font-size:0.6rem; color:var(--amber); background:rgba(244,162,97,0.1); border:1px solid rgba(244,162,97,0.2); padding:2px 8px; border-radius:10px; }
+.hint-chevron { color:var(--muted); font-size:0.75rem; transition:transform 0.2s; }
+.hint-box.open .hint-chevron { transform:rotate(180deg); }
+.hint-body { display:none; padding:4px 12px 12px; flex-direction:column; gap:6px; }
+.hint-box:not(.open) .hint-body { display:none; }
+.hint-box.open .hint-body { display:flex; }
+.hint-item { display:flex; align-items:flex-start; gap:10px; padding:9px 11px; border-radius:var(--r); background:var(--ink3); border:1px solid var(--rim); cursor:pointer; transition:border-color 0.15s,background 0.15s; }
+.hint-item:hover:not(.hint-locked):not(.hint-revealed) { border-color:var(--amber); background:rgba(244,162,97,0.04); }
+.hint-item.hint-revealed { border-color:var(--green); background:rgba(46,204,113,0.05); cursor:default; }
+.hint-item.hint-locked { opacity:0.4; cursor:not-allowed; }
+.hint-num { font-family:var(--font-mono); font-size:0.58rem; font-weight:600; color:var(--amber); background:rgba(244,162,97,0.12); border-radius:50%; width:20px; height:20px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+.hint-revealed .hint-num { color:var(--green); background:rgba(46,204,113,0.12); }
+.hint-locked .hint-num { color:var(--muted); background:var(--rim); }
+.hint-text { font-size:0.78rem; color:var(--body); line-height:1.55; }
+.hint-revealed .hint-text { color:var(--hi); }
+.hint-action { font-family:var(--font-mono); font-size:0.58rem; color:var(--muted); margin-top:3px; }
+
+/* ═══ EVIDENCE PANEL ═══ */
+.side-evidence-box { background:var(--surface); border:1px solid var(--rim2); border-left:3px solid var(--accent); border-radius:var(--r); }
+.side-ev-header { padding:11px 14px; border-bottom:1px solid var(--rim); display:flex; align-items:center; justify-content:space-between; font-family:var(--font-mono); font-size:0.63rem; font-weight:600; color:var(--accent); letter-spacing:0.15em; }
+.side-ev-count { font-size:0.58rem; color:var(--muted); letter-spacing:0; background:var(--ink3); padding:2px 8px; border-radius:10px; }
+.side-ev-list { padding:10px 12px; display:flex; flex-direction:column; gap:6px; min-height:60px; border-radius:0 0 var(--r) var(--r); transition:background 0.15s; }
+.side-ev-list.drag-over { background:rgba(0,180,216,0.07); outline:1px dashed var(--accent); }
+.side-ev-empty { font-family:var(--font-mono); font-size:0.63rem; color:var(--muted); line-height:1.6; padding:8px 0; }
+.side-ev-item { display:flex; align-items:flex-start; gap:8px; padding:8px 10px; border-radius:var(--r); background:var(--ink3); border:1px solid var(--rim2); animation:reveal 0.2s ease; cursor:grab; user-select:none; transition:border-color 0.15s,opacity 0.15s; }
+.side-ev-item:hover { border-color:var(--accent); }
+.side-ev-item:active { cursor:grabbing; opacity:0.75; }
+.side-ev-dot { width:6px; height:6px; border-radius:50%; background:var(--accent); flex-shrink:0; margin-top:5px; }
+.side-ev-item p { font-family:var(--font-mono); font-size:0.63rem; color:var(--hi); line-height:1.5; }
+.side-ev-drag-hint { font-family:var(--font-mono); font-size:0.58rem; color:var(--muted); text-align:right; margin-top:2px; }
+
+/* ═══ VERDICT ZONE ═══ */
+.side-verdict-box { background:var(--surface); border:1px solid var(--rim2); border-top:2px solid var(--accent); border-radius:var(--r); padding:14px; }
+.side-verdict-title { font-family:var(--font-mono); font-size:0.62rem; color:var(--muted); margin-bottom:10px; }
+.side-buckets { display:flex; gap:10px; margin-bottom:10px; }
+.side-bucket { flex:1; background:var(--ink3); border-radius:var(--r); padding:9px; border:1px solid var(--rim); }
+.side-bucket-real { border-top:3px solid var(--green); }
+.side-bucket-scam { border-top:3px solid var(--red); }
+.side-bucket-real.drag-over { background:rgba(46,204,113,0.12); border-color:var(--green); }
+.side-bucket-scam.drag-over { background:rgba(230,57,70,0.10); border-color:var(--red); }
+.side-bucket-label { font-family:var(--font-mono); font-size:0.63rem; font-weight:600; margin-bottom:7px; }
+.side-bucket-real .side-bucket-label { color:var(--green); }
+.side-bucket-scam .side-bucket-label { color:var(--red); }
+.side-drop-area { min-height:56px; background:rgba(0,0,0,0.2); border:1px dashed var(--rim2); border-radius:4px; padding:6px; display:flex; flex-direction:column; gap:4px; }
+.drop-empty { font-family:var(--font-mono); font-size:0.58rem; color:var(--muted); }
+.verdict-tag { font-family:var(--font-mono); font-size:0.62rem; color:var(--hi); background:var(--surface); border:1px solid var(--rim); padding:4px 7px; border-radius:3px; }
+.verdict-tag-real { border-left:3px solid var(--green); }
+.verdict-tag-scam { border-left:3px solid var(--red); }
+.verdict-submit-btn { width:100%; background:var(--green); color:var(--ink); border:none; font-family:var(--font-mono); font-size:0.7rem; font-weight:700; padding:10px; border-radius:20px; cursor:pointer; transition:background 0.2s; }
+.verdict-submit-btn:hover:not(:disabled) { background:#2ecc71; }
+.verdict-submit-btn:disabled { opacity:0.5; cursor:default; }
+
+/* ═══ GAME ALERT ═══ */
+.game-alert { position:fixed; inset:0; z-index:9000; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.88); backdrop-filter:blur(8px); }
+.game-alert.show { display:flex; animation:reveal 0.25s ease; }
+.game-alert-box { max-width:460px; width:90%; background:var(--surface); border:1px solid var(--rim2); border-radius:var(--r); padding:28px 24px; text-align:center; display:flex; flex-direction:column; gap:14px; box-shadow:0 30px 80px rgba(0,0,0,0.8); }
+.alert-icon  { font-size:2.8rem; }
+.alert-title { font-family:var(--font-disp); font-size:1.4rem; font-weight:800; line-height:1.2; }
+.alert-title.danger  { color:var(--red); }
+.alert-title.success { color:var(--green); }
+.alert-title.warn    { color:var(--amber); }
+.alert-body { font-size:0.88rem; color:var(--body); line-height:1.7; }
+.alert-sub  { font-family:var(--font-mono); font-size:0.68rem; color:var(--muted); line-height:1.5; }
+.alert-btns { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:4px; }
+.alert-btn-pri { background:var(--accent); color:var(--ink); border:none; font-family:var(--font-mono); font-size:0.73rem; font-weight:700; padding:11px 22px; border-radius:20px; cursor:pointer; transition:background 0.2s; }
+.alert-btn-pri:hover { background:#48cae4; }
+.alert-btn-sec { background:transparent; color:var(--body); border:1px solid var(--rim2); font-family:var(--font-mono); font-size:0.7rem; padding:11px 20px; border-radius:20px; cursor:pointer; transition:border-color 0.15s,color 0.15s; }
+.alert-btn-sec:hover { border-color:var(--accent); color:var(--accent); }
+
+/* ═══ PIN SETUP ═══ */
+.pin-setup-screen { position:fixed; inset:0; z-index:9500; display:none; align-items:center; justify-content:center; background:var(--ink); }
+.pin-setup-screen.show { display:flex; animation:reveal 0.3s ease; }
+.pin-setup-box { max-width:400px; width:90%; background:var(--surface); border:1px solid var(--rim2); border-radius:var(--r); padding:28px 24px; display:flex; flex-direction:column; gap:16px; box-shadow:var(--shadow); }
+.pin-setup-title { font-family:var(--font-disp); font-size:1.2rem; font-weight:700; color:var(--white); }
+.pin-setup-sub { font-size:0.85rem; color:var(--body); line-height:1.65; }
+.pin-field-label { font-family:var(--font-mono); font-size:0.6rem; color:var(--muted); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:5px; }
+.pin-input { width:100%; background:var(--ink2); border:1px solid var(--rim2); border-radius:var(--r); padding:11px 14px; color:var(--hi); font-family:var(--font-mono); font-size:1.1rem; text-align:center; letter-spacing:0.3em; outline:none; transition:border-color 0.2s; }
+.pin-input:focus { border-color:var(--accent); }
+.pin-input.error { border-color:var(--red); animation:shake 0.35s ease; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+.pin-err-msg { font-family:var(--font-mono); font-size:0.63rem; color:var(--red); display:none; text-align:center; }
+.pin-err-msg.show { display:block; }
+.pin-modal { position:fixed; inset:0; z-index:8000; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.75); backdrop-filter:blur(6px); }
+.pin-modal.show { display:flex; animation:reveal 0.22s ease; }
+.pin-modal-box { max-width:340px; width:90%; background:var(--surface); border:1px solid var(--rim2); border-radius:var(--r); padding:22px 20px; display:flex; flex-direction:column; gap:12px; box-shadow:0 20px 60px rgba(0,0,0,0.7); }
+.pin-modal-header { font-family:var(--font-disp); font-size:1rem; font-weight:700; color:var(--white); }
+.pin-modal-sub { font-size:0.8rem; color:var(--body); line-height:1.55; }
+.pin-modal-amount { font-family:var(--font-mono); font-size:1.5rem; font-weight:700; color:var(--green); text-align:center; padding:6px 0; }
+.pin-modal-confirm { background:var(--accent); color:var(--ink); border:none; font-family:var(--font-mono); font-size:0.73rem; font-weight:700; padding:11px; border-radius:20px; cursor:pointer; transition:background 0.2s; }
+.pin-modal-confirm:hover { background:#48cae4; }
+.pin-modal-cancel { background:transparent; color:var(--muted); border:1px solid var(--rim); border-radius:20px; font-family:var(--font-mono); font-size:0.7rem; padding:9px; cursor:pointer; text-align:center; transition:color 0.15s,border-color 0.15s; }
+.pin-modal-cancel:hover { color:var(--red); border-color:var(--red); }
+
+/* ═══ TIMER FAIL ═══ */
+.timer-fail { position:fixed; inset:0; z-index:9200; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.9); backdrop-filter:blur(8px); }
+.timer-fail.show { display:flex; animation:reveal 0.3s ease; }
+
+/* ═══ LINK CHOICE MODAL ═══ */
+.link-choice-modal { position:fixed; inset:0; z-index:8500; display:none; align-items:flex-end; justify-content:center; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); }
+.link-choice-modal.show { display:flex; animation:reveal 0.22s ease; }
+.link-choice-box { width:100%; max-width:420px; background:var(--surface); border:1px solid var(--rim2); border-radius:var(--r) var(--r) 0 0; padding:20px 18px 28px; display:flex; flex-direction:column; gap:12px; box-shadow:0 -12px 40px rgba(0,0,0,0.6); animation:slideUp 0.25s cubic-bezier(0.34,1.4,0.64,1); }
+@keyframes slideUp { from{transform:translateY(60px);opacity:0} to{transform:translateY(0);opacity:1} }
+.lc-header { font-family:var(--font-mono); font-size:0.6rem; color:var(--muted); letter-spacing:0.12em; text-transform:uppercase; }
+.lc-url { font-family:var(--font-mono); font-size:0.78rem; color:var(--hi); background:var(--ink3); border:1px solid var(--rim2); border-radius:var(--r); padding:9px 12px; word-break:break-all; line-height:1.5; }
+.lc-url.lc-url-danger { color:var(--red); border-color:rgba(230,57,70,0.3); background:rgba(230,57,70,0.06); }
+.lc-url.lc-url-safe { color:var(--green); border-color:rgba(46,204,113,0.3); background:rgba(46,204,113,0.06); }
+.lc-btns { display:flex; gap:10px; }
+.lc-btn-open { flex:1; background:var(--accent); color:var(--ink); border:none; font-family:var(--font-mono); font-size:0.72rem; font-weight:700; padding:11px 0; border-radius:20px; cursor:pointer; transition:background 0.2s; }
+.lc-btn-open:hover { background:#48cae4; }
+.lc-btn-flag { flex:1; background:rgba(244,162,97,0.12); color:var(--amber); border:1px solid rgba(244,162,97,0.35); border-radius:20px; font-family:var(--font-mono); font-size:0.72rem; font-weight:700; padding:11px 0; cursor:pointer; transition:background 0.2s,color 0.2s; }
+.lc-btn-flag:hover { background:rgba(244,162,97,0.22); }
+.lc-btn-cancel { background:transparent; color:var(--muted); border:none; font-family:var(--font-mono); font-size:0.68rem; padding:6px; cursor:pointer; text-align:center; transition:color 0.15s; }
+.lc-btn-cancel:hover { color:var(--hi); }
+.lc-flagged-msg { font-family:var(--font-mono); font-size:0.65rem; color:var(--green); background:rgba(46,204,113,0.08); border:1px solid rgba(46,204,113,0.2); border-radius:var(--r); padding:7px 10px; display:none; text-align:center; }
+
+/* ═══ UIDAI LOGIN SCREEN ═══ */
+.uidai-page { padding:16px; display:flex; flex-direction:column; gap:12px; }
+.uidai-header { background:linear-gradient(135deg,#1a237e,#0d47a1); border-radius:8px; padding:12px 14px; display:flex; align-items:center; gap:10px; }
+.uidai-logo { font-size:1.6rem; }
+.uidai-title { font-family:var(--font-mono); font-size:0.72rem; font-weight:700; color:#fff; }
+.uidai-subtitle { font-family:var(--font-mono); font-size:0.58rem; color:rgba(255,255,255,0.6); }
+.uidai-verified-badge { font-family:var(--font-mono); font-size:0.55rem; color:var(--green); background:rgba(46,204,113,0.15); border:1px solid rgba(46,204,113,0.3); border-radius:4px; padding:2px 6px; margin-top:2px; width:fit-content; }
+.uidai-form { display:flex; flex-direction:column; gap:8px; }
+.uidai-form-label { font-family:var(--font-mono); font-size:0.58rem; color:var(--muted); letter-spacing:0.1em; margin-bottom:2px; }
+.uidai-form-input { background:var(--ink2); border:1px solid var(--rim2); border-radius:var(--r); padding:9px 11px; color:var(--hi); font-family:var(--font-mono); font-size:0.75rem; outline:none; transition:border-color 0.2s; width:100%; }
+.uidai-form-input:focus { border-color:var(--accent); }
+.uidai-login-btn { background:var(--accent); color:var(--ink); border:none; font-family:var(--font-mono); font-size:0.7rem; font-weight:700; padding:10px; border-radius:20px; cursor:pointer; transition:background 0.2s; margin-top:4px; }
+.uidai-login-btn:hover { background:#48cae4; }
+.uidai-status-card { background:var(--ink3); border:1px solid var(--rim2); border-radius:8px; padding:12px 14px; display:flex; flex-direction:column; gap:6px; }
+.uidai-status-row { display:flex; justify-content:space-between; align-items:center; font-family:var(--font-mono); font-size:0.65rem; color:var(--body); border-bottom:1px solid var(--rim); padding-bottom:6px; }
+.uidai-status-row:last-child { border-bottom:none; padding-bottom:0; }
+.uidai-status-ok   { color:var(--green); font-weight:600; }
+.uidai-status-warn { color:var(--amber); font-weight:600; }
+.uidai-action-row { display:flex; gap:8px; margin-top:4px; }
+.uidai-logout-btn { flex:1; background:transparent; color:var(--muted); border:1px solid var(--rim); border-radius:20px; font-family:var(--font-mono); font-size:0.65rem; padding:8px; cursor:pointer; transition:color 0.15s,border-color 0.15s; }
+.uidai-logout-btn:hover { color:var(--red); border-color:var(--red); }
+.uidai-addclue-btn { flex:1.5; background:rgba(0,180,216,0.1); color:var(--accent); border:1px solid rgba(0,180,216,0.3); border-radius:20px; font-family:var(--font-mono); font-size:0.65rem; font-weight:700; padding:8px; cursor:pointer; transition:background 0.15s; }
+.uidai-addclue-btn:hover { background:rgba(0,180,216,0.2); }
+.uidai-addclue-btn:disabled { opacity:0.5; cursor:default; }
+.uidai-login-err { font-family:var(--font-mono); font-size:0.62rem; color:var(--red); text-align:center; display:none; }
+.uidai-login-err.show { display:block; }
+
+/* ═══ RESPONSIVE ═══ */
+@media (max-width:860px) {
+  .l1-layout { grid-template-columns:1fr; }
+  .l1-phone-col { padding:14px; border-right:none; border-bottom:1px solid var(--rim); }
+  .l1-side-col  { padding:14px; }
+}
+@keyframes reveal { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+/* ===== CIN OVERLAYS (from level3) ===== */
+#cin-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+#cin-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+#cin-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.15) 2px, rgba(0,0,0,.15) 4px);
+  pointer-events: none;
+  animation: sl 0.1s linear infinite;
+}
+@keyframes sl {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 4px; }
+}
+.cin-vig {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(230,57,70,.4) 100%);
+  animation: vigp 0.8s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+@keyframes vigp {
+  0% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+.cin-term {
+  position: relative;
+  z-index: 10;
+  width: min(700px, 92vw);
+  background: rgba(8,12,18,.97);
+  border: 1px solid #e63946;
+  border-radius: 8px;
+  box-shadow: 0 0 80px rgba(230,57,70,.3), inset 0 0 40px rgba(230,57,70,.04);
+  overflow: hidden;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+.cin-tbar {
+  background: rgba(230,57,70,.15);
+  border-bottom: 1px solid rgba(230,57,70,.3);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.cin-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.cin-dot.r { background: #e63946; }
+.cin-dot.a { background: #f4a261; }
+.cin-dot.g { background: #2ecc71; }
+.cin-tbar-txt {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: rgba(230,57,70,.8);
+  margin-left: 6px;
+  text-transform: uppercase;
+}
+.cin-tbar-live {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: #e63946;
+  animation: blink 0.6s ease-in-out infinite;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+.cin-body {
+  padding: 18px 20px;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  line-height: 1.8;
+  color: #e63946;
+  overflow-y: auto;
+  flex: 1;
+}
+.cin-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 2px;
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.cin-line.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+.cin-p {
+  color: rgba(230,57,70,.5);
+  flex-shrink: 0;
+  min-width: 36px;
+}
+.cr { color: #e63946; }
+.ca { color: #f4a261; }
+.cg { color: #2ecc71; }
+.cd { color: rgba(230,57,70,.4); }
+.cw { color: #eef4fa; }
+.cc { color: #00b4d8; }
+.cin-accs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 12px 0;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.cin-accs.show { opacity: 1; }
+.cin-acc {
+  background: rgba(230,57,70,.06);
+  border: 1px solid rgba(230,57,70,.2);
+  border-radius: 4px;
+  padding: 9px 11px;
+}
+.cin-acc.comp {
+  border-color: rgba(230,57,70,.6);
+  background: rgba(230,57,70,.12);
+  animation: ap 0.5s ease-in-out 3;
+}
+@keyframes ap {
+  0%, 100% { box-shadow: none; }
+  50% { box-shadow: 0 0 14px rgba(230,57,70,.5); }
+}
+.cin-acc-n {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: rgba(255,255,255,.7);
+  margin-bottom: 2px;
+}
+.cin-acc-s {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  color: rgba(230,57,70,.5);
+}
+.cin-acc-s.bad { color: #e63946; font-weight: 600; }
+.cin-prog-wrap {
+  margin: 12px 0 6px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.cin-prog-wrap.show { opacity: 1; }
+.cin-prog-lbl {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  color: rgba(230,57,70,.6);
+  margin-bottom: 4px;
+  letter-spacing: 0.1em;
+}
+.cin-prog-track {
+  height: 4px;
+  background: rgba(230,57,70,.15);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.cin-prog-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #e63946, #ff6b6b);
+  border-radius: 2px;
+  width: 0%;
+  transition: width 2.5s cubic-bezier(.1,.8,.3,1);
+  box-shadow: 0 0 8px rgba(230,57,70,.6);
+}
+.cin-dmg {
+  text-align: center;
+  margin: 14px 0 6px;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.cin-dmg.show { opacity: 1; }
+.cin-dmg-amt {
+  font-family: var(--font-disp);
+  font-size: clamp(1.8rem, 5vw, 3rem);
+  font-weight: 800;
+  color: #e63946;
+  display: inline-block;
+}
+.cin-dmg-lbl {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
+  color: rgba(230,57,70,.6);
+  margin-top: 3px;
+}
+.cin-foot {
+  border-top: 1px solid rgba(230,57,70,.2);
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  flex-shrink: 0;
+}
+.cin-foot.show { opacity: 1; }
+.cin-foot-msg {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: rgba(230,57,70,.5);
+  letter-spacing: 0.1em;
+}
+.cin-cont {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: rgba(230,57,70,.15);
+  border: 1px solid rgba(230,57,70,.5);
+  color: #e63946;
+  padding: 9px 18px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.cin-cont:hover {
+  background: rgba(230,57,70,.25);
+  box-shadow: 0 0 16px rgba(230,57,70,.3);
+}
+.glitch {
+  animation: glm 0.3s ease-in-out 4 0.5s;
+}
+@keyframes glm {
+  0%, 100% { transform: translate(0); }
+  20% { transform: translate(-3px, 1px); filter: hue-rotate(90deg); }
+  40% { transform: translate(3px, -1px); filter: hue-rotate(-90deg); }
+  60% { transform: translate(-2px, 2px); }
+  80% { transform: translate(2px, -2px); filter: hue-rotate(45deg); }
+}
+#cin-good {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(0,0,0,.95);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+#cin-good.active {
+  opacity: 1;
+  pointer-events: all;
+}
+.cin-shield {
+  font-size: 4rem;
+  margin-bottom: 18px;
+  animation: sb 0.6s cubic-bezier(.34,1.56,.64,1) forwards;
+  transform: scale(0);
+}
+@keyframes sb {
+  to { transform: scale(1); }
+}
+.cin-gtitle {
+  font-family: var(--font-disp);
+  font-size: clamp(1.6rem, 5vw, 2.8rem);
+  font-weight: 800;
+  color: var(--green);
+  margin-bottom: 8px;
+  text-align: center;
+  animation: fu 0.5s 0.3s ease both;
+}
+.cin-gsub {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: rgba(46,204,113,.6);
+  letter-spacing: 0.2em;
+  text-align: center;
+  margin-bottom: 28px;
+  animation: fu 0.5s 0.5s ease both;
+}
+.cin-gtip {
+  max-width: 480px;
+  background: rgba(46,204,113,.07);
+  border: 1px solid rgba(46,204,113,.2);
+  border-radius: 6px;
+  padding: 16px 20px;
+  font-size: 0.86rem;
+  color: rgba(255,255,255,.75);
+  line-height: 1.7;
+  text-align: center;
+  animation: fu 0.5s 0.7s ease both;
+  margin-bottom: 24px;
+}
+.cin-gtip strong {
+  color: var(--green);
+}
+.cin-pts {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(46,204,113,.12);
+  border: 1px solid rgba(46,204,113,.3);
+  border-radius: 30px;
+  padding: 10px 24px;
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  color: var(--green);
+  animation: fu 0.5s 0.9s ease both;
+  margin-bottom: 28px;
+}
+.cin-parts {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4999;
+}
+.cin-part {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pb 1s ease-out forwards;
+}
+@keyframes pb {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--tx), var(--ty)) scale(0);
+    opacity: 0;
+  }
+}
+@keyframes fu {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+  </style>
+</head>
+<body padding="70px">
+
+<!-- ═══ PIN SETUP ═══ -->
+<div class="pin-setup-screen" id="pinSetupScreen">
+  <div class="pin-setup-box">
+    <div class="pin-setup-title">🔐 Set Your UPI PIN</div>
+    <p class="pin-setup-sub">Choose a <strong>4–6 digit UPI PIN</strong>. You'll use it to make payments in the game. <span style="color:var(--amber)">Remember it — you won't see it again.</span></p>
+    <div>
+      <div class="pin-field-label">Choose PIN</div>
+      <input class="pin-input" id="pinSetupA" type="password" maxlength="6" placeholder="····" autocomplete="new-password" />
+    </div>
+    <div>
+      <div class="pin-field-label">Confirm PIN</div>
+      <input class="pin-input" id="pinSetupB" type="password" maxlength="6" placeholder="····" autocomplete="new-password" onkeydown="if(event.key==='Enter')savePIN()" />
+    </div>
+    <p class="pin-err-msg" id="pinSetupErr">PINs don't match or too short (min 4 digits).</p>
+    <button class="pin-modal-confirm" style="margin-top:4px" onclick="savePIN()">Set PIN &amp; Continue →</button>
+  </div>
+</div>
+
+<!-- ═══ AADHAR CARD SCREEN (shown after level 1 complete, before level 2 starts) ═══ -->
+<div class="aadhar-card-screen" id="aadharCardScreen">
+  <div class="aadhar-card-wrap">
+    <div class="aadhar-card-title">Level 1 Complete — Proceeding to Level 2</div>
+    <p class="aadhar-card-sub">Your Aadhar details are shown below. Remember them — you'll need them during the level.</p>
+    <div class="aadhar-card">
+      <div class="aadhar-card-header">
+        <div class="aadhar-emblem">🇮🇳</div>
+        <div class="aadhar-gov-text">
+          <span class="aadhar-gov-hi">भारत सरकार / Government of India</span>
+          <span class="aadhar-gov-en">AADHAAR</span>
+        </div>
+        <div class="aadhar-badge">VALID</div>
+      </div>
+      <div class="aadhar-photo-row">
+        <div class="aadhar-photo">👤</div>
+        <div class="aadhar-fields">
+          <div class="aadhar-field-row">
+            <span class="aadhar-field-label">Name</span>
+            <span class="aadhar-field-val" id="ac-name">Rohan Sharma</span>
+          </div>
+          <div class="aadhar-field-row">
+            <span class="aadhar-field-label">Date of Birth</span>
+            <span class="aadhar-field-val">14/03/1996</span>
+          </div>
+          <div class="aadhar-field-row">
+            <span class="aadhar-field-label">Mobile</span>
+            <span class="aadhar-field-val" id="ac-phone">98XXXXXXXX</span>
+          </div>
+          <div class="aadhar-field-row">
+            <span class="aadhar-field-label">Address</span>
+            <span class="aadhar-field-val">Flat 3B, Vasant Kunj, New Delhi - 110070</span>
+          </div>
+        </div>
+      </div>
+      <div class="aadhar-number-row">
+        <div class="aadhar-number-label">AADHAAR NUMBER</div>
+        <div class="aadhar-number" id="ac-number">XXXX XXXX XXXX</div>
+      </div>
+    </div>
+    <button class="aadhar-proceed-btn" onclick="proceedToLevel2()">I've noted my details — Proceed to Level 2 →</button>
+    <p class="aadhar-note">⚠ These details will be accessible via the top bar during the level.</p>
+  </div>
+</div>
+
+<!-- ═══ AADHAR MINI VIEW (toggled from HUD) ═══ -->
+<div class="aadhar-mini" id="aadharMini">
+  <button class="aadhar-mini-close" onclick="toggleAadharMini()">✕</button>
+  <h4>// MY AADHAR DETAILS</h4>
+  <div class="aadhar-mini-row">Name: <span id="am-name">—</span></div>
+  <div class="aadhar-mini-row">Mobile: <span id="am-phone">—</span></div>
+  <div class="aadhar-mini-row">Aadhar: <span id="am-number">—</span></div>
+  <div class="aadhar-mini-row">Address: <span style="color:var(--hi);font-weight:600">Flat 3B, Vasant Kunj, New Delhi</span></div>
+</div>
+
+<!-- ═══ HUD ═══ -->
+<div id="hud" class="on" role="banner" aria-label="Game status" style="display:none;">
+  <div class="hud-inner">
+    <div class="hud-bar">
+      <span class="hud-lname">Aadhar Alert</span>
+      <!-- Aadhar details button -->
+      <button onclick="toggleAadharMini()" style="font-family:var(--font-mono);font-size:0.62rem;color:var(--accent);background:rgba(0,180,216,0.1);border:1px solid rgba(0,180,216,0.25);border-radius:10px;padding:3px 10px;cursor:pointer;margin-left:8px;">🪪 My Aadhar</button>
+    </div>
+    <div class="hud-bar">
+      <div class="hud-bar-label">Security Health <span id="h-val">100%</span></div>
+      <div class="bar-track"><div class="bar-fill" id="h-fill" style="width:100%;background:var(--green)"></div></div>
+    </div>
+    <div class="hud-bar">
+      <div class="hud-bar-label">Trust Level <span id="t-val">100%</span></div>
+      <div class="bar-track"><div class="bar-fill" id="t-fill" style="width:100%;background:var(--accent)"></div></div>
+    </div>
+    <div class="hud-user">
+      <div class="hud-avatar" id="hud-av" aria-hidden="true">R</div>
+      <div class="hud-uname" id="hud-uname">ROHAN</div>
+    </div>
+    <div class="hud-score-block" aria-live="polite">
+      <div class="sc-num" id="sc-num">2200</div>
+      <div class="sc-lbl">SCORE</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TIMER AT BOTTOM LEFT ═══ -->
+<div id="game-timer" style="position:fixed;bottom:18px;left:18px;z-index:9000;font-family:var(--font-mono);font-size:1.1rem;font-weight:700;color:#2ecc71;background:rgba(0,0,0,.85);border:2px solid rgba(46,204,113,.4);border-radius:8px;padding:8px 16px;letter-spacing:.1em;transition:color .3s,border-color .3s;display:none;">⏱ <span id="timerDisplayBottom">2m 00s</span></div>
+
+<!-- ═══ POPUP ═══ -->
+<div class="popup-overlay" id="popupOverlay" onclick="closePopup()"></div>
+<div class="popup-box" id="popupBox">
+  <div class="popup-header" id="popupHeader"></div>
+  <div class="popup-body"   id="popupBody"></div>
+  <div class="popup-footer" id="popupFooter">
+    <button class="popup-close" onclick="closePopup()">Close</button>
+    <button class="popup-pin" id="popupPinBtn" style="display:none"></button>
+  </div>
+</div>
+
+<!-- ═══ GAME ALERT ═══ -->
+<div class="game-alert" id="gameAlert">
+  <div class="game-alert-box">
+    <div class="alert-icon"  id="alertIcon">⚠️</div>
+    <div class="alert-title" id="alertTitle"></div>
+    <div class="alert-body"  id="alertBody"></div>
+    <div class="alert-sub"   id="alertSub"></div>
+    <div class="alert-btns"  id="alertBtns"></div>
+  </div>
+</div>
+
+<!-- ===== CIN OVERLAYS (from level3) ===== -->
+<div id="cin-overlay" role="dialog" aria-label="Attack consequence" aria-live="assertive">
+  <div class="cin-vig"></div>
+  <div class="cin-term">
+    <div class="cin-tbar">
+      <div class="cin-dot r"></div><div class="cin-dot a"></div><div class="cin-dot g"></div>
+      <span class="cin-tbar-txt">SYSTEM INTRUSION DETECTED</span>
+      <span class="cin-tbar-live">● LIVE</span>
+    </div>
+    <div class="cin-body" id="cin-body"></div>
+    <div class="cin-foot" id="cin-foot">
+      <span class="cin-foot-msg">// WHAT JUST HAPPENED TO YOU</span>
+      <button class="cin-cont" onclick="closeCinBad()">TRY AGAIN →</button>
+    </div>
+  </div>
+</div>
+
+<div id="cin-good" role="dialog" aria-label="Threat neutralised" aria-live="assertive">
+  <div class="cin-parts" id="cin-parts"></div>
+  <div class="cin-shield" id="cin-si">🛡</div>
+  <div class="cin-gtitle" id="cin-gt">THREAT NEUTRALISED</div>
+  <div class="cin-gsub" id="cin-gs">// EXCELLENT DECISION</div>
+  <div class="cin-gtip" id="cin-gtip"></div>
+  <div class="cin-pts" id="cin-pts">+0 PTS</div>
+  <button class="cin-cont" style="border-color:rgba(46,204,113,.5);color:var(--green);background:rgba(46,204,113,.1);" onclick="closeCinGood()">CONTINUE →</button>
+</div>
+
+<!-- ═══ TIMER FAIL ═══ -->
+<div class="timer-fail" id="timerFail">
+  <div class="game-alert-box">
+    <div class="alert-icon">⏰</div>
+    <div class="alert-title danger">Time's Up</div>
+    <div class="alert-body">You ran out of time to verify your Aadhar status. The scammers succeeded.</div>
+    <div class="alert-sub">Verify faster next time — real threats have real deadlines.</div>
+    <div class="alert-btns"><button class="alert-btn-pri" onclick="restartLevel2()">▶ Play Again</button></div>
+  </div>
+</div>
+
+<!-- ═══ LINK CHOICE MODAL ═══ -->
+<div class="link-choice-modal" id="linkChoiceModal">
+  <div class="link-choice-box">
+    <div class="lc-header">You tapped a link</div>
+    <div class="lc-url" id="lcUrl"></div>
+    <p id="lcDesc" style="font-size:0.78rem;color:var(--body);line-height:1.55"></p>
+    <div class="lc-btns">
+      <button class="lc-btn-open" id="lcBtnOpen" onclick="lcOpen()">🌐 Open Link</button>
+      <button class="lc-btn-flag" id="lcBtnFlag" onclick="lcFlag()">📌 Flag It</button>
+    </div>
+    <div class="lc-flagged-msg" id="lcFlaggedMsg">✓ Added to Evidence Board</div>
+    <button class="lc-btn-cancel" onclick="lcClose()">Cancel</button>
+  </div>
+</div>
+
+<!-- ═══ MAIN GAME ═══ -->
+<div id="gameContainer">
+<div class="level-screen" id="level2" style="display:none">
+
+  <!-- LEVEL INTRO -->
+  <div class="level-intro" id="l2intro" style="max-width:560px;margin:36px auto 0">
+    <div class="intro-tag">LEVEL 02</div>
+    <h2 class="intro-title">Aadhar Alert</h2>
+    <p class="intro-time">2:00 PM — Tuesday</p>
+    <p class="intro-desc">You're at home. Your phone vibrates. A scammer is impersonating UIDAI. You have 1 minute before fear makes you act rashly.</p>
+    <div class="instruction-modal">
+      <div class="instr-line"><span class="instr-key">TAP STATUS BAR</span> to see notifications</div>
+      <div class="instr-line"><span class="instr-key">CLICK LINKS</span> — Flag It or Open Link</div>
+      <div class="instr-line"><span class="instr-key">CHROME</span> — type URL + Go to navigate directly</div>
+      <div class="instr-line"><span class="instr-key">LOGIN</span> to uidai.gov.in with your Aadhar details (check HUD)</div>
+      <div class="instr-line"><span class="instr-key">DRAG CLUES</span> to REAL or SCAM once gathered</div>
+      <div class="instr-note">Timer hits 0 → level fails. Hints: 1 free, rest −100 pts each.</div>
+    </div>
+    <button class="intro-btn" onclick="startLevel2()">ENTER SCENE →</button>
+  </div>
+
+  <!-- TWO-COLUMN LAYOUT -->
+  <div class="l1-layout" id="l2layout" style="display:none">
+
+    <!-- LEFT: PHONE -->
+    <div class="l1-phone-col">
+      <div class="phone-shell" id="l2scene">
+      <div class="phone-inner">
+
+        <!-- Status Bar -->
+        <div class="android-statusbar" id="androidStatusbar" onclick="toggleShade()" title="Tap for notifications">
+          <span class="sb-time" id="sbTime">1:58</span>
+          <div class="sb-pres-timer">⏰ <span id="presTimerSb">2m 00s</span></div>
+          <div class="sb-icons">
+            <div class="sb-notif-dots" id="sbNotifDots"></div>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 2C3.5 2 1.3 3.2 0 5l1.5 1.5C2.6 5 4.2 4 6 4s3.4 1 4.5 2.5L12 5c-1.3-1.8-3.5-3-6-3z" fill="currentColor" opacity="0.6"/><path d="M6 5.5c-1.1 0-2.1.5-2.8 1.2L4.7 8.2C5.1 7.7 5.5 7.5 6 7.5s.9.2 1.3.7l1.5-1.5C8.1 6 7.1 5.5 6 5.5z" fill="currentColor" opacity="0.9"/><circle cx="6" cy="10" r="1" fill="currentColor"/></svg>
+            <div class="sb-battery"><div class="sb-bat-fill" id="sbBatFill" style="width:20%;background:var(--red)"></div></div>
+            <span class="sb-batpct" id="sbBatPct">20%</span>
+          </div>
+        </div>
+
+        <div class="toast-area" id="toastArea"></div>
+
+        <!-- Notification Shade -->
+        <div class="notif-shade" id="notifShade">
+          <div class="notif-shade-header">
+            <span class="notif-shade-title">Notifications</span>
+            <button class="notif-shade-clear" onclick="event.stopPropagation();closeShade()">✕ Close</button>
+          </div>
+          <div class="notif-shade-inner" id="notifShadeInner">
+            <p class="notif-shade-empty" id="notifShadeEmpty">No notifications yet.</p>
+          </div>
+        </div>
+        <div class="notif-shade-backdrop" id="notifShadeBackdrop" onclick="closeShade()"></div>
+
+        <!-- App Screen -->
+        <div class="app-screen" id="appScreen">
+
+          <!-- HOME -->
+          <div class="home-screen" id="homeScreen">
+            <div class="home-greeting">
+              <p class="home-time-big" id="homeTimeBig">1:58</p>
+              <p class="home-date">Tuesday, 14 Jan</p>
+            </div>
+            <div class="home-apps-grid">
+              <button class="app-icon" onclick="openApp('messages')">
+                <div class="app-icon-img app-messages">💬</div>
+                <span>Messages</span>
+                <span class="app-badge" id="msgBadge" style="display:none">0</span>
+              </button>
+              <button class="app-icon" onclick="openApp('email')">
+                <div class="app-icon-img app-email">✉️</div>
+                <span>Email</span>
+                <span class="app-badge" id="emailBadge" style="display:none">0</span>
+              </button>
+              <button class="app-icon" onclick="openApp('chrome')">
+                <div class="app-icon-img app-chrome">🌐</div>
+                <span>Chrome</span>
+              </button>
+            </div>
+            <div class="home-reminder">
+              <span class="reminder-icon">🆔</span>
+              <div>
+                <p class="reminder-title">Aadhar Verification</p>
+                <p class="reminder-sub">Urgent message received — <span id="presTimer" style="color:var(--amber)">2m 00s</span></p>
+              </div>
+            </div>
+            <div class="home-tooltip">↑ Tap status bar to check notifications</div>
+          </div>
+
+          <!-- MESSAGES APP -->
+          <div class="in-app" id="appMessages" style="display:none">
+            <div class="app-topbar">
+              <button class="app-back-btn" onclick="goHome()">‹ Back</button>
+              <span class="app-topbar-title">SMS</span>
+            </div>
+            <div class="chat-bubble-area" id="chatMessages"></div>
+            <div class="highlight-hint" id="msgHighlightHint" style="display:none">Hold down text to flag suspicious content.</div>
+          </div>
+
+          <!-- EMAIL LIST -->
+          <div class="in-app" id="appEmail" style="display:none">
+            <div class="app-topbar">
+              <button class="app-back-btn" onclick="goHome()">‹ Back</button>
+              <span class="app-topbar-title">Inbox</span>
+            </div>
+            <div class="email-list" id="emailList"></div>
+          </div>
+
+          <!-- EMAIL DETAIL -->
+          <div class="in-app" id="appEmailDetail" style="display:none">
+            <div class="app-topbar">
+              <button class="app-back-btn" onclick="openApp('email')">‹ Inbox</button>
+              <span class="app-topbar-title">Email</span>
+            </div>
+            <div class="email-detail-area" id="emailDetailArea"></div>
+          </div>
+
+          <!-- CHROME -->
+          <div class="in-app" id="appChrome" style="display:none">
+            <div class="app-topbar">
+              <button class="app-back-btn" onclick="goHome()">‹</button>
+              <div class="chrome-address-bar">
+                <input class="chrome-url-input" id="chromeUrlInput" placeholder="Type URL or search" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')chromeNavigate()" />
+                <button class="chrome-go-btn" onclick="chromeNavigate()">Go</button>
+              </div>
+            </div>
+            <div class="chrome-page" id="chromePage">
+              <div class="chrome-home-page">
+                <div class="chrome-logo">G</div>
+                <p class="chrome-hint">Type a URL to visit a site.</p>
+                <div class="chrome-suggestions">
+                  <button class="chrome-sugg" onclick="setUrl('uidai.gov.in');chromeNavigate()">uidai.gov.in</button>
+                  <button class="chrome-sugg" onclick="setUrl('uidai-verify.in');chromeNavigate()">uidai-verify.in</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /app-screen -->
+
+        <div class="android-navbar">
+          <button class="nav-btn" onclick="goHome()">⬛</button>
+          <button class="nav-btn" onclick="goHome()">●</button>
+          <button class="nav-btn">▣</button>
+        </div>
+
+      </div></div>
+    </div><!-- /l1-phone-col -->
+
+    <!-- RIGHT: HINTS + EVIDENCE + VERDICT -->
+    <div class="l1-side-col">
+
+      <!-- Hint Box -->
+      <div class="hint-box" id="hintBox">
+        <div class="hint-box-header" onclick="toggleHints()">
+          <div class="hint-box-title">💡 Hints <span class="hint-cost-tag">1 free · then −100 pts each</span></div>
+          <div class="hint-header-right">
+            <span class="hint-count-tag" id="hintUsedTag">0/3 used</span>
+            <span class="hint-chevron">▾</span>
+          </div>
+        </div>
+        <div class="hint-body" id="hintBody"></div>
+      </div>
+
+      <!-- Evidence Board -->
+      <div class="side-evidence-box">
+        <div class="side-ev-header">
+          // Evidence Board
+          <span class="side-ev-count" id="evCount">0 clues</span>
+        </div>
+        <div class="side-ev-list" id="evList"
+          ondragover="event.preventDefault();event.currentTarget.classList.add('drag-over')"
+          ondragleave="event.currentTarget.classList.remove('drag-over')"
+          ondrop="dropToEvidence(event)">
+          <p class="side-ev-empty" id="evEmpty">Flag links and verify Aadhar status — clues appear here.</p>
+        </div>
+      </div>
+
+      <!-- Verdict Zone -->
+      <div class="side-verdict-box" id="verdictBox" style="display:none">
+        <div class="side-verdict-title">Drag clues to LEGITIMATE or SCAM, then lock verdict:</div>
+        <div class="side-buckets">
+          <div class="side-bucket side-bucket-real"
+            ondragover="event.preventDefault();this.classList.add('drag-over')"
+            ondragleave="this.classList.remove('drag-over')"
+            ondrop="dropClue(event,'real')">
+            <p class="side-bucket-label">✅ LEGITIMATE</p>
+            <div class="side-drop-area" id="dropReal"><span class="drop-empty">Drop clues here</span></div>
+          </div>
+          <div class="side-bucket side-bucket-scam"
+            ondragover="event.preventDefault();this.classList.add('drag-over')"
+            ondragleave="this.classList.remove('drag-over')"
+            ondrop="dropClue(event,'scam')">
+            <p class="side-bucket-label">🚨 SCAM</p>
+            <div class="side-drop-area" id="dropScam"><span class="drop-empty">Drop clues here</span></div>
+          </div>
+        </div>
+        <button class="verdict-submit-btn" id="verdictBtn" onclick="submitVerdict()" style="display:none">Lock In Verdict →</button>
+      </div>
+
+    </div><!-- /l1-side-col -->
+  </div><!-- /l1-layout -->
+</div><!-- /level2 -->
+</div><!-- /gameContainer -->
+
+<script>
+/* ─────────────────────────────────────────
+   STATE — inherits DB from Level 1 via
+   localStorage, or uses defaults.
+───────────────────────────────────────── */
+const DB = {
+  balance: parseInt(localStorage.getItem('cv_balance') || '3160'),
+  points:  parseInt(localStorage.getItem('cv_points')  || '2200'),
+  userId: localStorage.getItem('cv_userId') || null,
+};
+
+// Player details (filled in after PIN setup)
+const PLAYER = {
+  name:    'Rohan Sharma',
+  phone:   '9876543210',
+  aadhar:  '7823 4591 0264',
+  address: 'Flat 3B, Vasant Kunj, New Delhi - 110070',
+  pin:     null,
+};
+
+const S = {
+  battery: 20,
+  presLeft: 2,
+  presIv: null,
+  timerFailed: false,
+  evidence: [],
+  verdictMap: {},
+  hintsUsed: [],
+  flaggedUrls: new Set(),
+  msgBuilt: false, emailBuilt: false,
+  smsUnread: 0, emailUnread: 0,
+  uidaiLoggedIn: false,
+  uidaiClueAdded: false,
+  smsLinkFlagged: false,
+  emailCheckFlagged: false,
+  verdictCorrect: false,
+  secondSmsTimer: null,
+};
+
+const CLUES = [
+  { id:'sms-fake',      text:'uidai-verify.in — not a .gov.in domain (scam link)',          correct:'scam' },
+  { id:'email-kyc',     text:'KYC / PAN link from uidai.gov.in — legitimate UIDAI notice',  correct:'real' },
+  { id:'uidai-status',  text:'UIDAI: Aadhar ACTIVE — no KYC warning, only PAN/phone unlinked', correct:'real' },
+];
+
+const HINTS_DATA = [
+  { n:1, free:true,  text:'Find all 3 clues and identify the scam and the legitimate ones.' },
+  { n:2, free:false, text:'Think carefully before clicking any link. Check where the link actually goes. Government websites in India always end in .gov.in — never .in alone.' },
+  { n:3, free:false, text:'Log in to uidai.gov.in with your Aadhar details (visible in top bar) to verify your actual status.' },
+];
+
+const API_BASE = '/api';
+async function dbSave() {
+  localStorage.setItem('cv_balance', DB.balance);
+  localStorage.setItem('cv_points',  DB.points);
+  if (DB.userId) localStorage.setItem('cv_userId', DB.userId);
+  if (!DB.userId) return;
+  try {
+    await fetch(API_BASE + '/player/save', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ userId:DB.userId, balance:DB.balance, points:DB.points })
+    });
+  } catch(e) {}
+}
+
+// G object for HUD bars — load carry-over state from level1
+const _m1State = (()=>{ try{ return JSON.parse(localStorage.getItem('cv_m1_state')||'null'); }catch(e){return null;} })();
+const G = {
+  health: _m1State ? Math.max(0, _m1State.health) : 100,
+  trust:  _m1State ? Math.max(0, _m1State.trust)  : 100,
+  score:  DB.points,
+  good:   _m1State ? (_m1State.good || 0) : 0,
+  bad:    _m1State ? (_m1State.bad  || 0) : 0
+};
+
+const drainBat = p => { S.battery = Math.max(0, S.battery - p); updateHUD(); };
+const addPts   = p => { DB.points += p; G.score = DB.points; updateHUD(); flashPts(); dbSave(); };
+const usePts   = p => { DB.points = Math.max(0, DB.points - p); G.score = DB.points; updateHUD(); dbSave(); };
+
+function flashPts() { 
+  const el = document.getElementById('hudPoints'); 
+  if (el) {
+    el.classList.add('points-flash'); 
+    setTimeout(() => el.classList.remove('points-flash'), 600);
+  }
+}
+
+/* ─────────────────────────────────────────
+   PIN SETUP
+───────────────────────────────────────── */
+function savePIN() {
+  const a = document.getElementById('pinSetupA').value.trim();
+  const b = document.getElementById('pinSetupB').value.trim();
+  const err = document.getElementById('pinSetupErr');
+  if (a.length < 4 || a !== b) {
+    err.classList.add('show');
+    ['pinSetupA','pinSetupB'].forEach(id => {
+      const el = document.getElementById(id);
+      el.classList.add('error');
+      setTimeout(() => el.classList.remove('error'), 400);
+    });
+    return;
+  }
+  PLAYER.pin = a;
+  localStorage.setItem("cv_pin", a);
+  DB.userId = 'player_' + a;
+  document.getElementById('pinSetupScreen').classList.remove('show');
+  // Show Aadhar card before starting level
+  document.getElementById('ac-name').textContent   = PLAYER.name;
+  document.getElementById('ac-phone').textContent  = PLAYER.phone;
+  document.getElementById('ac-number').textContent = PLAYER.aadhar;
+  document.getElementById('am-name').textContent   = PLAYER.name;
+  document.getElementById('am-phone').textContent  = PLAYER.phone;
+  document.getElementById('am-number').textContent = PLAYER.aadhar;
+  document.getElementById('aadharCardScreen').classList.add('show');
+  document.getElementById('hud').style.display = 'flex';
+  updateHUD();
+}
+
+function proceedToLevel2() {
+  document.getElementById('aadharCardScreen').classList.remove('show');
+  document.getElementById('level2').style.display = 'flex';
+}
+
+function toggleAadharMini() {
+  document.getElementById('aadharMini').classList.toggle('show');
+}
+
+/* ─────────────────────────────────────────
+   HUD
+───────────────────────────────────────── */
+function updateHUD() {
+  // Update battery (keep old for compatibility)
+  const b = Math.max(0, S.battery);
+  const batteryPct = document.getElementById('batteryPct');
+  if (batteryPct) batteryPct.textContent = b + '%';
+  const br = document.getElementById('batteryRect');
+  if (br) { br.setAttribute('width', Math.round(b/100*8)); br.style.fill = b<20?'var(--red)':b<40?'var(--amber)':'var(--green)'; }
+  
+  // Update balance displays
+  const balanceAmt = document.getElementById('balanceAmt');
+  if (balanceAmt) balanceAmt.textContent = '₹' + DB.balance.toLocaleString('en-IN');
+  
+  const hudPoints = document.getElementById('hudPoints');
+  if (hudPoints) hudPoints.textContent = '⭐ ' + DB.points.toLocaleString('en-IN') + ' pts';
+  
+  // Update NEW HUD bars (Security Health & Trust Level)
+  const health = Math.max(0, G.health);
+  const trust = Math.max(0, G.trust);
+  
+  const hFill = document.getElementById('h-fill');
+  const tFill = document.getElementById('t-fill');
+  const hVal = document.getElementById('h-val');
+  const tVal = document.getElementById('t-val');
+  const scNum = document.getElementById('sc-num');
+  
+  if (hFill) {
+    hFill.style.width = health + '%';
+    hFill.style.background = health > 60 ? 'var(--green)' : health > 30 ? 'var(--amber)' : 'var(--red)';
+  }
+  if (tFill) {
+    tFill.style.width = trust + '%';
+    tFill.style.background = trust > 60 ? 'var(--accent)' : trust > 30 ? 'var(--amber)' : 'var(--red)';
+  }
+  if (hVal) hVal.textContent = health + '%';
+  if (tVal) tVal.textContent = trust + '%';
+  if (scNum) scNum.textContent = Math.max(0, DB.points);
+  
+  // Update avatar and name
+  const hudAv = document.getElementById('hud-av');
+  const hudUname = document.getElementById('hud-uname');
+  if (hudAv) hudAv.textContent = PLAYER.name.charAt(0).toUpperCase();
+  if (hudUname) hudUname.textContent = PLAYER.name.split(' ')[0].toUpperCase();
+}
+
+function updateTimerDisplayBottom() {
+  const timerEl = document.getElementById('timerDisplayBottom');
+  if (timerEl && S.presLeft !== undefined) {
+    const totalSecs = Math.round(S.presLeft * 60);
+    const mm = Math.floor(totalSecs / 60);
+    const ss = totalSecs % 60;
+    timerEl.textContent = mm + 'm ' + String(ss).padStart(2, '0') + 's';
+    
+    const timerWrap = document.getElementById('game-timer');
+    if (timerWrap && totalSecs <= 30) {
+      timerWrap.classList.add('red');
+      timerWrap.style.borderColor = '#e63946';
+    } else if (timerWrap) {
+      timerWrap.classList.remove('red');
+      timerWrap.style.borderColor = 'rgba(46,204,113,.4)';
+    }
+  }
+}
+
+/* ─────────────────────────────────────────
+   TIMER — 2 minutes from 1:58 PM
+───────────────────────────────────────── */
+function startTimer() {
+  S.presLeft = 2; S.timerFailed = false;
+  clearInterval(S.presIv);
+  
+  // Show bottom timer
+  const timerWrap = document.getElementById('game-timer');
+  if (timerWrap) timerWrap.style.display = 'block';
+  
+  S.presIv = setInterval(() => {
+    S.presLeft -= 1/60;
+    const left = Math.max(0, S.presLeft);
+    const totalSecs = Math.round(left * 60);
+    const mm = Math.floor(totalSecs / 60), ss = totalSecs % 60;
+    const txt = mm + 'm ' + String(ss).padStart(2,'0') + 's';
+    const e1 = document.getElementById('presTimer');
+    const e2 = document.getElementById('presTimerSb');
+    const e3 = document.getElementById('timerDisplay');
+    if (e1) e1.textContent = txt;
+    if (e2) e2.textContent = txt;
+    if (e3) e3.textContent = txt;
+    
+    // Update bottom timer
+    updateTimerDisplayBottom();
+    
+    // Advance clock from 2:00
+    const elapsedSecs = Math.round((2 - left) * 60);
+    const baseMins = 13 * 60 + 58; // 13:58
+    const nowMins  = baseMins + Math.floor(elapsedSecs / 60);
+    const hh = Math.floor(nowMins / 60), mn = nowMins % 60;
+    const ts = String(hh).padStart(2,'0') + ':' + String(mn).padStart(2,'0');
+    const hb = document.getElementById('homeTimeBig'), sb = document.getElementById('sbTime');
+    if (hb) hb.textContent = ts;
+    if (sb) sb.textContent = ts;
+    if (left <= 0.5) { 
+      const hudTimer = document.getElementById('hudTimer');
+      if (hudTimer) hudTimer.classList.add('timer-warn');
+      if(e1) e1.style.color='var(--red)';
+    }
+    if (left <= 0 && !S.timerFailed) {
+      S.timerFailed = true; 
+      clearInterval(S.presIv);
+      document.getElementById('timerFail').classList.add('show');
+    }
+  }, 1000);
+}
+
+/* ─────────────────────────────────────────
+   START / RESTART
+───────────────────────────────────────── */
+function startLevel2() {
+  document.getElementById('l2intro').style.display = 'none';
+  document.getElementById('l2layout').style.display = 'grid';
+  buildHints();
+  goHome();
+  startTimer();
+  // First SMS from ADHAR-UPDATE arrives quickly
+  setTimeout(() => dropNotif('sms', 'ADHAR-UPDATE', 'Aadhar: XXXXXXXX1234 Status: SUSPENDED — Verify now'), 900);
+  // Email arrives soon after
+  setTimeout(() => dropNotif('email', 'support@uidai.gov.in', 'Mandatory KYC Update — Aadhar Suspension Notice'), 2800);
+  // Second threatening SMS at 90s (when 30s remain — timer goes red at same point)
+  S.secondSmsTimer = setTimeout(() => {
+    dropNotif('sms', 'ADHAR-UPDATE', '⚠ FINAL WARNING: Verify immediately or Aadhar blocked permanently');
+  }, 90000);
+}
+
+function restartLevel2() {
+  clearInterval(S.presIv);
+  clearTimeout(S.secondSmsTimer);
+  S.battery=20; S.timerFailed=false; S.presLeft=2;
+  S.evidence=[]; S.verdictMap={}; S.hintsUsed=[];
+  S.flaggedUrls=new Set();
+  S.msgBuilt=false; S.emailBuilt=false;
+  S.smsUnread=0; S.emailUnread=0;
+  S.uidaiLoggedIn=false; S.uidaiClueAdded=false;
+  S.smsLinkFlagged=false; S.emailCheckFlagged=false;
+  S.verdictCorrect=false;
+  
+  // Reset G values for HUD bars
+  G.health = 100;
+  G.trust = 100;
+  G.score = DB.points;
+  
+  document.getElementById('timerFail').classList.remove('show');
+  document.getElementById('gameAlert').classList.remove('show');
+  document.getElementById('linkChoiceModal').classList.remove('show');
+  _lcPending = null;
+  document.getElementById('hudTimer').classList.remove('timer-warn');
+  ['chatMessages','emailList','emailDetailArea'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.innerHTML='';
+  });
+  document.getElementById('chromePage').innerHTML = buildChromeHome();
+  document.getElementById('notifShadeInner').innerHTML = '<p class="notif-shade-empty" id="notifShadeEmpty">No notifications yet.</p>';
+  document.getElementById('sbNotifDots').innerHTML = '';
+  document.getElementById('toastArea').innerHTML = '';
+  document.getElementById('evList').innerHTML = '<p class="side-ev-empty" id="evEmpty">Flag links and verify Aadhar status — clues appear here.</p>';
+  document.getElementById('evCount').textContent = '0 clues';
+  document.getElementById('dropReal').innerHTML = '<span class="drop-empty">Drop clues here</span>';
+  document.getElementById('dropScam').innerHTML = '<span class="drop-empty">Drop clues here</span>';
+  document.getElementById('verdictBox').style.display = 'none';
+  document.getElementById('verdictBtn').style.display = 'none';
+  document.getElementById('verdictBtn').textContent = 'Lock In Verdict →';
+  document.getElementById('verdictBtn').disabled = false;
+  
+  // Reset clock displays
+  var hb = document.getElementById('homeTimeBig'), sb = document.getElementById('sbTime');
+  if (hb) hb.textContent = '13:58';
+  if (sb) sb.textContent = '13:58';
+  var pt = document.getElementById('presTimer'), psb = document.getElementById('presTimerSb'), td = document.getElementById('timerDisplay');
+  if (pt)  { pt.textContent = '2m 00s'; pt.style.color='var(--amber)'; }
+  if (psb) psb.textContent = '2m 00s';
+  if (td)  td.textContent  = '2m 00s';
+  
+  // Reset bottom timer display
+  const bottomTimer = document.getElementById('timerDisplayBottom');
+  if (bottomTimer) bottomTimer.textContent = '2m 00s';
+  
+  // Reset bottom timer wrapper class
+  const timerWrap = document.getElementById('game-timer');
+  if (timerWrap) {
+    timerWrap.classList.remove('red');
+    timerWrap.style.borderColor = 'rgba(46,204,113,.4)';
+  }
+  
+  updateHUD();
+  startLevel2();
+}
+
+function buildChromeHome() {
+  return '<div class="chrome-home-page"><div class="chrome-logo">G</div><p class="chrome-hint">Type a URL to visit a site.</p><div class="chrome-suggestions"><button class="chrome-sugg" onclick="setUrl(\'uidai.gov.in\');chromeNavigate()">uidai.gov.in</button><button class="chrome-sugg" onclick="setUrl(\'uidai-verify.in\');chromeNavigate()">uidai-verify.in</button></div></div>';
+}
+
+/* ─────────────────────────────────────────
+   NOTIFICATIONS + TOASTS
+───────────────────────────────────────── */
+function dropNotif(type, sender, preview) {
+  if (type==='sms') S.smsUnread++;
+  else if (type==='email') S.emailUnread++;
+  updateBadges();
+  const shade = document.getElementById('notifShadeInner');
+  const empty = document.getElementById('notifShadeEmpty');
+  if (empty) empty.remove();
+  const item = document.createElement('div');
+  item.className = 'notif-item notif-' + type;
+  item.innerHTML = `<div class="notif-icon">${type==='sms'?'💬':'✉️'}</div><div class="notif-content"><p class="notif-sender">${sender}</p><p class="notif-preview">${preview}</p></div>`;
+  item.onclick = () => { closeShade(); openApp(type==='sms'?'messages':'email'); };
+  shade.appendChild(item);
+  showToast(type, sender, preview);
+  const dot = document.createElement('span');
+  dot.className = 'sb-notif-dot sb-notif-dot-' + type;
+  document.getElementById('sbNotifDots').appendChild(dot);
+  const sb = document.getElementById('androidStatusbar');
+  sb.classList.add('sb-pulse');
+  setTimeout(() => sb.classList.remove('sb-pulse'), 600);
+}
+
+let _tQ=[], _tR=false;
+function showToast(type,sender,preview) { _tQ.push({type,sender,preview}); if(!_tR) _nextToast(); }
+function _nextToast() {
+  if(!_tQ.length){_tR=false;return;} _tR=true;
+  const{type,sender,preview}=_tQ.shift();
+  const area=document.getElementById('toastArea');
+  const t=document.createElement('div');
+  t.className='notif-toast notif-toast-'+type;
+  t.innerHTML=`<div class="toast-icon">${type==='sms'?'💬':'✉️'}</div><div class="toast-body"><p class="toast-sender">${sender}</p><p class="toast-preview">${preview}</p></div><button class="toast-close">✕</button>`;
+  t.addEventListener('click',e=>{if(e.target.classList.contains('toast-close'))return;openShade();t.remove();});
+  area.appendChild(t);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('toast-visible')));
+  const tmr=setTimeout(()=>{t.classList.remove('toast-visible');setTimeout(()=>{t.remove();_nextToast();},350);},3500);
+  t.querySelector('.toast-close').addEventListener('click',()=>{clearTimeout(tmr);t.classList.remove('toast-visible');setTimeout(()=>{t.remove();_nextToast();},350);});
+}
+
+function openShade()  { document.getElementById('notifShade').classList.add('open'); document.getElementById('notifShadeBackdrop').classList.add('active'); }
+function closeShade() { document.getElementById('notifShade').classList.remove('open'); document.getElementById('notifShadeBackdrop').classList.remove('active'); }
+function toggleShade(){ document.getElementById('notifShade').classList.contains('open') ? closeShade() : openShade(); }
+
+function updateBadges() {
+  const mb=document.getElementById('msgBadge'), eb=document.getElementById('emailBadge');
+  if(mb){mb.textContent=S.smsUnread; mb.style.display=S.smsUnread>0?'flex':'none';}
+  if(eb){eb.textContent=S.emailUnread; eb.style.display=S.emailUnread>0?'flex':'none';}
+}
+
+/* ─────────────────────────────────────────
+   APP NAVIGATION
+───────────────────────────────────────── */
+function goHome() {
+  document.querySelectorAll('.in-app').forEach(a=>a.style.display='none');
+  document.getElementById('homeScreen').style.display='flex';
+}
+function openApp(id) {
+  closeShade();
+  document.querySelectorAll('.in-app').forEach(a=>a.style.display='none');
+  document.getElementById('homeScreen').style.display='none';
+  const el = document.getElementById('app'+id.charAt(0).toUpperCase()+id.slice(1));
+  if (el) el.style.display='flex';
+  if (id==='messages') { S.smsUnread=0; updateBadges(); if(!S.msgBuilt){S.msgBuilt=true;buildSMS();} }
+  else if (id==='email') { S.emailUnread=0; updateBadges(); if(!S.emailBuilt){S.emailBuilt=true;buildEmails();} }
+}
+
+/* ─────────────────────────────────────────
+   SMS
+───────────────────────────────────────── */
+function buildSMS() {
+  const area = document.getElementById('chatMessages');
+  area.innerHTML = '';
+  const msgs = [
+    {
+      sender:'ADHAR-UPDATE', time:'2:00 PM',
+      body:'Aadhar: XXXXXXXX' + PLAYER.aadhar.slice(-4) + '\nStatus: SUSPENDED\nVerify now or ₹10,000 penalty.',
+      link:{text:'uidai-verify.in', url:'uidai-verify.in'},
+      hl:[{text:'uidai-verify.in', clue:'sms-fake', tip:'This is NOT a government domain. Official UIDAI site is uidai.gov.in — always .gov.in'}]
+    },
+    {
+      sender:'ADHAR-UPDATE', time:'2:01 PM',
+      body:'⚠ FINAL WARNING: Verify immediately or Aadhar blocked permanently.',
+      link:{text:'uidai-verify.in', url:'uidai-verify.in'},
+      hl:[{text:'FINAL WARNING', clue:'sms-fake', tip:'Artificial urgency is a scam tactic — real UIDAI never threatens permanent blocks via SMS.'}]
+    },
+  ];
+  msgs.forEach(m => area.appendChild(makeBubble(m)));
+  setTimeout(() => { const hint = document.getElementById('msgHighlightHint'); if(hint) hint.style.display='block'; }, 600);
+}
+
+/* ─────────────────────────────────────────
+   EMAIL
+───────────────────────────────────────── */
+function buildEmails() {
+  const list = document.getElementById('emailList');
+  list.innerHTML = '';
+  [
+    {id:'kyc', from:'support@uidai.gov.in', subject:'Aadhar — PAN & phone linking required', preview:'Dear Rohan, your Aadhar is active but PAN and phone are not linked...', time:'2:00 PM', cls:''},
+    {id:'fake-kyc', from:'support@uidai.co.in', subject:'Mandatory KYC Update — Aadhar Suspension', preview:'Your Aadhar requires immediate verification...', time:'2:00 PM', cls:'suspicious-email'},
+  ].forEach(e => {
+    const row = document.createElement('div');
+    row.className = 'email-row ' + e.cls;
+    row.innerHTML = `<div class="email-row-from">${e.from}</div><div class="email-row-subject">${e.subject}</div><div class="email-row-preview">${e.preview}</div><div class="email-row-time">${e.time}</div>`;
+    row.onclick = () => openEmailDetail(e.id);
+    list.appendChild(row);
+  });
+}
+
+function openEmailDetail(id) {
+  document.getElementById('appEmail').style.display='none';
+  document.getElementById('appEmailDetail').style.display='flex';
+  const area = document.getElementById('emailDetailArea');
+  area.innerHTML='';
+
+  if (id === 'kyc') {
+    // Legitimate UIDAI email — has a "Check Aadhar Status" button with link-choice modal
+    const wrap = document.createElement('div');
+    wrap.className = 'email-view';
+    wrap.innerHTML = `
+      <div class="email-view-meta">
+        <p class="evm-from"><span class="evm-label">From:</span> support@uidai.gov.in</p>
+        <p class="evm-to"><span class="evm-label">To:</span> rohan@gmail.com</p>
+        <p class="evm-subject">Aadhar — PAN &amp; phone linking required</p>
+      </div>
+      <div class="email-view-body">
+        <p>Dear Rohan,</p><br>
+        <p>Your Aadhar (<strong>${PLAYER.aadhar}</strong>) is <strong style="color:var(--green)">ACTIVE</strong>.</p><br>
+        <p>However, your <strong>PAN card</strong> and <strong>mobile number</strong> are not linked to your Aadhar. We recommend linking them at your earliest convenience.</p><br>
+        <p>No account freeze has been initiated. This is a routine advisory.</p>
+      </div>
+      <button class="email-fake-link" style="background:rgba(0,180,216,0.1);color:var(--accent);border-color:rgba(0,180,216,0.3)" onclick="clickLink('uidai.gov.in/check-status','Check Aadhar Status')">Check Aadhar Status ↗</button>`;
+    area.appendChild(wrap);
+
+  } else {
+    // Fake UIDAI email
+    const wrap = document.createElement('div');
+    wrap.className = 'email-view';
+    wrap.innerHTML = `
+      <div class="email-view-meta">
+        <p class="evm-from"><span class="evm-label">From:</span> <span class="highlightable" data-clue="sms-fake" data-tip="Official UIDAI email is @uidai.gov.in — .co.in is a commercial domain, NOT a government domain." data-te="1" onmousedown="hlStart(this)" ontouchstart="hlStart(this)" onmouseup="hlCancel(this)" ontouchend="hlCancel(this)">support@uidai.co.in</span></p>
+        <p class="evm-to"><span class="evm-label">To:</span> rohan@gmail.com</p>
+        <p class="evm-subject">Mandatory KYC Update — Aadhar Suspension Notice</p>
+      </div>
+      <div class="email-view-body">
+        Your Aadhar requires <strong style="color:var(--red)">immediate verification</strong>. Failure to act within 2 hours will result in <strong>permanent suspension</strong> of your Aadhar and all linked bank accounts.
+      </div>
+      <button class="email-fake-link" onclick="clickLink('uidai-verify.in/kyc','CLICK HERE TO LINK')">CLICK HERE TO LINK ↗</button>`;
+    area.appendChild(wrap);
+  }
+}
+
+/* ─────────────────────────────────────────
+   CHAT BUBBLE BUILDER
+───────────────────────────────────────── */
+function makeBubble(m, incoming=true) {
+  const wrap = document.createElement('div');
+  wrap.className = 'chat-bubble-wrap ' + (incoming?'incoming':'outgoing');
+  let body = m.body.replace(/\n/g,'<br>');
+  if (m.hl) {
+    m.hl.forEach(h => {
+      const enc = encodeURIComponent(h.tip);
+      body = body.replace(new RegExp(h.text.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'g'),
+        `<span class="highlightable" data-clue="${h.clue}" data-tip="${enc}" data-te="1" onmousedown="hlStart(this)" ontouchstart="hlStart(this)" onmouseup="hlCancel(this)" ontouchend="hlCancel(this)">${h.text}</span>`);
+    });
+  }
+  wrap.innerHTML = `<div class="chat-bubble"><p class="bubble-sender">${m.sender} · ${m.time}</p><div class="bubble-body">${body}</div>${m.link?`<div class="bubble-link" onclick="clickLink('${m.link.url}','${m.link.text}')">${m.link.text} <span class="link-arrow">↗</span></div>`:''}</div>`;
+  return wrap;
+}
+
+/* ─────────────────────────────────────────
+   HIGHLIGHT / LONG-PRESS
+───────────────────────────────────────── */
+let _hlT=null, _hlL=false;
+function hlStart(el) {
+  clearTimeout(_hlT); _hlL=false;
+  el.classList.add('highlight-pressing');
+  _hlT = setTimeout(() => {
+    _hlL=true; el.classList.remove('highlight-pressing'); el.classList.add('highlighted');
+    const tip = el.dataset.te ? decodeURIComponent(el.dataset.tip) : (el.dataset.tip||'');
+    const clue = CLUES.find(c=>c.id===el.dataset.clue);
+    if (clue) addEvidence(clue);
+    showPopup('Flagged: ' + el.textContent, '<p>'+tip+'</p>', clue?clue.text:null, 'Add to Evidence');
+    const msgHint = document.getElementById('msgHighlightHint');
+    if (msgHint) msgHint.style.display='none';
+  }, 420);
+}
+function hlCancel(el) { if(!_hlL){ clearTimeout(_hlT); if(el) el.classList.remove('highlight-pressing'); } }
+
+/* ─────────────────────────────────────────
+   EVIDENCE + DRAG
+───────────────────────────────────────── */
+function makeClueEl(clue, zone) {
+  const el = document.createElement('div');
+  if (zone==='evidence') {
+    el.className='side-ev-item'; el.setAttribute('data-ev-id',clue.id);
+    el.innerHTML=`<div class="side-ev-dot"></div><div style="flex:1;min-width:0"><p>${clue.text}</p><p class="side-ev-drag-hint">↔ drag to LEGITIMATE or SCAM</p></div>`;
+  } else {
+    el.className='verdict-tag verdict-tag-'+zone; el.setAttribute('data-tag',clue.id);
+    el.title='Drag to move'; el.textContent=clue.text;
+  }
+  el.setAttribute('data-clue-id',clue.id); el.setAttribute('draggable','true'); el.style.cursor='grab';
+  el.addEventListener('dragstart',ev=>{ev.dataTransfer.setData('cid',clue.id);ev.dataTransfer.effectAllowed='move';el.style.opacity='0.4';});
+  el.addEventListener('dragend',()=>{el.style.opacity='';});
+  return el;
+}
+
+function moveClue(cid, toZone) {
+  const clue=CLUES.find(c=>c.id===cid); if(!clue) return;
+  document.querySelectorAll(`[data-clue-id="${cid}"],[data-ev-id="${cid}"],[data-tag="${cid}"]`).forEach(el=>el.remove());
+  if (toZone==='evidence') { delete S.verdictMap[cid]; }
+  else { S.verdictMap[cid]=toZone; }
+  if (toZone==='evidence') {
+    const evList=document.getElementById('evList');
+    evList.querySelectorAll('.side-ev-empty').forEach(el=>{if(el.textContent.includes('sorted'))el.remove();});
+    evList.appendChild(makeClueEl(clue,'evidence'));
+  } else {
+    const dropEl=document.getElementById(toZone==='real'?'dropReal':'dropScam');
+    const emptyHint=dropEl.querySelector('.drop-empty'); if(emptyHint) emptyHint.remove();
+    dropEl.appendChild(makeClueEl(clue,toZone));
+    const evList=document.getElementById('evList');
+    if (!evList.querySelector('.side-ev-item,[data-ev-id]')) {
+      if (!evList.querySelector('.side-ev-empty')) {
+        const note=document.createElement('p'); note.className='side-ev-empty';
+        note.textContent='All clues sorted — submit verdict.'; evList.appendChild(note);
+      }
+    }
+  }
+  ['dropReal','dropScam'].forEach(id=>{
+    const area=document.getElementById(id);
+    if(area&&!area.querySelector('.verdict-tag,[data-tag]')) area.innerHTML='<span class="drop-empty">Drop clues here</span>';
+  });
+  const n=document.querySelectorAll('[data-ev-id]').length;
+  const evCount = document.getElementById('evCount');
+  if (evCount) evCount.textContent=n+' clue'+(n!==1?'s':'');
+  const sorted=Object.keys(S.verdictMap).length;
+  const verdictBtn = document.getElementById('verdictBtn');
+  if (verdictBtn && sorted>=2) verdictBtn.style.display='block';
+}
+
+function addEvidence(clue) {
+  if(!clue||S.evidence.includes(clue.text)) return;
+  S.evidence.push(clue.text);
+  const emp=document.getElementById('evEmpty'); if(emp) emp.remove();
+  document.getElementById('evList').appendChild(makeClueEl(clue,'evidence'));
+  const evCount = document.getElementById('evCount');
+  if (evCount) evCount.textContent=S.evidence.length+' clue'+(S.evidence.length!==1?'s':'');
+  showVerdictZone();
+}
+
+function showVerdictZone() {
+  const vz=document.getElementById('verdictBox');
+  if(vz && vz.style.display!=='none') return;
+  if(vz) {
+    vz.style.display='block';
+    vz.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
+}
+
+function dropClue(e,toZone) {
+  e.preventDefault(); e.stopPropagation();
+  e.currentTarget.classList.remove('drag-over');
+  const cid=e.dataTransfer.getData('cid'); if(!cid) return;
+  moveClue(cid,toZone);
+}
+
+function dropToEvidence(e) {
+  e.preventDefault(); e.stopPropagation();
+  e.currentTarget.classList.remove('drag-over');
+  const cid=e.dataTransfer.getData('cid'); if(!cid) return;
+  if(S.verdictMap[cid]) moveClue(cid,'evidence');
+}
+
+/* ─────────────────────────────────────────
+   LINK CHOICE MODAL
+───────────────────────────────────────── */
+let _lcPending = null;
+
+function clickLink(url, label) {
+  const isFake = url.includes('uidai-verify') || url.includes('uidai.co.in') || url.includes('.co.in');
+  const isReal = url.includes('uidai.gov.in');
+  _lcPending = {url, label, isFake, isReal};
+
+  const urlEl   = document.getElementById('lcUrl');
+  const descEl  = document.getElementById('lcDesc');
+  const flagMsg = document.getElementById('lcFlaggedMsg');
+  const flagBtn = document.getElementById('lcBtnFlag');
+  const openBtn = document.getElementById('lcBtnOpen');
+  const alreadyFlagged = S.flaggedUrls.has(url);
+
+  if (openBtn) {
+    openBtn.textContent='🌐 Open Link'; 
+    openBtn.disabled=false;
+  }
+  if (flagBtn) {
+    if (alreadyFlagged) { 
+      flagBtn.textContent='✓ Already Flagged'; 
+      flagBtn.disabled=true; 
+      if (flagMsg) {
+        flagMsg.style.display='block'; 
+        flagMsg.textContent='✓ Already in Evidence Board';
+      }
+    } else { 
+      flagBtn.textContent='📌 Flag It'; 
+      flagBtn.disabled=false; 
+      if (flagMsg) flagMsg.style.display='none';
+    }
+  }
+
+  if (urlEl) {
+    urlEl.textContent=url;
+    urlEl.className='lc-url'+(isFake?' lc-url-danger':isReal?' lc-url-safe':'');
+  }
+
+  if (descEl) {
+    if (isFake) descEl.innerHTML='<span style="color:var(--red)">⚠ This is NOT a government domain.</span> Opening it will expose your Aadhar details to scammers.';
+    else if (isReal) descEl.innerHTML='<span style="color:var(--green)">✓ Official UIDAI site.</span> Safe to open and verify your Aadhar status.';
+    else descEl.innerHTML='Verify this URL before opening.';
+  }
+
+  const modal = document.getElementById('linkChoiceModal');
+  if (modal) modal.classList.add('show');
+}
+
+function lcFlag() {
+  if(!_lcPending) return;
+  const{url,isFake,isReal}=_lcPending;
+  let clue = null;
+  if (isFake) clue = CLUES.find(c=>c.id==='sms-fake');
+  else if (isReal) clue = CLUES.find(c=>c.id==='email-kyc');
+  if (clue) addEvidence(clue);
+  S.flaggedUrls.add(url);
+  const flagMsg=document.getElementById('lcFlaggedMsg');
+  if (flagMsg) {
+    flagMsg.style.display='block'; 
+    flagMsg.textContent='✓ Added to Evidence Board';
+  }
+  const flagBtn=document.getElementById('lcBtnFlag');
+  if (flagBtn) {
+    flagBtn.textContent='✓ Flagged';
+    flagBtn.disabled=true;
+  }
+}
+
+function lcOpen() {
+  if(!_lcPending) return;
+  const{url,isFake,isReal}=_lcPending;
+  lcClose();
+
+  if (isFake) {
+    // Opening fake link = Aadhar details compromised, money stolen
+    DB.balance=Math.max(0,DB.balance-3000); 
+    updateHUD(); 
+    dbSave();
+    
+    const cinData = {
+      title: 'PHISHING LINK CLICKED — AADHAR DATA STOLEN',
+      lines: [
+        {p:'[PHISH]', t:'Malicious link: ' + url, c:'cr'},
+        {p:'[EXPLOIT]', t:'Aadhar number, name, address captured', c:'cr'},
+        {p:'[TRACKER]', t:'Device tracking script installed', c:'ca'},
+        {p:'[BANK]', t:'₹3,000 transferred to scammer account', c:'cr'},
+        {p:'[ALERT]', t:'Your Aadhar is now at risk', c:'cw'},
+        {p:'[LESSON]', t:'Government sites always end in .gov.in — never .in alone', c:'cc'}
+      ],
+      accs: ['🔗 Phishing Link|ACTIVE','📱 Aadhar Data|STOLEN','💸 ₹3,000|LOST','🎯 Scammer|UNTRACEABLE'],
+      dmg: '₹3,000 + Aadhar Data Breach',
+      prog: true
+    };
+    launchCinBad(cinData, restartLevel2);
+    
+  } else if (isReal || url.includes('uidai.gov.in')) {
+    setUrl('uidai.gov.in'); 
+    openApp('chrome'); 
+    chromeNavigate();
+  } else {
+    setUrl(url); 
+    openApp('chrome'); 
+    chromeNavigate();
+  }
+}
+
+function lcClose() { 
+  const modal = document.getElementById('linkChoiceModal');
+  if (modal) modal.classList.remove('show'); 
+  _lcPending=null; 
+}
+
+/* ─────────────────────────────────────────
+   CHROME BROWSER - FIXED
+───────────────────────────────────────── */
+function setUrl(u) { 
+  const input = document.getElementById('chromeUrlInput');
+  if (input) input.value = u; 
+}
+
+function chromeNavigate() {
+  const raw = document.getElementById('chromeUrlInput')?.value.trim().toLowerCase().replace(/^https?:\/\//,'').split('/')[0] || '';
+  const page = document.getElementById('chromePage');
+  if (!page) return;
+  
+  drainBat(1);
+
+  // Check for fake UIDAI sites (scam)
+  if (raw.includes('uidai-verify') || raw.includes('uidai.co.in') || raw.includes('uidai-verify.in')) {
+    addEvidence(CLUES.find(c=>c.id==='sms-fake'));
+    DB.balance = Math.max(0, DB.balance - 3000);
+    updateHUD(); 
+    dbSave();
+    
+    const cinData = {
+      title: 'FAKE UIDAI SITE — AADHAR DATA STOLEN',
+      lines: [
+        {p:'[PHISH]', t:'Visited fake site: ' + raw, c:'cr'},
+        {p:'[EXPLOIT]', t:'Aadhar number captured from login attempt', c:'cr'},
+        {p:'[TRACKER]', t:'Browser fingerprint stolen', c:'ca'},
+        {p:'[BANK]', t:'₹3,000 transferred to mule account', c:'cr'},
+        {p:'[ALERT]', t:'Your Aadhar is now compromised', c:'cw'},
+        {p:'[LESSON]', t:'Always verify .gov.in domain before entering Aadhar', c:'cc'}
+      ],
+      accs: ['🔗 Fake UIDAI Site|ACTIVE','📱 Aadhar Data|STOLEN','💸 ₹3,000|LOST','🎯 Scammer|UNTRACEABLE'],
+      dmg: '₹3,000 + Aadhar Compromise',
+      prog: true
+    };
+    launchCinBad(cinData, restartLevel2);
+    return;
+  }
+  
+  // Check for official UIDAI site
+  if (raw.includes('uidai.gov.in') || raw === 'uidai.gov.in') {
+    page.innerHTML = buildUIDaiPage(S.uidaiLoggedIn || false);
+    return;
+  }
+  
+  // Handle empty or invalid URLs
+  if (raw.length <= 2) {
+    page.innerHTML = buildChromeHome();
+    return;
+  }
+  
+  // Default: site not found
+  page.innerHTML = `<div style="padding:1.5rem;font-family:var(--font-mono);font-size:0.78rem;color:var(--body)">
+    <p style="color:var(--red);margin-bottom:8px">⚠ Site not found</p>
+    <p style="color:var(--muted)">${raw}</p>
+    <p style="margin-top:12px;font-size:0.68rem">Try: uidai.gov.in or uidai-verify.in</p>
+  </div>`;
+}
+
+function buildUIDaiPage(loggedIn) {
+  if (!loggedIn) {
+    return `<div class="uidai-page">
+      <div class="uidai-header">
+        <div class="uidai-logo">🏛️</div>
+        <div>
+          <div class="uidai-title">Unique Identification Authority of India</div>
+          <div class="uidai-subtitle">uidai.gov.in</div>
+          <div class="uidai-verified-badge">✓ Verified Government Site</div>
+        </div>
+      </div>
+      <div class="uidai-form">
+        <div class="uidai-form-label">AADHAAR NUMBER</div>
+        <input class="uidai-form-input" id="uidai-aadhar" placeholder="7823 4591 0264" maxlength="14" />
+        <div class="uidai-form-label">REGISTERED MOBILE</div>
+        <input class="uidai-form-input" id="uidai-phone" placeholder="9876543210" maxlength="10" type="tel" />
+        <div class="uidai-form-label">FULL NAME</div>
+        <input class="uidai-form-input" id="uidai-name" placeholder="Rohan Sharma" />
+        <p class="uidai-login-err" id="uidai-err">Incorrect details. Use your Aadhar card details (visible in top bar).</p>
+        <button class="uidai-login-btn" onclick="uidaiLogin()">Check Aadhar Status →</button>
+      </div>
+      <p style="font-family:var(--font-mono);font-size:0.58rem;color:var(--muted);text-align:center;margin-top:12px">
+        Your Aadhar details are shown in the 🪪 My Aadhar popup
+      </p>
+    </div>`;
+  } else {
+    return `<div class="uidai-page">
+      <div class="uidai-header">
+        <div class="uidai-logo">🏛️</div>
+        <div>
+          <div class="uidai-title">Unique Identification Authority of India</div>
+          <div class="uidai-subtitle">uidai.gov.in · Logged in as ${PLAYER.name}</div>
+          <div class="uidai-verified-badge">✓ Verified Government Site</div>
+        </div>
+      </div>
+      <div class="uidai-status-card">
+        <div class="uidai-status-row"><span>Aadhar Status</span><span class="uidai-status-ok">✓ ACTIVE</span></div>
+        <div class="uidai-status-row"><span>KYC Update Required</span><span class="uidai-status-ok">✓ None — all clear</span></div>
+        <div class="uidai-status-row"><span>Suspension Notice</span><span class="uidai-status-ok">✓ No notice on record</span></div>
+        <div class="uidai-status-row"><span>PAN Card Linked</span><span class="uidai-status-warn">⚠ Not linked (optional)</span></div>
+        <div class="uidai-status-row"><span>Mobile Linked</span><span class="uidai-status-warn">⚠ Not linked (optional)</span></div>
+      </div>
+      <p style="font-family:var(--font-mono);font-size:0.62rem;color:var(--muted);line-height:1.5;margin-top:8px">
+        ✅ Your Aadhar is ACTIVE. No suspension. No KYC alert.<br>
+        The SMS claiming suspension is FALSE. PAN/phone not linked is normal — this matches the legitimate UIDAI email.
+      </p>
+      <div class="uidai-action-row">
+        <button class="uidai-logout-btn" onclick="uidaiLogout()">Log Out</button>
+        <button class="uidai-addclue-btn" id="uidai-clue-btn" onclick="uidaiAddClue()" ${S.uidaiClueAdded ? 'disabled' : ''}>
+          ${S.uidaiClueAdded ? '✓ Clue Added' : '📌 Add Clue to Evidence'}
+        </button>
+      </div>
+    </div>`;
+  }
+}
+
+function uidaiLogin() {
+  const aadhar = document.getElementById('uidai-aadhar')?.value.trim().replace(/\s/g,'');
+  const phone  = document.getElementById('uidai-phone')?.value.trim();
+  const name   = document.getElementById('uidai-name')?.value.trim().toLowerCase();
+  const correctAadhar = PLAYER.aadhar.replace(/\s/g,'');
+  const correctPhone  = PLAYER.phone;
+  const correctName   = PLAYER.name.toLowerCase();
+  const err = document.getElementById('uidai-err');
+
+  if (aadhar===correctAadhar && phone===correctPhone && name===correctName) {
+    S.uidaiLoggedIn=true;
+    document.getElementById('chromePage').innerHTML = buildUIDaiPage(true);
+    showToastMessage('✓ Login successful! Your Aadhar is ACTIVE.');
+  } else {
+    if (err) {
+      err.classList.add('show');
+      setTimeout(()=>err.classList.remove('show'), 3000);
+    }
+  }
+}
+
+function uidaiLogout() {
+  S.uidaiLoggedIn=false;
+  document.getElementById('chromePage').innerHTML = buildUIDaiPage(false);
+}
+
+function uidaiAddClue() {
+  if (S.uidaiClueAdded) return;
+  S.uidaiClueAdded=true;
+  const clue = CLUES.find(c=>c.id==='uidai-status');
+  if (clue) addEvidence(clue);
+  const btn=document.getElementById('uidai-clue-btn');
+  if(btn){
+    btn.textContent='✓ Clue Added';
+    btn.disabled=true;
+  }
+  showToastMessage('✓ UIDAI status clue added to Evidence Board');
+}
+
+// Helper function for toast messages
+let toastTimeout = null;
+function showToastMessage(message) {
+  const toastArea = document.getElementById('toastArea');
+  if (!toastArea) return;
+  
+  const toast = document.createElement('div');
+  toast.className = 'notif-toast notif-toast-info';
+  toast.style.background = 'rgba(46,204,113,0.2)';
+  toast.style.border = '1px solid rgba(46,204,113,0.3)';
+  toast.innerHTML = `<div class="toast-icon">ℹ️</div>
+    <div class="toast-body"><p class="toast-sender">System</p>
+    <p class="toast-preview">${message}</p></div>
+    <button class="toast-close" onclick="this.parentElement.remove()">✕</button>`;
+  
+  toastArea.appendChild(toast);
+  setTimeout(() => toast.classList.add('toast-visible'), 10);
+  
+  if (toastTimeout) clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => {
+    if (toast && toast.parentElement) {
+      toast.classList.remove('toast-visible');
+      setTimeout(() => toast.remove(), 350);
+    }
+  }, 4000);
+}
+
+/* ─────────────────────────────────────────
+   VERDICT
+───────────────────────────────────────── */
+function submitVerdict() {
+  const vm=S.verdictMap;
+  const smsFakeOk   = vm['sms-fake']     === 'scam';
+  const emailKycOk  = vm['email-kyc']    === 'real';
+  const uidaiOk     = vm['uidai-status'] === 'real';
+  const realOk = uidaiOk || emailKycOk;
+  let anyWrong=false;
+  CLUES.forEach(c=>{ if(vm[c.id]&&vm[c.id]!==c.correct) anyWrong=true; });
+
+  var vFooter = document.getElementById('popupFooter');
+  if (vFooter) {
+    vFooter.innerHTML =
+      '<button class="popup-close" onclick="closePopup()">Close</button>' +
+      '<button class="popup-pin" id="popupPinBtn" style="display:none"></button>';
+  }
+
+  if (smsFakeOk && realOk && !anyWrong) {
+    S.verdictCorrect = true;
+    const verdictBtn = document.getElementById('verdictBtn');
+    if (verdictBtn) {
+      verdictBtn.textContent='✓ Verdict Locked';
+      verdictBtn.disabled=true;
+    }
+    
+    // Launch CIN success overlay with callback
+    const successData = {
+      icon: '🛡️',
+      t: 'CORRECT VERDICT!',
+      tip: 'You correctly identified the scam SMS and the legitimate UIDAI email. Now report the scam SMS to finish the level.'
+    };
+    launchCinGood(successData, 50, function() {
+      showPopup(
+        'Correct Verdict!',
+        '<p style="font-size:0.88rem;line-height:1.7;color:var(--hi)">You correctly identified the scam SMS and the legitimate UIDAI email.<br><br><strong style="color:var(--green)">Now report the scam SMS to finish the level.</strong></p>',
+        null
+      );
+      setTimeout(function() {
+        const footer = document.getElementById('popupFooter');
+        if (footer) {
+          footer.innerHTML =
+            '<button class="popup-close" onclick="closePopup()">Close</button>' +
+            '<button class="popup-pin" onclick="reportSMS()">📢 Report SMS</button>';
+        }
+      }, 50);
+    });
+  } else {
+    // Wrong verdict - show warning popup
+    showPopup(
+      'Think Again',
+      '<p style="font-size:0.88rem;line-height:1.7;color:var(--amber)">Something is not right. Check your clues — at least one is in the wrong bucket or missing.<br><br>Drag clues freely and try again.</p>',
+      null
+    );
+  }
+}
+
+function reportSMS() {
+  S.verdictCorrect = false;
+  closePopup();
+  clearInterval(S.presIv);
+  addPts(1500);
+  
+  // Save progress to localStorage before redirect
+  localStorage.setItem('cv_balance', DB.balance);
+  localStorage.setItem('cv_points', DB.points);
+  if (PLAYER.pin) localStorage.setItem('cv_pin', PLAYER.pin);
+  
+  const successData = {
+    icon: '🏆',
+    t: 'LEVEL 2 COMPLETE!',
+    tip: 'You successfully reported the scam SMS to 1930/1947. Your Aadhar is safe and the scammer\'s number has been flagged.'
+  };
+  
+  // Custom success overlay with redirect button
+  const ov = document.getElementById('cin-good');
+  if (!ov) return;
+  
+  playGoodChime();
+  
+  document.getElementById('cin-si').textContent = successData.icon;
+  document.getElementById('cin-gt').textContent = successData.t;
+  document.getElementById('cin-gs').textContent = '// MISSION ACCOMPLISHED';
+  document.getElementById('cin-gtip').innerHTML = `<strong>Security Insight:</strong> ${successData.tip}`;
+  document.getElementById('cin-pts').textContent = '+1500 PTS';
+  
+  const pc = document.getElementById('cin-parts');
+  if (pc) {
+    pc.innerHTML = '';
+    for (let i = 0; i < 30; i++) {
+      const p = document.createElement('div');
+      p.className = 'cin-part';
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 80 + Math.random() * 200;
+      p.style.cssText = `left:50%;top:50%;--tx:${Math.cos(angle) * dist}px;--ty:${Math.sin(angle) * dist}px;background:${['#2ecc71', '#00b4d8', '#ffd166'][Math.floor(Math.random() * 3)]};animation-delay:${Math.random() * 0.3}s;animation-duration:${0.6 + Math.random() * 0.5}s;`;
+      pc.appendChild(p);
+    }
+  }
+  
+  // Replace the continue button with Complete Level button
+  const continueBtn = ov.querySelector('.cin-cont');
+  if (continueBtn) {
+    continueBtn.textContent = 'COMPLETE LEVEL →';
+    continueBtn.style.borderColor = 'rgba(46,204,113,.5)';
+    continueBtn.style.color = 'var(--green)';
+    continueBtn.style.background = 'rgba(46,204,113,.1)';
+    continueBtn.onclick = () => {
+      // Save result and go to ending screen
+      try {
+        localStorage.removeItem('cv_m1_state'); // clear carry-over
+        const _m1User = (()=>{ try{ return JSON.parse(localStorage.getItem('cv_current')||'null'); }catch(e){return null;} })();
+        const _m1BaseScore = _m1User ? (_m1User.totalScore || 0) : 0;
+        const _m1TotalScore = Math.max(0, G.score || DB.points || 0);
+        const _m1EarnedScore = Math.max(0, _m1TotalScore - _m1BaseScore);
+        localStorage.setItem('cv_result', JSON.stringify({
+          level:      1,
+          health:     Math.max(0, G.health),
+          trust:      Math.max(0, G.trust),
+          score:      _m1EarnedScore,
+          baseScore:  _m1BaseScore,
+          totalScore: _m1TotalScore,
+          good:       G.good || 0,
+          bad:        G.bad  || 0
+        }));
+      } catch(e){}
+      window.location.href = '../ending.html';
+    };
+  }
+  
+  ov.classList.add('active');
+}
+
+/* ─────────────────────────────────────────
+   HINTS
+───────────────────────────────────────── */
+function buildHints() {
+  const body=document.getElementById('hintBody');
+  if (!body) return;
+  body.innerHTML='';
+  HINTS_DATA.forEach((h,i)=>{
+    const item=document.createElement('div');
+    const revealed=S.hintsUsed.includes(h.n);
+    const avail=h.free||(i>0&&S.hintsUsed.includes(HINTS_DATA[i-1].n));
+    item.className='hint-item'+(revealed?' hint-revealed':(!avail?' hint-locked':''));
+    item.id='hitem-'+h.n;
+    item.innerHTML=`<div class="hint-num">${h.n}</div><div><p class="hint-text">${revealed?h.text:'???'}</p><p class="hint-action">${revealed?'':(h.free?'Click to reveal (free)':(avail?'Click · costs 100 pts':'Reveal previous hint first'))}</p></div>`;
+    if(!revealed) item.onclick=()=>revealHint(h.n);
+    body.appendChild(item);
+  });
+  const hintUsedTag = document.getElementById('hintUsedTag');
+  if (hintUsedTag) hintUsedTag.textContent=S.hintsUsed.length+'/3 used';
+}
+
+function revealHint(n) {
+  const hint=HINTS_DATA.find(h=>h.n===n);
+  if(!hint||S.hintsUsed.includes(n)) return;
+  const idx=HINTS_DATA.findIndex(h=>h.n===n);
+  if(idx>0&&!S.hintsUsed.includes(HINTS_DATA[idx-1].n)){
+    showPopup('Hint Locked','<p style="color:var(--muted)">Reveal hint '+(n-1)+' first.</p>',null); return;
+  }
+  if(!hint.free){
+    if(DB.points<100){showPopup('Not Enough Points','<p style="color:var(--red)">You need 100 points to unlock this hint.</p>',null);return;}
+    usePts(100);
+  }
+  S.hintsUsed.push(n);
+  buildHints();
+}
+
+function toggleHints() { 
+  const hintBox = document.getElementById('hintBox');
+  if (hintBox) hintBox.classList.toggle('open'); 
+}
+
+/* ─────────────────────────────────────────
+   POPUP
+───────────────────────────────────────── */
+function showPopup(header,body,clue,pinLabel) {
+  const popupHeader = document.getElementById('popupHeader');
+  const popupBody = document.getElementById('popupBody');
+  if (popupHeader) popupHeader.innerHTML=header;
+  if (popupBody) popupBody.innerHTML=body;
+  const pb=document.getElementById('popupPinBtn');
+  if(pb){
+    if(clue){
+      pb.style.display='inline-block';
+      const already=S.evidence.includes(clue);
+      pb.textContent=already?'✓ Added':(pinLabel||'Add to Evidence');
+      pb.disabled=already;
+      if(!already) pb.onclick=()=>{
+        const cl=CLUES.find(function(c){return c.text===clue;});
+        if(cl) addEvidence(cl);
+        pb.textContent='✓ Added'; pb.disabled=true;
+      };
+    } else { pb.style.display='none'; }
+  }
+  const overlay = document.getElementById('popupOverlay');
+  const box = document.getElementById('popupBox');
+  if (overlay) overlay.classList.add('active');
+  if (box) box.classList.add('active');
+}
+function closePopup() {
+  const overlay = document.getElementById('popupOverlay');
+  const box = document.getElementById('popupBox');
+  if (overlay) overlay.classList.remove('active');
+  if (box) box.classList.remove('active');
+  // If player closes the correct-verdict popup without clicking Report SMS,
+  // re-enable the button so they can reopen it and report.
+  if (S.verdictCorrect) {
+    var btn = document.getElementById('verdictBtn');
+    if (btn) { btn.textContent = 'Report SMS →'; btn.disabled = false; }
+  }
+}
+
+/* ─────────────────────────────────────────
+   AUDIO FUNCTIONS for CIN Overlays
+───────────────────────────────────────── */
+let audioCtx = null;
+let audioUnlocked = false;
+
+function unlockAudio() {
+  if (audioUnlocked) return;
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const buf = audioCtx.createBuffer(1, 1, 22050);
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf;
+  src.connect(audioCtx.destination);
+  src.start();
+  audioUnlocked = true;
+}
+
+document.addEventListener('click', unlockAudio);
+document.addEventListener('touchstart', unlockAudio);
+document.addEventListener('keydown', unlockAudio);
+
+function getAudioContext() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playAlarmBad() {
+  const ctx = getAudioContext();
+  if (ctx.state === 'suspended') ctx.resume();
+  
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+  
+  osc.type = 'sawtooth';
+  osc.frequency.value = 880;
+  filter.type = 'bandpass';
+  filter.frequency.value = 1000;
+  filter.Q.value = 5;
+  
+  osc.connect(filter);
+  filter.connect(gain);
+  gain.connect(ctx.destination);
+  
+  gain.gain.setValueAtTime(0.2, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+  
+  osc.start(now);
+  osc.stop(now + 0.8);
+  
+  const osc2 = ctx.createOscillator();
+  const gain2 = ctx.createGain();
+  osc2.type = 'square';
+  osc2.frequency.value = 440;
+  osc2.connect(gain2);
+  gain2.connect(ctx.destination);
+  gain2.gain.setValueAtTime(0.15, now + 0.05);
+  gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+  osc2.start(now + 0.05);
+  osc2.stop(now + 0.7);
+}
+
+function playGoodChime() {
+  const ctx = getAudioContext();
+  if (ctx.state === 'suspended') ctx.resume();
+  
+  const now = ctx.currentTime;
+  const notes = [523.25, 659.25, 783.99, 1046.50];
+  
+  notes.forEach((freq, i) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    
+    const startTime = now + (i * 0.12);
+    gain.gain.setValueAtTime(0, startTime);
+    gain.gain.linearRampToValueAtTime(0.15, startTime + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.4);
+    
+    osc.start(startTime);
+    osc.stop(startTime + 0.42);
+  });
+}
+
+/* ─────────────────────────────────────────
+   CIN OVERLAY FUNCTIONS (from level3) with sounds
+───────────────────────────────────────── */
+function launchCinBad(cin, onDone) {
+  // Track bad decision + penalise health/trust
+  G.bad = (G.bad || 0) + 1;
+  G.health = Math.max(0, G.health - 20);
+  G.trust  = Math.max(0, G.trust  - 15);
+  updateHUD();
+  // Play alarm sound
+  playAlarmBad();
+  
+  const ov = document.getElementById('cin-overlay');
+  const body = document.getElementById('cin-body');
+  const foot = document.getElementById('cin-foot');
+  if (!ov || !body) return;
+  
+  body.innerHTML = '';
+  if (foot) foot.classList.remove('show');
+  ov.classList.add('active');
+  
+  const title = document.createElement('div');
+  title.style.cssText = 'font-family:var(--font-disp);font-size:1rem;font-weight:700;color:#e63946;margin-bottom:12px;letter-spacing:-.02em;';
+  title.className = 'glitch';
+  title.textContent = '⚠ ' + cin.title;
+  body.appendChild(title);
+  
+  if (cin.accs && cin.accs.length) {
+    const ag = document.createElement('div');
+    ag.className = 'cin-accs';
+    ag.id = 'cin-ag';
+    cin.accs.forEach(a => {
+      const [n, s] = a.split('|');
+      const c = document.createElement('div');
+      c.className = 'cin-acc';
+      c.innerHTML = `<div class="cin-acc-n">${n}</div><div class="cin-acc-s bad">${s}</div>`;
+      ag.appendChild(c);
+    });
+    body.appendChild(ag);
+    if (cin.prog) {
+      const p = document.createElement('div');
+      p.className = 'cin-prog-wrap';
+      p.id = 'cin-pw';
+      p.innerHTML = `<div class="cin-prog-lbl">ATTACK PROGRESS</div><div class="cin-prog-track"><div class="cin-prog-fill" id="cin-pf"></div></div>`;
+      body.appendChild(p);
+    }
+  }
+  
+  if (cin.dmg) {
+    const d = document.createElement('div');
+    d.className = 'cin-dmg';
+    d.id = 'cin-d';
+    d.innerHTML = `<div class="cin-dmg-amt">${cin.dmg}</div><div class="cin-dmg-lbl">ESTIMATED LOSS / EXPOSURE</div>`;
+    body.appendChild(d);
+  }
+  
+  const lc = document.createElement('div');
+  lc.style.marginTop = '8px';
+  body.appendChild(lc);
+  
+  let li = 0;
+  function nl() {
+    if (li >= cin.lines.length) {
+      setTimeout(() => {
+        const ag = document.getElementById('cin-ag');
+        if (ag) {
+          ag.classList.add('show');
+          ag.querySelectorAll('.cin-acc').forEach((c, i) => setTimeout(() => c.classList.add('comp'), i * 200));
+        }
+        const pw = document.getElementById('cin-pw');
+        if (pw) {
+          pw.classList.add('show');
+          setTimeout(() => { document.getElementById('cin-pf').style.width = '100%'; }, 100);
+        }
+        const d = document.getElementById('cin-d');
+        if (d) d.classList.add('show');
+        if (foot) setTimeout(() => foot.classList.add('show'), 1000);
+      }, 400);
+      window._cinBadDone = onDone;
+      return;
+    }
+    const line = cin.lines[li];
+    const el = document.createElement('div');
+    el.className = 'cin-line';
+    el.innerHTML = `<span class="cin-p">${line.p}</span><span class="${line.c}">${line.t}</span>`;
+    lc.appendChild(el);
+    requestAnimationFrame(() => setTimeout(() => el.classList.add('show'), 20));
+    li++;
+    setTimeout(nl, 270 + Math.random() * 110);
+  }
+  setTimeout(nl, 500);
+}
+
+function closeCinBad() {
+  const ov = document.getElementById('cin-overlay');
+  if (ov) ov.classList.remove('active');
+  if (window._cinBadDone) {
+    window._cinBadDone();
+    window._cinBadDone = null;
+  }
+}
+
+function launchCinGood(fb, pts, onDone) {
+  // Track good decision + reward health/trust
+  G.good = (G.good || 0) + 1;
+  G.health = Math.min(100, G.health + 5);
+  G.trust  = Math.min(100, G.trust  + 10);
+  updateHUD();
+  // Play success chime
+  playGoodChime();
+  
+  const ov = document.getElementById('cin-good');
+  if (!ov) return;
+  
+  document.getElementById('cin-si').textContent = fb.icon || '🛡';
+  document.getElementById('cin-gt').textContent = fb.t;
+  document.getElementById('cin-gs').textContent = '// ' + (pts >= 50 ? 'BEST RESPONSE' : 'CORRECT DECISION');
+  document.getElementById('cin-gtip').innerHTML = `<strong>Security Insight:</strong> ${fb.tip}`;
+  document.getElementById('cin-pts').textContent = '+' + pts + ' PTS';
+  
+  const pc = document.getElementById('cin-parts');
+  if (pc) {
+    pc.innerHTML = '';
+    for (let i = 0; i < 30; i++) {
+      const p = document.createElement('div');
+      p.className = 'cin-part';
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 80 + Math.random() * 200;
+      p.style.cssText = `left:50%;top:50%;--tx:${Math.cos(angle) * dist}px;--ty:${Math.sin(angle) * dist}px;background:${['#2ecc71', '#00b4d8', '#ffd166'][Math.floor(Math.random() * 3)]};animation-delay:${Math.random() * 0.3}s;animation-duration:${0.6 + Math.random() * 0.5}s;`;
+      pc.appendChild(p);
+    }
+  }
+  
+  ov.classList.add('active');
+  window._cinGoodDone = onDone;
+}
+
+function closeCinGood() {
+  const ov = document.getElementById('cin-good');
+  if (ov) ov.classList.remove('active');
+  if (window._cinGoodDone) {
+    window._cinGoodDone();
+    window._cinGoodDone = null;
+  }
+}
+
+/* ─────────────────────────────────────────
+   ALERT
+───────────────────────────────────────── */
+function showAlert({icon,cls,title,body,sub,btns}) {
+  const alertIcon = document.getElementById('alertIcon');
+  const alertTitle = document.getElementById('alertTitle');
+  const alertBody = document.getElementById('alertBody');
+  const alertSub = document.getElementById('alertSub');
+  const alertBtns = document.getElementById('alertBtns');
+  const gameAlert = document.getElementById('gameAlert');
+  
+  if (alertIcon) alertIcon.textContent=icon;
+  if (alertTitle) {
+    alertTitle.textContent=title; 
+    alertTitle.className='alert-title '+(cls||'');
+  }
+  if (alertBody) alertBody.innerHTML=body;
+  if (alertSub) alertSub.textContent=sub||'';
+  if (alertBtns) {
+    alertBtns.innerHTML='';
+    btns.forEach(b=>{const btn=document.createElement('button');btn.className=b.cls;btn.textContent=b.text;btn.onclick=b.fn;alertBtns.appendChild(btn);});
+  }
+  if (gameAlert) gameAlert.classList.add('show');
+}
+function closeAlert() { 
+  const gameAlert = document.getElementById('gameAlert');
+  if (gameAlert) gameAlert.classList.remove('show'); 
+}
+
+/* ─────────────────────────────────────────
+   INIT
+───────────────────────────────────────── */
+window.addEventListener('DOMContentLoaded', () => {
+  // If arriving from Level 1, DB values are already set via localStorage.
+  // Show PIN setup only if not already set.
+  const savedPin = localStorage.getItem('cv_pin');
+  if (savedPin) {
+    PLAYER.pin = savedPin;
+    DB.userId = 'player_' + savedPin;
+    const pinScreen = document.getElementById('pinSetupScreen');
+    if (pinScreen) pinScreen.classList.remove('show');
+    document.getElementById('ac-name').textContent   = PLAYER.name;
+    document.getElementById('ac-phone').textContent  = PLAYER.phone;
+    document.getElementById('ac-number').textContent = PLAYER.aadhar;
+    document.getElementById('am-name').textContent   = PLAYER.name;
+    document.getElementById('am-phone').textContent  = PLAYER.phone;
+    document.getElementById('am-number').textContent = PLAYER.aadhar;
+    const aadharCard = document.getElementById('aadharCardScreen');
+    if (aadharCard) aadharCard.classList.add('show');
+    const hud = document.getElementById('hud');
+    if (hud) hud.style.display='flex';
+    updateHUD();
+  } else {
+    const pinScreen = document.getElementById('pinSetupScreen');
+    if (pinScreen) pinScreen.classList.add('show');
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CYBERVERSE — Results</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+.ending-wrap{padding:40px 0;text-align:center;}
+
+/* CHARACTER RESULT PANEL */
+.char-result-panel{
+  max-width:560px;margin:0 auto 36px;
+  background:linear-gradient(135deg,rgba(0,119,182,.15),rgba(0,180,216,.06));
+  border:1px solid rgba(0,180,216,.3);border-radius:20px;
+  padding:0;overflow:hidden;position:relative;
+  animation:fu .6s .1s ease both;
+}
+.char-result-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);}
+.char-result-inner{display:flex;align-items:center;gap:20px;padding:22px 24px;}
+.char-result-img{height:130px;width:auto;object-fit:contain;flex-shrink:0;filter:drop-shadow(0 6px 20px rgba(0,180,216,.3));animation:charEntrance .6s .2s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes charEntrance{from{transform:scale(0) translateX(-30px);opacity:0}to{transform:scale(1) translateX(0);opacity:1}}
+.char-result-speech{flex:1;text-align:left;}
+.char-speech-bubble{background:rgba(0,0,0,.35);border:1px solid rgba(0,180,216,.2);border-radius:10px;padding:14px 16px;font-size:.9rem;color:var(--hi);line-height:1.65;position:relative;}
+.char-speech-bubble::after{content:'';position:absolute;left:-8px;top:50%;transform:translateY(-50%);width:0;height:0;border-top:7px solid transparent;border-bottom:7px solid transparent;border-right:8px solid rgba(0,180,216,.2);}
+.char-name-tag{font-family:var(--font-mono);font-size:.6rem;color:var(--accent);letter-spacing:.14em;margin-top:8px;}
+
+/* VERDICT */
+.verdict-hero{margin-bottom:36px;position:relative;}
+.verdict-ring{width:120px;height:120px;border-radius:50%;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;font-size:3rem;position:relative;animation:ringin .6s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes ringin{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+.verdict-ring::before{content:'';position:absolute;inset:-4px;border-radius:50%;border:2px solid currentColor;opacity:.3;animation:ringpulse 2s ease-in-out infinite;}
+@keyframes ringpulse{0%,100%{transform:scale(1);opacity:.3}50%{transform:scale(1.06);opacity:.6}}
+.verdict-ring.safe{background:rgba(46,204,113,.15);color:var(--green);}
+.verdict-ring.partial{background:rgba(244,162,97,.15);color:var(--amber);}
+.verdict-ring.bad{background:rgba(230,57,70,.15);color:var(--red);}
+.ending-verdict{font-family:var(--font-disp);font-size:clamp(2rem,6vw,3.5rem);font-weight:800;margin-bottom:12px;animation:fu .6s .3s ease both;}
+.ending-verdict.safe{color:var(--green);}
+.ending-verdict.partial{color:var(--amber);}
+.ending-verdict.bad{color:var(--red);}
+.ending-text{max-width:500px;margin:0 auto 36px;font-size:.94rem;color:var(--body);line-height:1.75;animation:fu .6s .5s ease both;}
+
+/* REPORT CARD */
+#report-card{width:min(560px,94vw);margin:0 auto 32px;background:linear-gradient(145deg,#0d1520,#0a1018);border:1px solid rgba(0,180,216,.25);border-radius:12px;overflow:hidden;box-shadow:0 0 60px rgba(0,180,216,.12),0 24px 60px rgba(0,0,0,.5);animation:fu .7s .7s ease both;position:relative;}
+#report-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,180,216,.04) 0%,transparent 50%);pointer-events:none;}
+.rc-header{padding:18px 22px 14px;border-bottom:1px solid rgba(0,180,216,.15);display:flex;align-items:center;justify-content:space-between;}
+.rc-logo{font-family:var(--font-disp);font-size:1.2rem;font-weight:800;background:linear-gradient(135deg,#fff,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.rc-tag{font-family:var(--font-mono);font-size:.6rem;letter-spacing:.15em;color:rgba(0,180,216,.6);background:rgba(0,180,216,.08);border:1px solid rgba(0,180,216,.2);padding:3px 8px;border-radius:2px;}
+.rc-body{padding:20px 22px;}
+.rc-player{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.rc-av{width:44px;height:44px;border-radius:50%;overflow:hidden;border:2px solid var(--accent);flex-shrink:0;}
+.rc-av img{width:100%;height:100%;object-fit:cover;object-position:top;}
+.rc-pname{font-family:var(--font-disp);font-size:1rem;font-weight:700;color:var(--white);}
+.rc-pmeta{font-family:var(--font-mono);font-size:.62rem;color:var(--muted);margin-top:2px;}
+.rc-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;}
+.rc-stat{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.06);border-radius:6px;padding:12px 10px;text-align:center;}
+.rc-stat-val{font-family:var(--font-mono);font-size:1.3rem;font-weight:600;color:var(--white);}
+.rc-stat-lbl{font-family:var(--font-mono);font-size:.55rem;letter-spacing:.1em;color:var(--muted);margin-top:3px;text-transform:uppercase;}
+.rc-verdict-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+.rc-verdict-pill{font-family:var(--font-disp);font-size:.9rem;font-weight:700;padding:8px 20px;border-radius:20px;}
+.rc-verdict-pill.safe{background:rgba(46,204,113,.15);color:var(--green);border:1px solid rgba(46,204,113,.3);}
+.rc-verdict-pill.partial{background:rgba(244,162,97,.15);color:var(--amber);border:1px solid rgba(244,162,97,.3);}
+.rc-verdict-pill.bad{background:rgba(230,57,70,.15);color:var(--red);border:1px solid rgba(230,57,70,.3);}
+.rc-threat{font-family:var(--font-mono);font-size:.65rem;color:var(--muted);}
+.rc-bars{margin-bottom:16px;}
+.rc-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.rc-bar-lbl{font-family:var(--font-mono);font-size:.6rem;color:var(--muted);width:90px;text-align:right;flex-shrink:0;}
+.rc-bar-track{flex:1;height:5px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;}
+.rc-bar-fill{height:100%;border-radius:3px;transition:width 1.2s cubic-bezier(.16,1,.3,1);}
+.rc-bar-val{font-family:var(--font-mono);font-size:.6rem;color:var(--hi);width:32px;text-align:right;flex-shrink:0;}
+.rc-badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+.rc-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(255,209,102,.07);border:1px solid rgba(255,209,102,.2);color:var(--yellow);font-family:var(--font-mono);font-size:.62rem;padding:5px 10px;border-radius:16px;}
+.rc-footer{padding:12px 22px;border-top:1px solid rgba(255,255,255,.05);display:flex;align-items:center;justify-content:space-between;}
+.rc-footer-brand{font-family:var(--font-mono);font-size:.55rem;letter-spacing:.12em;color:rgba(255,255,255,.2);text-transform:uppercase;}
+.rc-footer-date{font-family:var(--font-mono);font-size:.55rem;color:rgba(255,255,255,.2);}
+
+.share-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:36px;animation:fu .6s 1.1s ease both;}
+.share-btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;padding:11px 20px;border-radius:var(--r);cursor:pointer;transition:all .18s ease;border:1px solid var(--rim2);background:var(--surface);color:var(--body);}
+.share-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(0,180,216,.06);}
+.share-btn.primary{background:var(--accent);color:var(--ink);border-color:var(--accent);}
+.share-btn.primary:hover{background:#48cae4;transform:translateY(-1px);}
+
+.ai-panel{background:var(--surface);border:1px solid var(--rim);border-left:3px solid var(--accent);border-radius:var(--r);padding:20px 22px;margin-bottom:28px;text-align:left;animation:fu .6s .9s ease both;}
+.ai-panel-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.ai-panel-icon{font-size:1.3rem;}
+.ai-panel-title{font-family:var(--font-mono);font-size:.68rem;letter-spacing:.15em;color:var(--accent);}
+.ai-risk-badge{margin-left:auto;font-family:var(--font-mono);font-size:.65rem;font-weight:600;padding:4px 10px;border-radius:2px;}
+.ai-risk-badge.low{background:rgba(46,204,113,.12);color:var(--green);border:1px solid rgba(46,204,113,.25);}
+.ai-risk-badge.mod{background:rgba(244,162,97,.1);color:var(--amber);border:1px solid rgba(244,162,97,.2);}
+.ai-risk-badge.high{background:rgba(230,57,70,.1);color:var(--red);border:1px solid rgba(230,57,70,.2);}
+.ai-main-text{font-size:.9rem;color:var(--body);line-height:1.7;margin-bottom:14px;}
+.ai-rec{background:rgba(0,180,216,.05);border:1px solid rgba(0,180,216,.12);border-radius:4px;padding:12px 14px;font-size:.84rem;color:var(--body);line-height:1.65;}
+.ai-rec strong{color:var(--accent);}
+.end-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;animation:fu .6s 1.3s ease both;}
+@keyframes fu{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface);border:1px solid var(--rim);border-radius:var(--r);padding:12px 20px;font-family:var(--font-mono);font-size:.75rem;color:var(--green);box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:all .3s ease;white-space:nowrap;z-index:9999;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body class="page-enter">
+<a href="#main-content" class="skip-link">Skip to main content</a>
+<button class="theme-toggle" id="theme-btn" onclick="toggleTheme()" aria-label="Toggle theme">🌙</button>
+<div class="a11y-bar" role="toolbar">
+  <span class="a11y-label">A11Y</span>
+  <button class="a11y-btn" onclick="setFont('sm')">A</button>
+  <button class="a11y-btn" onclick="setFont('md')">A+</button>
+  <button class="a11y-btn" onclick="setFont('lg')" style="font-weight:700">A++</button>
+  <div class="a11y-sep"></div>
+  <button class="a11y-btn" onclick="toggleContrast()">⬤ HC</button>
+  <div class="a11y-sep"></div>
+  <button class="a11y-btn" onclick="showKbdHelp()">⌨</button>
+</div>
+<div id="toast">✓ Report card copied to clipboard!</div>
+
+<div class="app layer" id="main-content" role="main">
+  <div class="ending-wrap">
+    <div class="t-label" style="margin-bottom:20px;animation:fu .5s ease both;">// SIMULATION COMPLETE</div>
+
+    <!-- CHARACTER RESULT PANEL -->
+    <div class="char-result-panel" id="char-result-panel">
+      <div class="char-result-inner">
+        <img id="result-char-img" src="char_boy_full.png" class="char-result-img" alt="Your agent">
+        <div class="char-result-speech">
+          <div class="char-speech-bubble" id="result-speech">Loading agent feedback...</div>
+          <div class="char-name-tag" id="result-agent-name">Agent KAI · Debrief</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VERDICT HERO -->
+    <div class="verdict-hero">
+      <div class="verdict-ring" id="verdict-ring" aria-hidden="true"></div>
+      <div class="ending-verdict" id="ending-verdict">—</div>
+      <p class="ending-text" id="ending-text">—</p>
+    </div>
+
+    <!-- REPORT CARD -->
+    <div id="report-card">
+      <div class="rc-header">
+        <div class="rc-logo">CYBERVERSE</div>
+        <div class="rc-tag">SIMULATION REPORT</div>
+      </div>
+      <div class="rc-body">
+        <div class="rc-player">
+          <div class="rc-av"><img id="rc-av-img" src="char_boy_full.png" alt="Agent"></div>
+          <div>
+            <div class="rc-pname" id="rc-pname">PLAYER</div>
+            <div class="rc-pmeta" id="rc-pmeta">Session complete</div>
+          </div>
+        </div>
+        <div class="rc-stats" id="rc-stats"></div>
+        <div class="rc-verdict-row">
+          <div class="rc-verdict-pill" id="rc-verdict-pill">SAFE DAY</div>
+          <div class="rc-threat" id="rc-threat-lbl">THREAT LEVEL</div>
+        </div>
+        <div class="rc-bars" id="rc-bars"></div>
+        <div class="rc-badges" id="rc-badges"></div>
+      </div>
+      <div class="rc-footer">
+        <div class="rc-footer-brand">cyberverse · trace the unknown</div>
+        <div class="rc-footer-date" id="rc-date"></div>
+      </div>
+    </div>
+
+    <!-- SHARE BUTTONS -->
+    <div class="share-row">
+      <button class="share-btn" onclick="copyCard()">📋 Copy Report</button>
+      <button class="share-btn" onclick="shareScore()">🔗 Share Score</button>
+      <button class="share-btn primary" onclick="goToDashboard()">→ Dashboard</button>
+    </div>
+
+    <!-- AI ANALYSIS -->
+    <div class="ai-panel">
+      <div class="ai-panel-header">
+        <div class="ai-panel-icon">⬡</div>
+        <div class="ai-panel-title">AI BEHAVIOURAL RISK ANALYSIS</div>
+        <div class="ai-risk-badge" id="ai-risk-badge">—</div>
+      </div>
+      <div class="ai-main-text" id="ai-postgame">Generating assessment...</div>
+      <div class="ai-rec" id="ai-rec"></div>
+    </div>
+
+    <div class="end-btns">
+      <button class="btn btn-ghost btn-lg" onclick="replayLevel()">↺ Replay Level</button>
+      <button class="btn btn-ghost btn-lg" onclick="window.location.href='levels.html'">⇒ New Level</button>
+    </div>
+  </div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+(async function(){
+const currentUser = DB.getCurrent();
+if (!currentUser) window.location.href = 'auth.html';
+
+let result = { level:1, health:100, score:0, good:0, bad:0 };
+try { const s = JSON.parse(localStorage.getItem('cv_result')||'null'); if(s) result = s; } catch(e){}
+
+/* ── result.score  = points earned THIS level only
+       result.totalScore = full running total (base + earned)
+       result.baseScore  = DB total before this level started
+   ── */
+const _earnedScore = Math.max(0, result.score || 0);
+const _totalScore  = result.totalScore != null ? Math.max(0, result.totalScore) : _earnedScore;
+
+/* ── CUMULATIVE STATE: accumulate earned-this-level score/health/trust across modes ── */
+(function updateCumulative(){
+  try {
+    const modeKey = result.level || 1;
+    const cum = JSON.parse(localStorage.getItem('cv_cumulative') || 'null') || {
+      totalScore: 0, modesPlayed: [], healthSum: 0, trustSum: 0
+    };
+    // Only add this mode's data if it hasn't been recorded yet (avoid double-counting on replay/refresh)
+    if (!cum.modesPlayed.includes(modeKey)) {
+      cum.modesPlayed.push(modeKey);
+      cum.totalScore  = (cum.totalScore  || 0) + _earnedScore;
+      cum.healthSum   = (cum.healthSum   || 0) + Math.max(0, result.health || 100);
+      cum.trustSum    = (cum.trustSum    || 0) + Math.max(0, result.trust  || 100);
+      cum.avgHealth   = Math.round(cum.healthSum / cum.modesPlayed.length);
+      cum.avgTrust    = Math.round(cum.trustSum  / cum.modesPlayed.length);
+      localStorage.setItem('cv_cumulative', JSON.stringify(cum));
+    }
+  } catch(e){ console.warn('Cumulative update failed:', e); }
+})();
+
+const BADGE_NAMES = {'🛡':'Phishing Defender','🏆':'First Reporter','🔍':'QR Guardian','🤖':'Deepfake Detector','♻':'Recovery Master','📋':'Threat Analyst','📱':'Social Shield'};
+
+const total = result.good + result.bad;
+const acc = total > 0 ? result.good / total : 0;
+const isGood = result.health > 60 && acc >= 0.6;
+const isPartial = !isGood && result.health > 25;
+
+const verdictCls   = isGood ? 'safe' : isPartial ? 'partial' : 'bad';
+const verdictLabel = isGood ? 'SAFE DAY' : isPartial ? 'PARTIAL DAMAGE' : 'FULL TAKEOVER';
+const verdictIcon  = isGood ? '🛡' : isPartial ? '⚠️' : '☠️';
+const verdictText  = isGood
+  ? 'Excellent work. You identified threats, verified sources, and protected your accounts. Your decision-making under pressure held up.'
+  : isPartial
+  ? `You neutralised some threats but made ${result.bad} risky decision${result.bad>1?'s':''} that created real vulnerabilities. Review the tips for each mistake.`
+  : `${result.bad} critical decision${result.bad>1?'s':''} led to full account compromise. Real attackers use these exact techniques. Replay to reinforce these lessons.`;
+
+/* CHARACTER FEEDBACK */
+const av = localStorage.getItem('cv_avatar')||'boy';
+const agentName = av==='girl' ? 'Agent NOVA' : 'Agent KAI';
+const bustSrc   = av==='girl' ? 'char_girl_bust.png' : 'char_boy_full.png';
+const fullSrc   = av==='girl' ? 'char_girl_bust.png' : 'char_boy_full.png';
+
+const agentSpeeches = {
+  safe:  `Amazing work out there! You spotted every trick those scammers tried. Your cyber instincts are sharp — keep training and you'll be unstoppable. I'm proud of you, Agent!`,
+  partial:`Good effort! You caught most of the threats, but a couple slipped through. Don't worry — every mistake is a lesson. Review what went wrong and come back stronger!`,
+  bad:   `Tough mission this time. The scammers got through our defences. But here's the thing — now you know exactly how they work. Read the tips, replay the level, and next time you'll crush it!`
+};
+
+document.getElementById('result-char-img').src = fullSrc;
+document.getElementById('result-agent-name').textContent = agentName + ' · Debrief';
+document.getElementById('result-speech').textContent = agentSpeeches[verdictCls];
+document.getElementById('rc-av-img').src = bustSrc;
+
+/* VERDICT */
+document.getElementById('verdict-ring').className = 'verdict-ring ' + verdictCls;
+document.getElementById('verdict-ring').textContent = verdictIcon;
+const vEl = document.getElementById('ending-verdict');
+vEl.className = 'ending-verdict ' + verdictCls;
+vEl.textContent = verdictLabel;
+document.getElementById('ending-text').textContent = verdictText;
+
+/* REPORT CARD */
+const user = currentUser;
+document.getElementById('rc-pname').textContent = user.name.toUpperCase();
+document.getElementById('rc-pmeta').textContent = `Level ${result.level} · ${new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}`;
+document.getElementById('rc-date').textContent  = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+
+/* ── Display values:
+      - Score shown  = full running total after this level (base + earned)
+      - Health/Trust = this level's final values (what the player ends on)
+      - For multi-mode, also show avg health/trust across modes played so far ── */
+const _endCum    = (()=>{ try{ return JSON.parse(localStorage.getItem('cv_cumulative')||'null'); }catch(e){return null;} })();
+const _modesCount = _endCum ? (_endCum.modesPlayed||[]).length : 0;
+
+/* Score: always show full running total (base carried in + earned here) */
+const _displayScore  = _totalScore;
+/* Health/Trust: show this level's final value; multi-mode shows avg alongside */
+const _displayHealth = Math.max(0, result.health);
+const _displayTrust  = Math.min(100, Math.max(0, result.trust ?? 100));
+const _avgHealth     = _modesCount > 1 && _endCum ? Math.max(0, _endCum.avgHealth) : _displayHealth;
+const _avgTrust      = _modesCount > 1 && _endCum ? Math.max(0, _endCum.avgTrust)  : _displayTrust;
+const _scoreLbl  = _modesCount > 1 ? `Total Score (${_modesCount} Modes)` : 'Score';
+const _trustLbl  = _modesCount > 1 ? 'Avg Trust Score' : 'Trust Score';
+
+document.getElementById('rc-stats').innerHTML = [
+  {val: _displayScore,      lbl: _scoreLbl},
+  {val: _displayHealth+'%', lbl: 'Security Health'},
+  {val: result.good,        lbl: 'Correct'},
+  {val: result.bad,         lbl: 'Risky'}
+].map(s=>`<div class="rc-stat"><div class="rc-stat-val">${s.val}</div><div class="rc-stat-lbl">${s.lbl}</div></div>`).join('');
+
+/* Show modes-played banner if more than 1 mode completed */
+if (_modesCount > 1) {
+  const metaEl = document.getElementById('rc-pmeta');
+  if (metaEl) metaEl.textContent = `${_modesCount} Modes Completed · ${new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}`;
+}
+
+const vpEl = document.getElementById('rc-verdict-pill');
+vpEl.className = 'rc-verdict-pill ' + verdictCls;
+vpEl.textContent = verdictLabel;
+document.getElementById('rc-threat-lbl').textContent = `ACCURACY ${(acc*100).toFixed(0)}%`;
+
+const _barHealth = _displayHealth;
+const _barTrust  = _displayTrust;
+document.getElementById('rc-bars').innerHTML = [
+  {lbl:'Security Health',   val:_barHealth, color: _barHealth>60?'#2ecc71':_barHealth>30?'#f4a261':'#e63946'},
+  {lbl:'Decision Accuracy', val:Math.round(acc*100), color: acc>0.7?'#2ecc71':acc>0.5?'#f4a261':'#e63946'},
+  {lbl:_trustLbl,           val:_barTrust,  color:'#00b4d8'}
+].map(b=>`<div class="rc-bar-row"><div class="rc-bar-lbl">${b.lbl}</div><div class="rc-bar-track"><div class="rc-bar-fill" style="width:0%;background:${b.color};" data-val="${b.val}"></div></div><div class="rc-bar-val">${b.val}%</div></div>`).join('');
+setTimeout(()=>{ document.querySelectorAll('.rc-bar-fill').forEach(el=>{ el.style.width=el.dataset.val+'%'; }); },400);
+
+const earnedBadges = [];
+if(result.good >= 1) earnedBadges.push(['🛡','Phishing Defender']);
+if(result.good >= 3) earnedBadges.push(['🏆','First Reporter']);
+if(result.level >= 2) earnedBadges.push(['🔍','QR Guardian']);
+if(result.level >= 3) earnedBadges.push(['🤖','Deepfake Detector']);
+if(result.level >= 4) earnedBadges.push(['📱','Social Shield']);
+if(result.bad === 0) earnedBadges.push(['♻','Recovery Master']);
+document.getElementById('rc-badges').innerHTML = earnedBadges.length
+  ? earnedBadges.map(([e,n])=>`<span class="rc-badge">${e} ${n}</span>`).join('')
+  : '<span style="font-family:var(--font-mono);font-size:.7rem;color:var(--muted);">Complete scenarios to earn badges</span>';
+
+const riskProfile = AI.riskProfile(user);
+const riskBadge = document.getElementById('ai-risk-badge');
+riskBadge.textContent = riskProfile.label;
+riskBadge.className = 'ai-risk-badge ' + (riskProfile.label.includes('LOW')?'low':riskProfile.label.includes('MOD')?'mod':'high');
+document.getElementById('ai-postgame').textContent = AI.postGame(result.good, result.bad, result.health, result.score);
+document.getElementById('ai-rec').innerHTML = `<strong>AI Recommendation:</strong> ${AI.recommend(user)}`;
+
+try {
+  /* ── determine mode from result.level ──
+     level 1 → mode1, level 2 → mode2, level 3 → mode3, level 4 → mode4 */
+  const modeNum = result.level || 1;
+
+  /* ── collect badges earned this session ── */
+  const badgeEmojis = earnedBadges.map(([e]) => e);
+
+  /* ── save to MongoDB — send only what was earned this level ── */
+  const updated = await DB.saveSession({
+    email:   user.email,
+    mode:    modeNum,
+    score:   _earnedScore,
+    health:  Math.max(0, result.health),
+    trust:   Math.max(0, result.trust || 100),
+    good:    result.good,
+    bad:     result.bad,
+    badges:  badgeEmojis
+  });
+
+  if(updated) DB.setCurrent(updated);
+} catch(e){ console.warn('Session save failed:', e.message); }
+
+})(); // end async IIFE
+
+function copyCard(){
+  const user = DB.getCurrent() || {};
+  const r = (() => { try{ return JSON.parse(localStorage.getItem('cv_result')||'{}'); }catch(e){return {};} })();
+  const earnedBadgesStr = document.getElementById('rc-badges').textContent || 'None yet';
+  const verdictLabel = document.getElementById('ending-verdict').textContent || '—';
+  const acc = (r.good||0) / Math.max((r.good||0)+(r.bad||0),1);
+  const displayPts = r.totalScore != null ? Math.max(0, r.totalScore) : Math.max(0, r.score||0);
+  const txt = `🛡 CYBERVERSE — Simulation Report\n\nPlayer: ${user.name||'PLAYER'}\nVerdict: ${verdictLabel}\nScore: ${displayPts} pts\nHealth: ${Math.max(0,r.health||0)}%\nAccuracy: ${(acc*100).toFixed(0)}%\n\nBadges: ${earnedBadgesStr}\n\nTrain your cyber instincts → CYBERVERSE`;
+  navigator.clipboard.writeText(txt).then(()=>showToast('✓ Report card copied!')).catch(()=>showToast('✓ Score copied!'));
+}
+function shareScore(){
+  const r = (() => { try{ return JSON.parse(localStorage.getItem('cv_result')||'{}'); }catch(e){return {};} })();
+  const verdictLabel = document.getElementById('ending-verdict').textContent || '—';
+  const displayPts = r.totalScore != null ? Math.max(0, r.totalScore) : Math.max(0, r.score||0);
+  const txt = `I scored ${displayPts} pts on CYBERVERSE with a "${verdictLabel}" outcome! 🛡`;
+  if(navigator.share) navigator.share({title:'CYBERVERSE Score',text:txt}).catch(()=>{});
+  else navigator.clipboard.writeText(txt).then(()=>showToast('✓ Score copied!')).catch(()=>{});
+}
+function showToast(msg){ const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000); }
+function goToDashboard(){ window.location.href='dashboard.html'; }
+function replayLevel(){ localStorage.removeItem('cv_game_state');localStorage.removeItem('cv_result');/* cv_cumulative is intentionally kept — cross-mode data persists */ window.location.href='levels.html'; }
+</script>
+</body>
+</html>

@@ -1,0 +1,2280 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CYBERVERSE — Level 3: Scene 1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared.css">
+<style>
+/* ===== SHARED SCENE STYLES ===== */
+.sh-label{font-family:var(--font-mono);font-size:.65rem;letter-spacing:.2em;color:var(--accent);margin-bottom:6px;}
+.sh-title{font-family:var(--font-disp);font-size:1.5rem;font-weight:700;color:var(--white);}
+.sh-meta{font-family:var(--font-mono);font-size:.68rem;color:var(--muted);margin-top:4px;}
+.scenario-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap;}
+
+/* ===== TIMER ===== */
+#game-timer{position:fixed;bottom:18px;right:18px;z-index:9000;font-family:var(--font-mono);font-size:1.1rem;font-weight:700;color:#2ecc71;background:rgba(0,0,0,.85);border:2px solid rgba(46,204,113,.4);border-radius:8px;padding:8px 16px;letter-spacing:.1em;transition:color .3s,border-color .3s;display:none;}
+#game-timer.red{color:#e63946;border-color:rgba(230,57,70,.8);animation:timerPulse .5s ease-in-out infinite;}
+@keyframes timerPulse{0%,100%{box-shadow:none}50%{box-shadow:0 0 16px rgba(230,57,70,.6)}}
+
+/* ===== TIMEOUT POPUP ===== */
+#timeout-popup{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.95);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+#timeout-popup.active{opacity:1;pointer-events:all;}
+.timeout-box{background:rgba(20,0,0,.97);border:2px solid #e63946;border-radius:12px;padding:40px 48px;text-align:center;max-width:400px;}
+.timeout-icon{font-size:3.5rem;margin-bottom:16px;}
+.timeout-title{font-family:var(--font-disp);font-size:1.8rem;font-weight:800;color:#e63946;margin-bottom:8px;}
+.timeout-sub{font-family:var(--font-mono);font-size:.78rem;color:rgba(255,255,255,.5);margin-bottom:24px;}
+.timeout-btn{font-family:var(--font-mono);font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;background:rgba(230,57,70,.2);border:2px solid #e63946;color:#e63946;padding:12px 32px;border-radius:8px;cursor:pointer;transition:all .2s;}
+.timeout-btn:hover{background:rgba(230,57,70,.4);box-shadow:0 0 20px rgba(230,57,70,.4);}
+
+/* ===== STORYLINE INTRO ===== */
+#intro-overlay{position:fixed;inset:0;z-index:10000;background:#0a0a0f;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:20px;box-sizing:border-box;}
+.intro-stars{position:absolute;inset:0;pointer-events:none;}
+.intro-star{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;animation:twinkle var(--d,3s) ease-in-out infinite var(--delay,0s);}
+@keyframes twinkle{0%,100%{opacity:.2}50%{opacity:.9}}
+
+/* Storyline text box */
+#story-box{position:relative;background:rgba(8,12,22,.97);border:1px solid rgba(0,180,216,.5);border-radius:12px;padding:32px 40px;max-width:min(580px,90vw);text-align:center;z-index:2;animation:fadeIn .6s ease both;box-shadow:0 0 40px rgba(0,180,216,.12);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)}}
+.story-time{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.25em;color:#00b4d8;margin-bottom:14px;text-transform:uppercase;}
+.story-text{font-family:'Space Grotesk',sans-serif;font-size:1.08rem;color:rgba(255,255,255,.92);line-height:1.8;margin-bottom:22px;}
+.story-continue{font-family:var(--font-mono);font-size:.75rem;letter-spacing:.18em;color:rgba(0,180,216,.75);animation:blink2 1.2s ease-in-out infinite;}
+@keyframes blink2{0%,100%{opacity:.4}50%{opacity:1}}
+
+/* ===== MOBILE GAME FRAME — HORIZONTAL / LANDSCAPE ===== */
+#mobile-game-wrap{
+  position:relative;
+  z-index:2;display:none;flex-direction:column;align-items:center;
+  gap:0;width:min(96vw,740px);
+}
+
+/* Hint text sits ABOVE the phone */
+#game-hint{
+  width:100%;
+  background:rgba(0,180,216,.13);
+  border:1px solid rgba(0,180,216,.45);
+  border-radius:8px;
+  padding:11px 18px;
+  font-family:var(--font-mono);font-size:.76rem;color:#48d8f0;
+  line-height:1.5;
+  text-align:center;
+  box-sizing:border-box;
+  display:none;
+  margin-bottom:10px;
+  text-shadow:0 0 12px rgba(0,180,216,.4);
+}
+
+/* The phone chassis — landscape */
+.mobile-frame{
+  width:min(96vw,700px);
+  height:clamp(220px,32vw,320px);
+  background:#0d0d1a;
+  border:3px solid rgba(255,255,255,.18);
+  border-radius:22px;          /* landscape pill corners */
+  box-shadow:0 0 60px rgba(0,180,216,.15),0 20px 60px rgba(0,0,0,.7);
+  position:relative;
+  overflow:hidden;
+  display:flex;
+  flex-direction:row;          /* landscape: side bar + screen */
+  flex-shrink:0;
+}
+
+/* Left side-bar: camera + volume dots */
+.mf-left-bar{
+  width:18px;flex-shrink:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  padding:8px 0;
+}
+.mf-cam{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.08);}
+.mf-vol{width:4px;height:18px;border-radius:2px;background:rgba(255,255,255,.09);}
+
+/* Right side-bar: home indicator */
+.mf-right-bar{
+  width:14px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.mf-home{width:4px;height:28px;border-radius:2px;background:rgba(255,255,255,.2);}
+
+/* The actual game screen area */
+.mf-screen{
+  flex:1;
+  background:#0a0a16;
+  margin:8px 4px;
+  border-radius:14px;
+  overflow:hidden;
+  position:relative;
+}
+
+/* Sub-label below phone */
+#mobile-sub-label{
+  width:100%;
+  text-align:center;
+  font-family:var(--font-mono);font-size:.62rem;
+  color:rgba(0,180,216,.45);
+  letter-spacing:.12em;
+  margin-top:8px;
+  display:none;
+}
+
+/* Skip button */
+#skip-game-btn{
+  font-family:var(--font-mono);
+  font-size:.65rem;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.15);
+  color:rgba(255,255,255,.35);
+  padding:7px 20px;
+  border-radius:6px;
+  cursor:pointer;
+  margin-top:10px;
+  transition:all .2s;
+  display:none;
+}
+#skip-game-btn:hover{ color:rgba(255,255,255,.7); border-color:rgba(255,255,255,.35); background:rgba(255,255,255,.09); }
+
+/* Play button screen — landscape row layout */
+#play-screen{display:flex;flex-direction:row;align-items:center;justify-content:center;height:100%;gap:20px;padding:0 20px;}
+.play-btn{background:linear-gradient(135deg,#00b4d8,#0077b6);border:none;border-radius:50%;width:56px;height:56px;font-size:1.4rem;cursor:pointer;box-shadow:0 0 30px rgba(0,180,216,.4);transition:transform .15s,box-shadow .15s;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.play-btn:hover{transform:scale(1.08);box-shadow:0 0 40px rgba(0,180,216,.6);}
+.play-info{display:flex;flex-direction:column;gap:5px;}
+.play-title{font-family:var(--font-disp);font-size:.95rem;font-weight:700;color:#fff;letter-spacing:.08em;}
+.play-sub{font-family:var(--font-mono);font-size:.56rem;color:rgba(255,255,255,.4);}
+
+/* ===== PLATFORM GAME CANVAS ===== */
+#platform-canvas{display:block;width:100%;height:100%;}
+.game-hud{position:absolute;top:8px;left:8px;right:8px;display:flex;justify-content:space-between;pointer-events:none;z-index:10;}
+.ghud-item{font-family:var(--font-mono);font-size:.58rem;color:#fff;background:rgba(0,0,0,.6);padding:3px 8px;border-radius:4px;}
+.ghud-wrong{color:#e63946;}
+.ghud-right{color:#2ecc71;}
+
+/* Notification on phone screen */
+#notif-banner{position:absolute;top:10px;left:10px;right:10px;background:rgba(20,20,30,.97);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:10px;z-index:50;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.5);animation:slideDown .4s cubic-bezier(.34,1.56,.64,1) both;display:none;}
+@keyframes slideDown{from{transform:translateY(-20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.notif-icon{font-size:1.2rem;flex-shrink:0;}
+.notif-text{flex:1;}
+.notif-app{font-family:var(--font-mono);font-size:.55rem;color:rgba(255,255,255,.4);letter-spacing:.1em;}
+.notif-caller{font-family:'Space Grotesk',sans-serif;font-size:.8rem;font-weight:600;color:#fff;}
+.notif-ringing{font-family:var(--font-mono);font-size:.58rem;color:rgba(46,204,113,.7);}
+
+/* Restart overlay for platform game */
+#restart-overlay{position:absolute;inset:0;background:rgba(0,0,0,.85);display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:20;}
+.restart-title{font-family:var(--font-disp);font-size:1rem;font-weight:700;color:#e63946;}
+.restart-sub{font-family:var(--font-mono);font-size:.62rem;color:rgba(255,255,255,.5);text-align:center;padding:0 10px;}
+.restart-btn{font-family:var(--font-mono);font-size:.65rem;letter-spacing:.12em;background:rgba(230,57,70,.2);border:1px solid #e63946;color:#e63946;padding:10px 24px;border-radius:6px;cursor:pointer;text-transform:uppercase;}
+.restart-btn:hover{background:rgba(230,57,70,.35);}
+
+/* ===== CIN OVERLAYS ===== */
+#cin-overlay{position:fixed;inset:0;z-index:5000;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;opacity:0;pointer-events:none;transition:opacity 0.3s ease;}
+#cin-overlay.active{opacity:1;pointer-events:all;}
+#cin-overlay::before{content:'';position:absolute;inset:0;z-index:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.15) 2px,rgba(0,0,0,.15) 4px);pointer-events:none;animation:sl .1s linear infinite;}
+@keyframes sl{0%{background-position:0 0}100%{background-position:0 4px}}
+.cin-vig{position:absolute;inset:0;z-index:1;background:radial-gradient(ellipse at center,transparent 40%,rgba(230,57,70,.4) 100%);animation:vigp .8s ease-in-out infinite alternate;pointer-events:none;}
+@keyframes vigp{0%{opacity:.6}100%{opacity:1}}
+.cin-term{position:relative;z-index:10;width:min(700px,92vw);background:rgba(8,12,18,.97);border:1px solid #e63946;border-radius:8px;box-shadow:0 0 80px rgba(230,57,70,.3),inset 0 0 40px rgba(230,57,70,.04);overflow:hidden;max-height:90vh;display:flex;flex-direction:column;}
+.cin-tbar{background:rgba(230,57,70,.15);border-bottom:1px solid rgba(230,57,70,.3);padding:10px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.cin-dot{width:10px;height:10px;border-radius:50%;}
+.cin-dot.r{background:#e63946}.cin-dot.a{background:#f4a261}.cin-dot.g{background:#2ecc71}
+.cin-tbar-txt{font-family:var(--font-mono);font-size:.65rem;letter-spacing:.2em;color:rgba(230,57,70,.8);margin-left:6px;text-transform:uppercase;}
+.cin-tbar-live{margin-left:auto;font-family:var(--font-mono);font-size:.6rem;color:#e63946;animation:blink .6s ease-in-out infinite;}
+.cin-body{padding:18px 20px;font-family:var(--font-mono);font-size:.76rem;line-height:1.8;color:#e63946;overflow-y:auto;flex:1;}
+.cin-line{display:flex;align-items:flex-start;gap:10px;margin-bottom:2px;opacity:0;transform:translateX(-6px);transition:opacity .2s ease,transform .2s ease;}
+.cin-line.show{opacity:1;transform:translateX(0);}
+.cin-p{color:rgba(230,57,70,.5);flex-shrink:0;min-width:36px;}
+.cr{color:#e63946}.ca{color:#f4a261}.cg{color:#2ecc71}.cd{color:rgba(230,57,70,.4)}.cw{color:#eef4fa}.cc{color:#00b4d8}
+.cin-accs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0;opacity:0;transition:opacity .3s ease;}
+.cin-accs.show{opacity:1;}
+.cin-acc{background:rgba(230,57,70,.06);border:1px solid rgba(230,57,70,.2);border-radius:4px;padding:9px 11px;}
+.cin-acc.comp{border-color:rgba(230,57,70,.6);background:rgba(230,57,70,.12);animation:ap .5s ease-in-out 3;}
+@keyframes ap{0%,100%{box-shadow:none}50%{box-shadow:0 0 14px rgba(230,57,70,.5)}}
+.cin-acc-n{font-family:var(--font-mono);font-size:.6rem;color:rgba(255,255,255,.7);margin-bottom:2px;}
+.cin-acc-s{font-family:var(--font-mono);font-size:.58rem;color:rgba(230,57,70,.5);}
+.cin-acc-s.bad{color:#e63946;font-weight:600;}
+.cin-prog-wrap{margin:12px 0 6px;opacity:0;transition:opacity .3s ease;}
+.cin-prog-wrap.show{opacity:1;}
+.cin-prog-lbl{font-family:var(--font-mono);font-size:.58rem;color:rgba(230,57,70,.6);margin-bottom:4px;letter-spacing:.1em;}
+.cin-prog-track{height:4px;background:rgba(230,57,70,.15);border-radius:2px;overflow:hidden;}
+.cin-prog-fill{height:100%;background:linear-gradient(90deg,#e63946,#ff6b6b);border-radius:2px;width:0%;transition:width 2.5s cubic-bezier(.1,.8,.3,1);box-shadow:0 0 8px rgba(230,57,70,.6);}
+.cin-dmg{text-align:center;margin:14px 0 6px;opacity:0;transition:opacity .4s ease;}
+.cin-dmg.show{opacity:1;}
+.cin-dmg-amt{font-family:var(--font-disp);font-size:clamp(1.8rem,5vw,3rem);font-weight:800;color:#e63946;display:inline-block;}
+.cin-dmg-lbl{font-family:var(--font-mono);font-size:.62rem;letter-spacing:.2em;color:rgba(230,57,70,.6);margin-top:3px;}
+.cin-foot{border-top:1px solid rgba(230,57,70,.2);padding:12px 18px;display:flex;align-items:center;justify-content:space-between;opacity:0;transition:opacity .4s ease;flex-shrink:0;}
+.cin-foot.show{opacity:1;}
+.cin-foot-msg{font-family:var(--font-mono);font-size:.62rem;color:rgba(230,57,70,.5);letter-spacing:.1em;}
+.cin-cont{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;background:rgba(230,57,70,.15);border:1px solid rgba(230,57,70,.5);color:#e63946;padding:9px 18px;border-radius:4px;cursor:pointer;transition:all .2s;}
+.cin-cont:hover{background:rgba(230,57,70,.25);box-shadow:0 0 16px rgba(230,57,70,.3);}
+.glitch{animation:glm .3s ease-in-out 4 .5s;}
+@keyframes glm{0%,100%{transform:translate(0)}20%{transform:translate(-3px,1px);filter:hue-rotate(90deg)}40%{transform:translate(3px,-1px);filter:hue-rotate(-90deg)}60%{transform:translate(-2px,2px)}80%{transform:translate(2px,-2px);filter:hue-rotate(45deg)}}
+#cin-good{position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .3s ease;}
+#cin-good.active{opacity:1;pointer-events:all;}
+.cin-shield{font-size:4rem;margin-bottom:18px;animation:sb .6s cubic-bezier(.34,1.56,.64,1) forwards;transform:scale(0);}
+@keyframes sb{to{transform:scale(1)}}
+.cin-gtitle{font-family:var(--font-disp);font-size:clamp(1.6rem,5vw,2.8rem);font-weight:800;color:var(--green);margin-bottom:8px;text-align:center;animation:fu .5s .3s ease both;}
+.cin-gsub{font-family:var(--font-mono);font-size:.72rem;color:rgba(46,204,113,.6);letter-spacing:.2em;text-align:center;margin-bottom:28px;animation:fu .5s .5s ease both;}
+.cin-gtip{max-width:480px;background:rgba(46,204,113,.07);border:1px solid rgba(46,204,113,.2);border-radius:6px;padding:16px 20px;font-size:.86rem;color:rgba(255,255,255,.75);line-height:1.7;text-align:center;animation:fu .5s .7s ease both;margin-bottom:24px;}
+.cin-gtip strong{color:var(--green);}
+.cin-pts{display:inline-flex;align-items:center;gap:8px;background:rgba(46,204,113,.12);border:1px solid rgba(46,204,113,.3);border-radius:30px;padding:10px 24px;font-family:var(--font-mono);font-size:.88rem;color:var(--green);animation:fu .5s .9s ease both;margin-bottom:28px;}
+.cin-parts{position:fixed;inset:0;pointer-events:none;z-index:4999;}
+.cin-part{position:absolute;width:6px;height:6px;border-radius:50%;background:var(--green);animation:pb 1s ease-out forwards;}
+@keyframes pb{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--tx),var(--ty)) scale(0);opacity:0}}
+@keyframes fu{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.call-waveform{display:flex;align-items:center;justify-content:center;gap:4px;height:30px;margin:12px 0;}
+.wv-bar{width:4px;background:var(--accent);border-radius:2px;transition:height 0.1s ease;animation:pulse 0.8s ease-in-out infinite;}
+.wv-bar.active{background:#e63946;height:20px !important;}
+@keyframes pulse{0%,100%{opacity:0.6}50%{opacity:1}}
+#badge-popup{position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .3s ease;}
+#badge-popup.active{opacity:1;pointer-events:all;}
+.badge-container{max-width:500px;background:linear-gradient(135deg,rgba(46,204,113,.1),rgba(0,0,0,.8));border:2px solid var(--green);border-radius:16px;padding:32px;text-align:center;animation:fu .5s ease both;}
+.badge-icon{font-size:5rem;margin-bottom:20px;animation:sb .6s cubic-bezier(.34,1.56,.64,1) forwards;}
+.badge-title{font-family:var(--font-disp);font-size:clamp(1.6rem,5vw,2.5rem);font-weight:800;color:var(--green);margin-bottom:16px;}
+.badge-text{font-family:var(--font-mono);font-size:.9rem;color:var(--white);line-height:1.6;margin-bottom:20px;}
+.badge-tip{background:rgba(46,204,113,.1);border-left:3px solid var(--green);padding:12px 16px;margin:20px 0;text-align:left;}
+.badge-tip-label{font-family:var(--font-mono);font-size:.7rem;color:var(--green);letter-spacing:.1em;margin-bottom:6px;}
+.badge-tip-text{font-size:.85rem;color:rgba(255,255,255,.8);line-height:1.5;}
+.badge-btn{font-family:var(--font-mono);font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;background:rgba(46,204,113,.2);border:2px solid var(--green);color:var(--green);padding:12px 32px;border-radius:8px;cursor:pointer;transition:all .2s;margin-top:16px;}
+.badge-btn:hover{background:rgba(46,204,113,.4);box-shadow:0 0 20px rgba(46,204,113,.3);transform:scale(1.02);}
+
+/* ===== MINIGAME OVERLAY ===== */
+#minigame-overlay{position:fixed;inset:0;z-index:7000;background:rgba(0,0,0,.96);display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s ease;padding:16px;}
+#minigame-overlay.active{opacity:1;pointer-events:all;}
+.mg-box{width:min(680px,98vw);height:calc(100vh - 32px);max-height:calc(100vh - 32px);background:rgba(8,14,28,.98);border:1px solid rgba(0,180,216,.4);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;}
+.mg-header{background:rgba(0,180,216,.08);border-bottom:1px solid rgba(0,180,216,.2);padding:14px 20px;display:flex;align-items:center;gap:12px;flex-shrink:0;}
+.mg-title{font-family:var(--font-disp);font-size:1rem;font-weight:700;color:#00b4d8;flex:1;}
+.mg-badge{font-family:var(--font-mono);font-size:.58rem;background:rgba(0,180,216,.15);border:1px solid rgba(0,180,216,.3);color:#00b4d8;padding:3px 10px;border-radius:20px;letter-spacing:.1em;}
+.mg-body{padding:20px;flex:1;overflow-y:auto;min-height:0;display:flex;flex-direction:column;}
+.mg-instruction{font-family:var(--font-mono);font-size:.75rem;color:rgba(255,255,255,.55);margin-bottom:18px;line-height:1.6;background:rgba(0,180,216,.04);border-left:3px solid rgba(0,180,216,.3);padding:10px 14px;border-radius:0 6px 6px 0;flex-shrink:0;}
+.mg-result-banner{padding:14px 18px;border-radius:8px;font-family:var(--font-mono);font-size:.8rem;margin-top:16px;display:none;text-align:center;}
+.mg-result-banner.success{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.85);}
+.mg-result-banner.fail{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.85);}
+.mg-foot{border-top:1px solid rgba(0,180,216,.15);padding:12px 18px;display:flex;justify-content:flex-end;gap:12px;flex-shrink:0;}
+.mg-btn{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.1em;padding:9px 20px;border-radius:6px;cursor:pointer;transition:all .2s;border:1px solid;}
+.mg-btn.primary{background:rgba(0,180,216,.15);border-color:rgba(0,180,216,.5);color:#00b4d8;}
+.mg-btn.primary:hover{background:rgba(0,180,216,.25);}
+.mg-btn.danger{background:rgba(230,57,70,.1);border-color:rgba(230,57,70,.4);color:#e63946;}
+
+/* Minigame 1: Voice pattern matching */
+.voice-patterns{display:flex;flex-direction:column;gap:10px;}
+.vp-row{display:flex;align-items:center;gap:10px;}
+.vp-label{font-family:var(--font-mono);font-size:.68rem;color:rgba(255,255,255,.6);min-width:80px;}
+.vp-bars{display:flex;gap:3px;align-items:flex-end;height:40px;flex:1;}
+.vp-bar{width:8px;border-radius:2px 2px 0 0;cursor:pointer;transition:opacity .15s;}
+.vp-bar.real{background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,.3));}
+.vp-bar.fake{background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,.3));}
+.vp-bar.unknown{background:linear-gradient(180deg,#00b4d8,#0077b6);}
+.vp-choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;}
+.vp-choice{padding:10px 14px;border-radius:6px;font-family:var(--font-mono);font-size:.7rem;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);cursor:pointer;transition:all .2s;background:transparent;}
+.vp-choice:hover{border-color:rgba(0,180,216,.5);color:#00b4d8;}
+.vp-choice.selected-good{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.08);color:rgba(255,255,255,.9);}
+.vp-choice.selected-bad{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.08);color:rgba(255,255,255,.9);}
+
+/* Minigame drag & drop — shared */
+.dd-area{display:flex;flex-direction:column;gap:10px;flex:1;min-height:0;}
+.dd-pool{display:flex;flex-direction:column;gap:6px;border:2px dashed rgba(255,255,255,.1);border-radius:8px;padding:10px;min-height:54px;flex-shrink:0;transition:border-color .2s,background .2s;}
+.dd-pool.drag-over{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.03);}
+.dd-label{font-family:var(--font-mono);font-size:.6rem;color:rgba(255,255,255,.4);letter-spacing:.1em;margin-bottom:6px;text-transform:uppercase;flex-shrink:0;}
+.dd-item{padding:8px 12px;border-radius:6px;font-family:'Space Grotesk',sans-serif;font-size:.78rem;cursor:grab;border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.8);background:rgba(255,255,255,.04);transition:all .2s;user-select:none;flex-shrink:0;}
+.dd-item:active{cursor:grabbing;opacity:.7;}
+.dd-item.dragging{opacity:.35;}
+.dd-item.good-item{border-color:rgba(255,255,255,.12);}
+.dd-item.bad-item{border-color:rgba(255,255,255,.12);}
+.dd-zones-row{display:flex;gap:10px;flex:1;min-height:0;}
+.dd-zone{flex:1;border:2px dashed rgba(0,180,216,.25);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:6px;transition:border-color .2s;overflow-y:auto;min-height:0;}
+.dd-zone.drag-over{border-color:rgba(0,180,216,.6);background:rgba(0,180,216,.04);}
+.dd-zone-label{font-family:var(--font-mono);font-size:.6rem;color:rgba(0,180,216,.5);letter-spacing:.1em;margin-bottom:4px;text-align:center;flex-shrink:0;}
+
+/* Minigame 3: Emergency decision */
+.em-scenario{background:rgba(230,57,70,.06);border:1px solid rgba(230,57,70,.2);border-radius:8px;padding:14px 16px;margin-bottom:16px;}
+.em-scenario-title{font-family:var(--font-mono);font-size:.6rem;color:#e63946;letter-spacing:.15em;margin-bottom:8px;}
+.em-scenario-text{font-size:.9rem;color:rgba(255,255,255,.85);line-height:1.65;}
+.em-timer-bar{height:6px;background:rgba(0,180,216,.15);border-radius:3px;margin-bottom:16px;overflow:hidden;}
+.em-timer-fill{height:100%;background:linear-gradient(90deg,#2ecc71,#00b4d8);width:100%;border-radius:3px;transition:width linear;}
+.em-actions{display:flex;flex-direction:column;gap:8px;}
+.em-action{padding:12px 16px;border-radius:8px;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.8);font-family:'Space Grotesk',sans-serif;font-size:.84rem;cursor:pointer;transition:all .2s;background:rgba(255,255,255,.03);text-align:left;}
+.em-action:hover{border-color:rgba(0,180,216,.4);background:rgba(0,180,216,.06);}
+.em-action.chosen-good{border-color:rgba(255,255,255,.4);background:rgba(255,255,255,.08);color:rgba(255,255,255,.9);}
+.em-action.chosen-bad{border-color:rgba(255,255,255,.4);background:rgba(255,255,255,.08);color:rgba(255,255,255,.9);}
+
+/* ===== MINIGAME: FIND THE REAL CONTACT — hint box ===== */
+.fc-hint-box{background:rgba(0,180,216,.07);border:1px solid rgba(0,180,216,.3);border-radius:8px;padding:12px 16px;margin-bottom:14px;}
+.fc-hint-title{font-family:var(--font-mono);font-size:.58rem;color:rgba(0,180,216,.7);letter-spacing:.12em;margin-bottom:8px;}
+.fc-hint-row{display:flex;gap:10px;margin-bottom:4px;align-items:baseline;}
+.fc-hint-lbl{font-family:var(--font-mono);font-size:.6rem;color:rgba(255,255,255,.35);min-width:110px;}
+.fc-hint-val{font-family:var(--font-mono);font-size:.75rem;color:rgba(255,255,255,.85);font-weight:600;}
+
+/* ===== MINIGAME: THE INTERROGATION ===== */
+.iq-option{padding:12px 16px;border-radius:8px;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.8);font-family:'Space Grotesk',sans-serif;font-size:.84rem;cursor:pointer;transition:all .2s;background:rgba(255,255,255,.03);line-height:1.45;}
+.iq-option:hover{border-color:rgba(0,180,216,.4);background:rgba(0,180,216,.05);}
+.iq-option.iq-selected{border-color:rgba(255,255,255,.45);background:rgba(255,255,255,.07);}
+
+
+/* ===== VERTICAL MOBILE (main scene) — fixed size, scrollable script ===== */
+.phone-wrap { display:flex; justify-content:center; }
+.phone-wrap .phone {
+  flex-shrink: 0 !important;
+  height: clamp(480px, 60vh, 580px) !important;
+  max-height: clamp(480px, 60vh, 580px) !important;
+  min-height: clamp(480px, 60vh, 580px) !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+.phone-wrap .phone-screen {
+  flex: 1 !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+.phone-wrap .phone-answered {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+.phone-wrap .ans-script {
+  flex: 1 !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: 8px 12px !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(0,180,216,.3) transparent !important;
+}
+.phone-wrap .ans-script::-webkit-scrollbar { width: 4px; }
+.phone-wrap .ans-script::-webkit-scrollbar-track { background: transparent; }
+.phone-wrap .ans-script::-webkit-scrollbar-thumb { background: rgba(0,180,216,.3); border-radius: 2px; }
+
+.fc-card{border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:12px 14px;cursor:pointer;transition:border-color .2s,background .2s;background:rgba(255,255,255,.02);}
+.fc-card:hover{border-color:rgba(0,180,216,.4);background:rgba(0,180,216,.04);}
+.fc-card.fc-selected{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.07);}
+.fc-name{font-family:'Space Grotesk',sans-serif;font-size:.9rem;font-weight:600;color:#fff;margin-bottom:8px;}
+.fc-row{display:flex;gap:8px;margin-bottom:3px;align-items:baseline;}
+.fc-lbl{font-family:var(--font-mono);font-size:.55rem;color:rgba(255,255,255,.3);letter-spacing:.1em;min-width:80px;}
+.fc-val{font-family:var(--font-mono);font-size:.68rem;color:rgba(255,255,255,.65);}
+
+
+
+
+.df-card{border:2px solid rgba(255,255,255,.1);border-radius:8px;overflow:hidden;cursor:pointer;transition:all .2s;position:relative;}
+.df-card:hover{border-color:rgba(0,180,216,.5);transform:scale(1.01);}
+.df-face{width:100%;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:2.4rem;background:linear-gradient(135deg,rgba(20,20,40,.8),rgba(10,10,24,.9));}
+.df-anomaly{position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;opacity:0;}
+.df-anomaly.visible{opacity:1;}
+.df-anomaly.r{background:rgba(255,255,255,.4);}
+.df-anomaly.g{background:rgba(255,255,255,.4);}
+.df-hint{font-family:var(--font-mono);font-size:.58rem;color:rgba(255,255,255,.3);text-align:center;padding:4px;}
+.df-card.selected-real{border-color:rgba(255,255,255,.5);box-shadow:0 0 20px rgba(255,255,255,.1);}
+.df-card.selected-fake{border-color:rgba(255,255,255,.5);box-shadow:0 0 20px rgba(255,255,255,.1);}
+.df-clues{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+.df-clue{font-family:var(--font-mono);font-size:.66rem;padding:6px 10px;border-radius:4px;border-left:3px solid rgba(0,180,216,.4);background:rgba(0,180,216,.04);color:rgba(255,255,255,.6);}
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to main content</a>
+<button class="theme-toggle" id="theme-btn" onclick="toggleTheme()" aria-label="Toggle dark and light mode">🌙</button>
+<div class="a11y-bar" role="toolbar" aria-label="Accessibility controls">
+  <span class="a11y-label" aria-hidden="true">A11Y</span>
+  <button class="a11y-btn" data-action="font-sm" onclick="setFont('sm')" aria-label="Small font">A</button>
+  <button class="a11y-btn" data-action="font-md" onclick="setFont('md')" aria-label="Medium font">A+</button>
+  <button class="a11y-btn" data-action="font-lg" onclick="setFont('lg')" aria-label="Large font" style="font-weight:700">A++</button>
+  <div class="a11y-sep" role="separator"></div>
+  <button class="a11y-btn" data-action="contrast" onclick="toggleContrast()" aria-label="Toggle high contrast">⬤ HC</button>
+  <div class="a11y-sep" role="separator"></div>
+  <button class="a11y-btn" data-action="kbd" onclick="showKbdHelp()" aria-label="Keyboard shortcuts">⌨</button>
+</div>
+
+<!-- ===== GLOBAL TIMER ===== -->
+<div id="game-timer">⏱ 3:00</div>
+
+<!-- ===== TIMEOUT POPUP ===== -->
+<div id="timeout-popup">
+  <div class="timeout-box">
+    <div class="timeout-icon">⏰</div>
+    <div class="timeout-title">OUT OF TIME</div>
+    <div class="timeout-sub">// THREAT RESPONSE WINDOW EXPIRED</div>
+    <button class="timeout-btn" onclick="restartMainScene()">TRY AGAIN →</button>
+  </div>
+</div>
+
+<!-- ===== INTRO OVERLAY ===== -->
+<div id="intro-overlay">
+  <div class="intro-stars" id="intro-stars"></div>
+
+  <!-- Story Box -->
+  <div id="story-box">
+    <div class="story-time">Friday · 4:18 PM</div>
+    <div class="story-text" id="story-text">It's a warm afternoon after a fabulous lunch with family. You're stretched out on the couch, lazily scrolling through your phone — playing your favourite mobile game, completely at ease.</div>
+    <div class="story-continue" id="story-continue">[ tap anywhere to continue ]</div>
+  </div>
+
+  <!-- Hint text above phone -->
+  <div id="game-hint"></div>
+
+  <!-- Mobile Game Frame (hidden initially) — HORIZONTAL / LANDSCAPE -->
+  <div id="mobile-game-wrap">
+    <div class="mobile-frame">
+      <!-- Left bar: camera + volume -->
+      <div class="mf-left-bar">
+        <div class="mf-cam"></div>
+        <div class="mf-vol"></div>
+        <div class="mf-vol"></div>
+      </div>
+      <!-- Game screen -->
+      <div class="mf-screen" id="mf-screen">
+        <!-- Play screen -->
+        <div id="play-screen">
+          <button class="play-btn" id="play-btn" onclick="startPlatformGame()">▶</button>
+          <div class="play-info">
+            <div class="play-title">CYBER BIRD 🐦</div>
+            <div class="play-sub">Dodge scam pillars · Collect 4 green circles</div>
+            <div class="play-sub">SPACE / Tap to flap · Don't crash!</div>
+          </div>
+        </div>
+        <!-- Canvas for platform game -->
+        <canvas id="platform-canvas" style="display:none;width:100%;height:100%;"></canvas>
+        <!-- Notification banner (shown after win) -->
+        <div id="notif-banner" onclick="launchMainScene()">
+          <div class="notif-icon">📞</div>
+          <div class="notif-text">
+            <div class="notif-app">PHONE · NOW</div>
+            <div class="notif-caller">Axis Bank – KYC Team</div>
+            <div class="notif-ringing">● Ringing...</div>
+          </div>
+        </div>
+        <!-- Restart overlay -->
+        <div id="restart-overlay">
+          <div style="font-size:2rem;margin-bottom:6px;">💥</div>
+          <div class="restart-title">BIRD DOWN!</div>
+          <div class="restart-sub">You hit a scam pillar or flew<br>out of bounds. Try again!</div>
+          <button class="restart-btn" onclick="document.getElementById('restart-overlay').style.display='none';startPlatformGame();">TRY AGAIN →</button>
+        </div>
+      </div>
+      <!-- Right bar: home pill -->
+      <div class="mf-right-bar">
+        <div class="mf-home"></div>
+      </div>
+    </div>
+    <!-- Sub-label below phone -->
+    <div id="mobile-sub-label">TAP NOTIFICATION TO ANSWER CALL</div>
+    <button id="skip-game-btn" onclick="pfWin(true)" title="Skip the mini-game (no bonus points)">Skip Mini-Game →</button>
+  </div>
+</div>
+
+<!-- ===== MINIGAME OVERLAY ===== -->
+<div id="minigame-overlay">
+  <div class="mg-box">
+    <div class="mg-header">
+      <div class="mg-title" id="mg-title">MINI CHALLENGE</div>
+      <div class="mg-badge" id="mg-badge">SECURITY SKILL</div>
+    </div>
+    <div class="mg-body" id="mg-body">
+      <div class="mg-instruction" id="mg-instruction"></div>
+      <div id="mg-content" style="flex:1;min-height:0;display:flex;flex-direction:column;"></div>
+      <div class="mg-result-banner" id="mg-result"></div>
+    </div>
+    <div class="mg-foot" id="mg-foot">
+      <button class="mg-btn primary" id="mg-submit" onclick="submitMiniGame()">SUBMIT →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CIN OVERLAYS ===== -->
+<div id="cin-overlay" role="dialog" aria-label="Attack consequence" aria-live="assertive">
+  <div class="cin-vig"></div>
+  <div class="cin-term">
+    <div class="cin-tbar">
+      <div class="cin-dot r"></div><div class="cin-dot a"></div><div class="cin-dot g"></div>
+      <span class="cin-tbar-txt">SYSTEM INTRUSION DETECTED</span>
+      <span class="cin-tbar-live">● LIVE</span>
+    </div>
+    <div class="cin-body" id="cin-body"></div>
+    <div class="cin-foot" id="cin-foot">
+      <span class="cin-foot-msg">// WHAT JUST HAPPENED TO YOU</span>
+      <button class="cin-cont" onclick="closeCinBad()">TRY AGAIN →</button>
+    </div>
+  </div>
+</div>
+
+<div id="cin-good" role="dialog" aria-label="Threat neutralised" aria-live="assertive">
+  <div class="cin-parts" id="cin-parts"></div>
+  <div class="cin-shield" id="cin-si">🛡</div>
+  <div class="cin-gtitle" id="cin-gt">THREAT NEUTRALISED</div>
+  <div class="cin-gsub" id="cin-gs">// EXCELLENT DECISION</div>
+  <div class="cin-gtip" id="cin-gtip"></div>
+  <div class="cin-pts" id="cin-pts">+50 PTS</div>
+  <button class="cin-cont" style="border-color:rgba(46,204,113,.5);color:var(--green);background:rgba(46,204,113,.1);" onclick="showBadgePopup()">TAKE YOUR BADGE →</button>
+</div>
+
+<div id="badge-popup" role="dialog" aria-label="Badge Earned">
+  <div class="badge-container">
+    <div class="badge-icon">🛡️🏆</div>
+    <div class="badge-title">Deepfake Detector — Badge!</div>
+    <div class="badge-text">Calling Rahul on his saved number takes 10 seconds and instantly confirms the call was a scam.</div>
+    <div class="badge-tip">
+      <div class="badge-tip-label">// SECURITY TIP</div>
+      <div class="badge-tip-text">Establish a family protocol: all emergency money requests confirmed via callback on a saved number.</div>
+    </div>
+    <button class="badge-btn" onclick="goToLevel2()">LEVEL 2 →</button>
+  </div>
+</div>
+
+<!-- ===== HUD ===== -->
+<div id="hud" class="on" role="banner" aria-label="Game status" style="display:none;">
+  <div class="hud-inner">
+    <div class="hud-bar">
+      <div class="hud-bar-label">Security Health <span id="h-val">—</span></div>
+      <div class="bar-track"><div class="bar-fill" id="h-fill" style="width:0%;background:var(--green)"></div></div>
+    </div>
+    <div class="hud-bar">
+      <div class="hud-bar-label">Trust Level <span id="t-val">—</span></div>
+      <div class="bar-track"><div class="bar-fill" id="t-fill" style="width:0%;background:var(--accent)"></div></div>
+    </div>
+    <div class="hud-user">
+      <div class="hud-avatar" id="hud-av" aria-hidden="true">?</div>
+      <div class="hud-uname" id="hud-uname">PLAYER</div>
+    </div>
+    <div class="hud-score-block" aria-live="polite">
+      <div class="sc-num" id="sc-num">—</div>
+      <div class="sc-lbl">SCORE</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MAIN SCENE (hidden until intro done) ===== -->
+<div class="app layer" id="main-content" role="main" style="display:none;">
+  <div class="breadcrumb" id="breadcrumb" aria-label="Scenario progress"></div>
+  <div class="scenario-header">
+    <div>
+      <div class="sh-label" id="sh-label">—</div>
+      <div class="sh-title" id="sh-title">—</div>
+      <div class="sh-meta" id="sh-meta">—</div>
+    </div>
+  </div>
+  <div id="scenario-body" aria-live="polite"></div>
+  <div id="feedback-area" aria-live="assertive"></div>
+  <div id="choices-area" style="display: none;"></div>
+</div>
+
+<script src="../shared.js"></script>
+<script>
+// ============================================================
+// SCENE DATA
+// ============================================================
+const SCENE={
+  type:'call',label:'INCOMING CALL // 16:18',title:'Emergency Call — Bhai',meta:'Friday · Level 3: Deepfake SOS · Scene 1 of 2',
+  caller:{name:'Rahul (Bhai)',num:'+91-98XXXXXXXX',avatar:'👤'},
+  script:'"Hey it\'s me... I\'m in serious trouble. Had a small accident near Nehru Place — police are here and they need ₹25,000 for bail right now. Please transfer it immediately. Don\'t tell Ma and Papa, they\'ll panic. I\'ll pay you back tonight. Please yaar, it\'s urgent—"',
+  audioNote:'Voice sounds slightly robotic on sibilant sounds. Background noise is inconsistent with a police station. No incoming call from his saved number.',
+  choices:[
+    {k:'A',text:'Transfer ₹25,000 immediately — it sounds exactly like Rahul',          type:'bad', pts:-50,hp:-35,tp:-30},
+    {k:'B',text:'Tell the caller to ring back from Rahul\'s real saved number',         type:'good',pts:+40,hp:0,  tp:+10},
+    {k:'C',text:'Hang up and immediately call Rahul on his saved contact',              type:'best',pts:+65,hp:0,  tp:+20},
+    {k:'D',text:'Ask a question only Rahul would know — childhood nickname or school',  type:'good',pts:+45,hp:0,  tp:+15}
+  ],
+  fb:{
+    bad:{icon:'🤖',t:'AI Voice Cloning Scam',txt:'This was a deepfake voice attack. Attackers cloned Rahul\'s voice from 6 seconds of audio on his Instagram. The real Rahul is at home.',tip:'AI voice cloning requires only 3–6 seconds of audio. Never transfer money based on a voice call alone.',
+      cin:{title:'AI VOICE CLONE ATTACK — FUNDS TRANSFERRED',
+        lines:[{p:'[AI ]',t:'Voice model: Rahul Sharma — 6 sec sample (Instagram)',c:'cd'},{p:'[AI ]',t:'Emotion layer: DISTRESSED. Confidence: 97%',c:'ca'},{p:'[ATK]',t:'Transfer instruction given. Victim complied.',c:'cr'},{p:'[UPI]',t:'₹25,000 sent → mule account XYZ-7823',c:'cr'},{p:'[ATK]',t:'Funds laundered through 3 accounts in 90 seconds.',c:'cr'},{p:'[SYS]',t:'Real Rahul is at home, unaware this happened.',c:'cw'},{p:'[AI ]',t:'Cost to clone your voice — ₹0. Free AI tool.',c:'cd'}],
+        accs:['🤖 AI Model|ACTIVE','📞 Fake Call|SUCCESS','💸 Transfer|₹25,000 GONE','🔍 Attacker|UNTRACEABLE'],
+        dmg:'₹25,000',prog:false}},
+    good:{icon:'🔍',t:'Verification Tactic',txt:'Asking to call back from a known number exposes the scam.',tip:'For any emergency financial request, insist on callback from a verified number.'},
+    best:{icon:'🛡',t:'Deepfake Detector — Badge!',txt:'Calling Rahul on his saved number takes 10 seconds and instantly confirms the call was a scam.',tip:'Establish a family protocol: all emergency money requests confirmed via callback on a saved number.'},
+    warn:{icon:'🔐',t:'Smart Friction',txt:'A good instinct. However, sophisticated attackers research targets via social media before calling.',tip:'Set a secret family verification word shared only in person. This defeats all voice cloning attacks.'}
+  }
+};
+
+// ============================================================
+// MINI-GAMES DEFINITIONS
+// ============================================================
+const MINIGAMES = [
+  // Choice A (bad) — Damage Control
+  {
+    id: 'damagecontrol',
+    title: 'DAMAGE CONTROL',
+    badge: 'INCIDENT RESPONSE',
+    instruction: "You just transferred ₹25,000 to a scammer. Every second counts now. Sort these actions into DO IMMEDIATELY and DO LATER — the faster you act on the right things, the better your chance of limiting the damage.",
+    forChoice: 'A'
+  },
+  // Choice B (good) — Drag & Drop Security Protocol
+  {
+    id: 'dragdrop',
+    title: 'SECURITY PROTOCOL',
+    badge: 'DRAG & DROP',
+    instruction: 'Sort the security actions into SAFE ACTIONS and RISKY ACTIONS by dragging them to the correct zone. You must correctly sort at least 4 of 6 items.',
+    forChoice: 'B'
+  },
+  // Choice C (best) — Find the Real Contact
+  {
+    id: 'findcontact',
+    title: 'FIND THE REAL CONTACT',
+    badge: 'IDENTITY CHECK',
+    instruction: "Your contact list has been spoofed. One entry is Rahul's real saved number — the others are attacker-created fakes designed to intercept your callback. Study the details carefully and tap the legitimate contact.",
+    forChoice: 'C'
+  },
+  // Choice D (good) — The Interrogation
+  {
+    id: 'interrogation',
+    title: 'PICK YOUR QUESTION',
+    badge: 'VERIFICATION SKILL',
+    instruction: "You decided to test the caller with a personal question only the real Rahul would know. Choose the question that is the HARDEST for a scammer to answer — even one who has researched Rahul's social media.",
+    forChoice: 'D'
+  }
+];
+
+// ============================================================
+// GLOBAL STATE
+// ============================================================
+/* ── Load baseline from DB-cached user (cv_current) — this reflects the
+      most recent stats shown in the dashboard Stats panel.
+      cv_cumulative is kept as a secondary fallback only. ── */
+const _m3User = (()=>{ try{ return JSON.parse(localStorage.getItem('cv_current')||'null'); }catch(e){return null;} })();
+const _m3Cum  = (()=>{ try{ return JSON.parse(localStorage.getItem('cv_cumulative')||'null'); }catch(e){return null;} })();
+const _m3BaseScore  = _m3User ? (_m3User.totalScore  || 0) : (_m3Cum ? (_m3Cum.totalScore  || 0) : 0);
+const _m3BaseHealth = _m3User ? Math.min(100, Math.max(0, _m3User.securityHealth ?? 100)) : (_m3Cum ? Math.min(100, Math.max(0, _m3Cum.avgHealth ?? 100)) : 100);
+const _m3BaseTrust  = _m3User ? Math.min(100, Math.max(0, _m3User.trustLevel    ?? 100)) : (_m3Cum ? Math.min(100, Math.max(0, _m3Cum.avgTrust  ?? 100)) : 100);
+
+let G={level:3,idx:0,health:_m3BaseHealth,trust:_m3BaseTrust,score:_m3BaseScore,good:0,bad:0,pending:false};
+// Pre-populate HUD with baseline values as soon as DOM is ready
+document.addEventListener('DOMContentLoaded', ()=>{ try{ updateHUD(); }catch(e){} });
+let introPhase = 0; // 0=story, 1=mobile game visible
+let pendingChoice = null; // choice waiting for minigame result
+let timerInterval = null;
+let timerSeconds = 180;
+let timerStarted = false;
+let mgCurrentId = null;
+let mgAnswered = false;
+let mgCorrect = false;
+let emTimerInt = null;
+
+function loadState(){try{const s=JSON.parse(localStorage.getItem('cv_game_state')||'null');if(s)G={...G,...s};}catch(e){}}
+function saveState(){localStorage.setItem('cv_game_state',JSON.stringify(G));}
+
+// ============================================================
+// STARS BACKGROUND
+// ============================================================
+(function spawnStars(){
+  const c = document.getElementById('intro-stars');
+  if(!c) return;
+  for(let i=0;i<120;i++){
+    const s = document.createElement('div');
+    s.className='intro-star';
+    s.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${2+Math.random()*4}s;--delay:${Math.random()*4}s;opacity:${.1+Math.random()*.5};`;
+    c.appendChild(s);
+  }
+})();
+
+// ============================================================
+// INTRO FLOW
+// ============================================================
+document.getElementById('story-box').addEventListener('click', advanceIntro);
+
+function advanceIntro(){
+  if(introPhase === 0){
+    introPhase = 1;
+    const sb = document.getElementById('story-box');
+    sb.style.transition='opacity .4s, transform .4s';
+    sb.style.opacity='0';
+    sb.style.transform='translateY(-12px)';
+    setTimeout(()=>{
+      sb.style.display='none';
+      showMobileGame();
+    },420);
+  }
+}
+
+function showMobileGame(){
+  const wrap = document.getElementById('mobile-game-wrap');
+  wrap.style.display='flex';
+  wrap.style.opacity='0';
+  wrap.style.transition='opacity .5s';
+  requestAnimationFrame(()=>{ wrap.style.opacity='1'; });
+
+  // Show hint ABOVE the phone
+  setTimeout(()=>{
+    const h = document.getElementById('game-hint');
+    h.style.display='block';
+    h.textContent = '🎮 Try the game! Press ▶ Play and navigate wisely through cyber decisions.';
+  },600);
+}
+
+// ============================================================
+// PLATFORM GAME
+// ============================================================
+// Each decision now uses a cybersecurity icon drawn on canvas
+// icon: function(ctx, x, y, color) — draws the symbol
+const PLATFORM_DECISIONS = [
+  {text:'Easy Password',      good:false, icon:'broken-lock',  label:'Weak Lock'},
+  {text:'Enable 2FA',         good:true,  icon:'shield-check',  label:'2FA Shield'},
+  {text:'Click unknown link', good:false, icon:'phish-hook',    label:'Phish Hook'},
+  {text:'Update your app',    good:true,  icon:'update-arrow',  label:'Update'},
+  {text:'Share OTP',          good:false, icon:'eye-scan',      label:'OTP Leak'},
+  {text:'Public WiFi Bank',   good:false, icon:'open-wifi',     label:'Open WiFi'},
+  {text:'Check URL',          good:true,  icon:'magnify-lock',  label:'URL Check'},
+  {text:'Unique Passwords',   good:true,  icon:'vault',         label:'Vault'},
+  {text:'Cracked APK',        good:false, icon:'skull-chip',    label:'Malware'},
+  {text:'Lock Screen',        good:true,  icon:'padlock',       label:'Lock Screen'},
+  {text:'Unverified Caller',  good:false, icon:'ghost-phone',   label:'Fake Call'},
+  {text:'Verify Transfer',    good:true,  icon:'tick-transfer', label:'Verified'},
+  {text:'Ignore Permissions', good:false, icon:'spy-eye',       label:'Spy App'},
+  {text:'Read Privacy Terms', good:true,  icon:'doc-shield',    label:'Privacy'},
+  {text:'Reuse Passwords',    good:false, icon:'recycle-danger',label:'Reuse'},
+  {text:'Password Manager',   good:true,  icon:'key-safe',      label:'Key Safe'},
+  {text:'Share Card PIN',     good:false, icon:'card-leak',     label:'PIN Leak'},
+  {text:'Report Phishing',    good:true,  icon:'flag-shield',   label:'Report'},
+];
+
+function drawDecisionIcon(ctx, iconName, cx, cy, color, size){
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+  ctx.lineWidth = 2.4; // heavier stroke = more readable at small sizes
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  const s = size * 0.5;
+
+  switch(iconName){
+    case 'shield-check': {
+      // Shield shape
+      ctx.beginPath();
+      ctx.moveTo(cx, cy-s);
+      ctx.bezierCurveTo(cx+s*1.1, cy-s, cx+s*1.1, cy+s*0.3, cx, cy+s*1.1);
+      ctx.bezierCurveTo(cx-s*1.1, cy+s*0.3, cx-s*1.1, cy-s, cx, cy-s);
+      ctx.closePath();
+      ctx.globalAlpha=0.18; ctx.fill(); ctx.globalAlpha=1; ctx.stroke();
+      // Checkmark inside
+      ctx.beginPath();
+      ctx.moveTo(cx-s*0.4, cy+s*0.05);
+      ctx.lineTo(cx-s*0.05, cy+s*0.45);
+      ctx.lineTo(cx+s*0.5, cy-s*0.35);
+      ctx.stroke();
+      break;
+    }
+    case 'broken-lock': {
+      // Lock body
+      ctx.beginPath();
+      roundRect(ctx, cx-s*0.7, cy-s*0.1, s*1.4, s*1.1, 2);
+      ctx.globalAlpha=0.18; ctx.fill(); ctx.globalAlpha=1; ctx.stroke();
+      // Broken shackle
+      ctx.beginPath();
+      ctx.moveTo(cx-s*0.4, cy-s*0.1);
+      ctx.lineTo(cx-s*0.4, cy-s*0.7);
+      ctx.arc(cx, cy-s*0.7, s*0.4, Math.PI, 0);
+      ctx.lineTo(cx+s*0.4, cy-s*0.1);
+      ctx.stroke();
+      // Break gap
+      ctx.clearRect(cx+s*0.05, cy-s*1.05, s*0.55, s*0.35);
+      ctx.strokeStyle=color; ctx.beginPath();
+      ctx.moveTo(cx+s*0.05, cy-s*0.72); ctx.lineTo(cx+s*0.25, cy-s*0.9);
+      ctx.stroke();
+      break;
+    }
+    case 'phish-hook': {
+      // Hook curve
+      ctx.beginPath();
+      ctx.arc(cx, cy+s*0.1, s*0.65, Math.PI*0.1, Math.PI*1.5);
+      ctx.stroke();
+      // Hook tip
+      ctx.beginPath();
+      ctx.moveTo(cx+s*0.65, cy+s*0.1);
+      ctx.lineTo(cx+s*0.3, cy+s*0.5);
+      ctx.stroke();
+      // Fish lure dot
+      ctx.beginPath();
+      ctx.arc(cx, cy-s*0.9, s*0.22, 0, Math.PI*2);
+      ctx.globalAlpha=0.9; ctx.fill(); ctx.globalAlpha=1;
+      break;
+    }
+    case 'update-arrow': {
+      // Circular arrow
+      ctx.beginPath();
+      ctx.arc(cx, cy, s*0.7, -Math.PI*0.1, Math.PI*1.5);
+      ctx.stroke();
+      // Arrow head
+      ctx.beginPath();
+      ctx.moveTo(cx+s*0.55, cy-s*0.55);
+      ctx.lineTo(cx+s*0.7, cy-s*0.1);
+      ctx.lineTo(cx+s*0.2, cy-s*0.5);
+      ctx.closePath();
+      ctx.fill();
+      break;
+    }
+    case 'eye-scan': {
+      // Eye outline
+      ctx.beginPath();
+      ctx.moveTo(cx-s, cy);
+      ctx.bezierCurveTo(cx-s*0.3, cy-s*0.7, cx+s*0.3, cy-s*0.7, cx+s, cy);
+      ctx.bezierCurveTo(cx+s*0.3, cy+s*0.7, cx-s*0.3, cy+s*0.7, cx-s, cy);
+      ctx.globalAlpha=0.18; ctx.fill(); ctx.globalAlpha=1; ctx.stroke();
+      // Iris
+      ctx.beginPath();
+      ctx.arc(cx, cy, s*0.3, 0, Math.PI*2);
+      ctx.globalAlpha=0.7; ctx.fill(); ctx.globalAlpha=1;
+      // Scan line
+      ctx.strokeStyle=color; ctx.globalAlpha=0.6;
+      ctx.beginPath(); ctx.moveTo(cx-s*1.1, cy-s*0.3); ctx.lineTo(cx+s*1.1, cy-s*0.3); ctx.stroke();
+      ctx.globalAlpha=1;
+      break;
+    }
+    case 'open-wifi': {
+      // WiFi arcs (no lock = open/risky)
+      for(let i=3;i>0;i--){
+        ctx.beginPath();
+        ctx.arc(cx, cy+s*0.5, s*i*0.32, -Math.PI*0.85, -Math.PI*0.15);
+        ctx.globalAlpha = i===3?0.4:i===2?0.7:1;
+        ctx.stroke();
+      }
+      ctx.globalAlpha=1;
+      ctx.beginPath();
+      ctx.arc(cx, cy+s*0.5, s*0.1, 0, Math.PI*2);
+      ctx.fill();
+      // X mark over it
+      ctx.globalAlpha=0.9;
+      ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(cx-s*0.4, cy-s*0.6); ctx.lineTo(cx+s*0.4, cy); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx+s*0.4, cy-s*0.6); ctx.lineTo(cx-s*0.4, cy); ctx.stroke();
+      ctx.globalAlpha=1;
+      break;
+    }
+    case 'magnify-lock': {
+      // Magnifying glass
+      ctx.beginPath();
+      ctx.arc(cx-s*0.15, cy-s*0.15, s*0.6, 0, Math.PI*2);
+      ctx.globalAlpha=0.18; ctx.fill(); ctx.globalAlpha=1; ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx+s*0.35, cy+s*0.35);
+      ctx.lineTo(cx+s*0.85, cy+s*0.85);
+      ctx.lineWidth=2.5; ctx.stroke(); ctx.lineWidth=1.8;
+      // Mini lock inside circle
+      ctx.beginPath();
+      roundRect(ctx, cx-s*0.35, cy-s*0.25, s*0.42, s*0.36, 2);
+      ctx.globalAlpha=0.8; ctx.fill(); ctx.globalAlpha=1;
+      break;
+    }
+    case 'vault': {
+      // Vault door
+      ctx.beginPath();
+      roundRect(ctx, cx-s*0.8, cy-s*0.85, s*1.6, s*1.7, 3);
+      ctx.globalAlpha=0.18; ctx.fill(); ctx.globalAlpha=1; ctx.stroke();
+      // Handle wheel
+      ctx.beginPath();
+      ctx.arc(cx, cy, s*0.42, 0, Math.PI*2);
+      ctx.stroke();
+      for(let a=0;a<4;a++){
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx+Math.cos(a*Math.PI/2)*s*0.42, cy+Math.sin(a*Math.PI/2)*s*0.42);
+        ctx.stroke();
+      }
+      break;
+    }
+    case 'skull-chip': {
+      // Skull
+      ctx.beginPath();
+      ctx.arc(cx, cy-s*0.15, s*0.65, Math.PI, 0);
+      ctx.lineTo(cx+s*0.4, cy+s*0.5);
+      ctx.lineTo(cx-s*0.4, cy+s*0.5);
+      ctx.closePath();
+      ctx.globalAlpha=0.22; ctx.fill(); ctx.globalAlpha=1; ctx.stroke();
+      // Eyes
+      ctx.fillStyle=color;
+      ctx.beginPath(); ctx.arc(cx-s*0.22, cy-s*0.2, s*0.16, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx+s*0.22, cy-s*0.2, s*0.16, 0, Math.PI*2); ctx.fill();
+      // Teeth
+      ctx.beginPath();
+      ctx.moveTo(cx-s*0.32, cy+s*0.42); ctx.lineTo(cx-s*0.32, cy+s*0.62);
+      ctx.moveTo(cx-s*0.1,  cy+s*0.42); ctx.lineTo(cx-s*0.1,  cy+s*0.62);
+      ctx.moveTo(cx+s*0.12, cy+s*0.42); ctx.lineTo(cx+s*0.12, cy+s*0.62);
+      ctx.moveTo(cx+s*0.32, cy+s*0.42); ctx.lineTo(cx+s*0.32, cy+s*0.62);
+      ctx.stroke();
+      break;
+    }
+    case 'padlock': {
+      // Closed padlock
+      ctx.beginPath();
+      roundRect(ctx, cx-s*0.65, cy, s*1.3, s*1.0, 3);
+      ctx.globalAlpha=0.2; ctx.fill(); ctx.globalAlpha=1; ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx-s*0.4, cy);
+      ctx.lineTo(cx-s*0.4, cy-s*0.5);
+      ctx.arc(cx, cy-s*0.5, s*0.4, Math.PI, 0);
+      ctx.lineTo(cx+s*0.4, cy);
+      ctx.stroke();
+      // Keyhole
+      ctx.beginPath();
+      ctx.arc(cx, cy+s*0.38, s*0.16, 0, Math.PI*2);
+      ctx.globalAlpha=0.9; ctx.fill(); ctx.globalAlpha=1;
+      ctx.beginPath();
+      ctx.moveTo(cx-s*0.1, cy+s*0.42); ctx.lineTo(cx+s*0.1, cy+s*0.42);
+      ctx.lineTo(cx+s*0.06, cy+s*0.7); ctx.lineTo(cx-s*0.06, cy+s*0.7);
+      ctx.closePath();
+      ctx.globalAlpha=0.85; ctx.fill(); ctx.globalAlpha=1;
+      break;
+    }
+    case 'ghost-phone': {
+      // Phone
+      ctx.beginPath();
+      roundRect(ctx, cx-s*0.45, cy-s*0.8, s*0.9, s*1.6, 3);
+      ctx.globalAlpha=0.18; ctx.fill(); ctx.globalAlpha=1; ctx.stroke();
+      // Ghost face inside screen area
+      ctx.beginPath();
+      ctx.arc(cx, cy-s*0.1, s*0.32, Math.PI, 0);
+      ctx.lineTo(cx+s*0.32, cy+s*0.32);
+      ctx.lineTo(cx+s*0.18, cy+s*0.18);
+      ctx.lineTo(cx, cy+s*0.32);
+      ctx.lineTo(cx-s*0.18, cy+s*0.18);
+      ctx.lineTo(cx-s*0.32, cy+s*0.32);
+      ctx.closePath();
+      ctx.globalAlpha=0.7; ctx.fill(); ctx.globalAlpha=1;
+      break;
+    }
+    case 'tick-transfer': {
+      // Arrow right (transfer)
+      ctx.beginPath();
+      ctx.moveTo(cx-s*0.8, cy);
+      ctx.lineTo(cx+s*0.4, cy);
+      ctx.moveTo(cx+s*0.1, cy-s*0.4);
+      ctx.lineTo(cx+s*0.55, cy);
+      ctx.lineTo(cx+s*0.1, cy+s*0.4);
+      ctx.stroke();
+      // Tick above
+      ctx.beginPath();
+      ctx.moveTo(cx-s*0.3, cy-s*0.7);
+      ctx.lineTo(cx-s*0.02, cy-s*0.38);
+      ctx.lineTo(cx+s*0.45, cy-s*0.95);
+      ctx.stroke();
+      break;
+    }
+    case 'spy-eye': {
+      // Eye with bars (surveillance)
+      ctx.beginPath();
+      ctx.moveTo(cx-s, cy);
+      ctx.bezierCurveTo(cx-s*0.3, cy-s*0.65, cx+s*0.3, cy-s*0.65, cx+s, cy);
+      ctx.bezierCurveTo(cx+s*0.3, cy+s*0.65, cx-s*0.3, cy+s*0.65, cx-s, cy);
+      ctx.globalAlpha=0.15; ctx.fill(); ctx.globalAlpha=1; ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx, cy, s*0.28, 0, Math.PI*2); ctx.globalAlpha=0.8; ctx.fill(); ctx.globalAlpha=1;
+      // Prison bars
+      ctx.globalAlpha=0.7;
+      for(let bx=-1;bx<=1;bx++){
+        ctx.beginPath();
+        ctx.moveTo(cx+bx*s*0.3, cy-s*0.6);
+        ctx.lineTo(cx+bx*s*0.3, cy+s*0.6);
+        ctx.stroke();
+      }
+      ctx.globalAlpha=1;
+      break;
+    }
+    case 'doc-shield': {
+      // Document
+      ctx.beginPath();
+      ctx.moveTo(cx-s*0.55, cy-s*0.85);
+      ctx.lineTo(cx+s*0.35, cy-s*0.85);
+      ctx.lineTo(cx+s*0.75, cy-s*0.45);
+      ctx.lineTo(cx+s*0.75, cy+s*0.85);
+      ctx.lineTo(cx-s*0.55, cy+s*0.85);
+      ctx.closePath();
+      ctx.globalAlpha=0.18; ctx.fill(); ctx.globalAlpha=1; ctx.stroke();
+      // Mini shield
+      ctx.beginPath();
+      ctx.moveTo(cx+s*0.05, cy-s*0.2);
+      ctx.bezierCurveTo(cx+s*0.45, cy-s*0.2, cx+s*0.45, cy+s*0.25, cx+s*0.05, cy+s*0.55);
+      ctx.bezierCurveTo(cx-s*0.35, cy+s*0.25, cx-s*0.35, cy-s*0.2, cx+s*0.05, cy-s*0.2);
+      ctx.globalAlpha=0.9; ctx.fill(); ctx.globalAlpha=1; ctx.stroke();
+      break;
+    }
+    case 'recycle-danger': {
+      // Danger triangle
+      ctx.beginPath();
+      ctx.moveTo(cx, cy-s*0.85);
+      ctx.lineTo(cx+s*0.85, cy+s*0.55);
+      ctx.lineTo(cx-s*0.85, cy+s*0.55);
+      ctx.closePath();
+      ctx.globalAlpha=0.18; ctx.fill(); ctx.globalAlpha=1; ctx.stroke();
+      // Recycle arrows inside
+      ctx.font=`bold ${Math.round(s*1.2)}px monospace`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.globalAlpha=0.8; ctx.fillText('↻', cx, cy+s*0.12); ctx.globalAlpha=1;
+      break;
+    }
+    case 'key-safe': {
+      // Key shape
+      ctx.beginPath();
+      ctx.arc(cx-s*0.3, cy-s*0.15, s*0.48, 0, Math.PI*2);
+      ctx.globalAlpha=0.18; ctx.fill(); ctx.globalAlpha=1; ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(cx-s*0.3, cy-s*0.15, s*0.25, 0, Math.PI*2);
+      ctx.stroke();
+      // Key blade
+      ctx.beginPath();
+      ctx.moveTo(cx+s*0.18, cy-s*0.15);
+      ctx.lineTo(cx+s*0.88, cy-s*0.15);
+      ctx.moveTo(cx+s*0.55, cy-s*0.15);
+      ctx.lineTo(cx+s*0.55, cy+s*0.2);
+      ctx.moveTo(cx+s*0.75, cy-s*0.15);
+      ctx.lineTo(cx+s*0.75, cy+s*0.15);
+      ctx.stroke();
+      break;
+    }
+    case 'card-leak': {
+      // Credit card
+      ctx.beginPath();
+      roundRect(ctx, cx-s*0.85, cy-s*0.45, s*1.7, s*0.9, 3);
+      ctx.globalAlpha=0.18; ctx.fill(); ctx.globalAlpha=1; ctx.stroke();
+      ctx.fillRect(cx-s*0.7, cy-s*0.15, s*0.55, s*0.28);
+      // Leak drops
+      ctx.beginPath();
+      ctx.arc(cx+s*0.4, cy+s*0.7, s*0.15, 0, Math.PI*2);
+      ctx.globalAlpha=0.7; ctx.fill(); ctx.globalAlpha=1;
+      ctx.beginPath();
+      ctx.moveTo(cx+s*0.25, cy+s*0.42); ctx.lineTo(cx+s*0.55, cy+s*0.55);
+      ctx.stroke();
+      // X over card
+      ctx.globalAlpha=0.9; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(cx+s*0.35, cy-s*0.35); ctx.lineTo(cx+s*0.75, cy+s*0.05); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx+s*0.75, cy-s*0.35); ctx.lineTo(cx+s*0.35, cy+s*0.05); ctx.stroke();
+      ctx.globalAlpha=1; ctx.lineWidth=1.8;
+      break;
+    }
+    case 'flag-shield': {
+      // Shield
+      ctx.beginPath();
+      ctx.moveTo(cx, cy-s*0.85);
+      ctx.bezierCurveTo(cx+s*0.9, cy-s*0.85, cx+s*0.9, cy+s*0.2, cx, cy+s*0.95);
+      ctx.bezierCurveTo(cx-s*0.9, cy+s*0.2, cx-s*0.9, cy-s*0.85, cx, cy-s*0.85);
+      ctx.globalAlpha=0.18; ctx.fill(); ctx.globalAlpha=1; ctx.stroke();
+      // Flag pole + flag inside
+      ctx.beginPath(); ctx.moveTo(cx-s*0.2, cy+s*0.5); ctx.lineTo(cx-s*0.2, cy-s*0.5); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx-s*0.2, cy-s*0.5); ctx.lineTo(cx+s*0.5, cy-s*0.28);
+      ctx.lineTo(cx-s*0.2, cy-s*0.05); ctx.closePath();
+      ctx.globalAlpha=0.8; ctx.fill(); ctx.globalAlpha=1;
+      break;
+    }
+    default: {
+      // Fallback: simple circle
+      ctx.beginPath();
+      ctx.arc(cx, cy, s*0.7, 0, Math.PI*2);
+      ctx.globalAlpha=0.2; ctx.fill(); ctx.globalAlpha=1; ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+// ============================================================
+// FLAPPY BIRD GAME — replaces dino platformer
+// ============================================================
+
+// Scam texts displayed on pillars
+const SCAM_TEXTS = [
+  'WIN ₹10 LAKH NOW!','YOUR OTP IS NEEDED','CLICK HERE URGENT','FREE KYC UPDATE',
+  'BANK ACCOUNT BLOCKED','SEND OTP TO VERIFY','PRIZE CLAIM LINK','GOVT REFUND PENDING',
+  'RESET PIN VIA LINK','SHARE PASSWORD NOW','ACT NOW OR LOSE ACCESS','FREE GIFT EXPIRES',
+  'LUCKY DRAW WINNER','VERIFY OR SUSPEND','PAY FEE TO RELEASE','SCAN QR TO GET MONEY'
+];
+
+// Good cybersecurity decisions (green circles)
+const GOOD_DECISIONS = [
+  'Enable 2FA','Check URL','Update App','Lock Screen',
+  'Verify Caller','Use VPN','Strong Password','Report Phishing',
+  'Read Terms','Password Manager','Unique Passwords','Verify Transfer'
+];
+
+let pfGame = {
+  running: false,
+  bird: {x:0, y:0, vy:0, wingPhase:0},
+  pillars: [],
+  coins: [],
+  speed: 1.6,
+  collected: 0,
+  spawnTimer: 0,
+  animFrame: null,
+  canvas: null,
+  ctx: null,
+  width: 0,
+  height: 0,
+  bgOffset: 0,
+  flashTimer: 0,
+  flashColor: '',
+  _kd: null,
+  _ku: null,
+  keys: {}
+};
+
+function startPlatformGame(){
+  const canvas = document.getElementById('platform-canvas');
+  const playScreen = document.getElementById('play-screen');
+  const restartOverlay = document.getElementById('restart-overlay');
+  const notifBanner = document.getElementById('notif-banner');
+
+  playScreen.style.display='none';
+  restartOverlay.style.display='none';
+  notifBanner.style.display='none';
+  canvas.style.display='block';
+
+  const mfs = document.getElementById('mf-screen');
+  canvas.width = mfs.clientWidth || 304;
+  canvas.height = mfs.clientHeight || 200;
+
+  const pf = pfGame;
+  pf.canvas = canvas;
+  pf.ctx = canvas.getContext('2d');
+  pf.width = canvas.width;
+  pf.height = canvas.height;
+  pf.bird = {x: pf.width * 0.22, y: pf.height / 2, vy: 0, wingPhase: 0};
+  pf.pillars = [];
+  pf.coins = [];
+  pf.speed = 0.9;
+  pf.collected = 0;
+  pf.spawnTimer = 0;
+  pf.running = true;
+  pf.keys = {};
+  pf.bgOffset = 0;
+  pf.flashTimer = 0;
+  pf.flashColor = '';
+
+  // Input — tap / space / up = flap
+  const flap = ()=>{ if(pf.running){ pf.bird.vy = -3.8; } };
+  pf._kd = (e)=>{ if(e.code==='Space'||e.code==='ArrowUp'||e.code==='KeyW'){ e.preventDefault(); flap(); } };
+  document.addEventListener('keydown', pf._kd);
+  canvas.ontouchstart = (e)=>{ e.preventDefault(); flap(); };
+  canvas.onclick = ()=>{ flap(); };
+
+  const hint = document.getElementById('game-hint');
+  hint.style.display='block';
+  hint.textContent='🐦 Tap / SPACE to flap · Dodge the scam pillars · Collect 4 green circles to win!';
+
+  // Hide skip button initially, show after 8s
+  const skipBtn = document.getElementById('skip-game-btn');
+  if(skipBtn) skipBtn.style.display='none';
+  setTimeout(()=>{ if(skipBtn && pfGame.running) skipBtn.style.display='block'; }, 8000);
+
+cancelAnimationFrame(pf.animFrame);
+  pfLoop();
+}
+
+function pfLoop(){
+  if(!pfGame.running) return;
+  pfUpdate();
+  pfDraw();
+  pfGame.animFrame = requestAnimationFrame(pfLoop);
+}
+
+function pfUpdate(){
+  const pf = pfGame;
+  const b = pf.bird;
+  const w = pf.width, h = pf.height;
+
+  // Bird physics
+  b.vy += 0.16;
+  b.y += b.vy;
+  b.wingPhase += 0.18;
+
+  // Out of bounds = lose
+  if(b.y < 0 || b.y + 18 > h){ pfLose(); return; }
+
+  // Scroll background
+  pf.bgOffset = (pf.bgOffset + pf.speed * 0.4) % w;
+
+  // Spawn pillars
+  pf.spawnTimer++;
+  const gap = 100; // vertical gap between top & bottom pillar
+  if(pf.spawnTimer >= Math.max(120, 160 - pf.collected * 6)){
+    pf.spawnTimer = 0;
+    const minTop = 28, maxTop = h - gap - 28;
+    const topH = minTop + Math.random() * (maxTop - minTop);
+    const scamTop = SCAM_TEXTS[Math.floor(Math.random()*SCAM_TEXTS.length)];
+    const scamBot = SCAM_TEXTS[Math.floor(Math.random()*SCAM_TEXTS.length)];
+    pf.pillars.push({
+      x: w + 20,
+      topH: topH,
+      botY: topH + gap,
+      botH: h - topH - gap,
+      w: 36,
+      passed: false,
+      scamTop: scamTop,
+      scamBot: scamBot
+    });
+
+    // Spawn a green coin in the gap
+    const coinY = topH + gap/2;
+    const dec = GOOD_DECISIONS[Math.floor(Math.random()*GOOD_DECISIONS.length)];
+    pf.coins.push({
+      x: w + 20 + 18, // center of pillar
+      y: coinY,
+      r: 9,
+      hit: false,
+      label: dec,
+      pulse: 0
+    });
+  }
+
+  // Move pillars & coins
+  for(let p of pf.pillars) p.x -= pf.speed;
+  for(let c of pf.coins){ c.x -= pf.speed; c.pulse += 0.07; }
+
+  // Pillar collision
+  const bx = b.x, by = b.y, bw = 22, bh = 16;
+  for(let p of pf.pillars){
+    if(bx + bw > p.x + 4 && bx < p.x + p.w - 4){
+      if(by < p.topH || by + bh > p.botY){ pfLose(); return; }
+    }
+    if(!p.passed && p.x + p.w < b.x){ p.passed = true; pf.speed = Math.min(1.8, pf.speed + 0.03); }
+  }
+
+  // Coin collection
+  const bcx = b.x + bw/2, bcy = b.y + bh/2;
+  for(let c of pf.coins){
+    if(c.hit) continue;
+    const dx = bcx - c.x, dy = bcy - c.y;
+    if(Math.sqrt(dx*dx+dy*dy) < c.r + 10){
+      c.hit = true;
+      pf.collected++;
+      pf.flashTimer = 8; pf.flashColor = '#2ecc71';
+      try{ playGoodChime(); }catch(e){}
+      if(pf.collected >= 4){ pfWin(false); return; }
+    }
+  }
+
+  // Cleanup
+  pf.pillars = pf.pillars.filter(p => p.x + p.w > -10);
+  pf.coins   = pf.coins.filter(c => c.x > -20);
+
+  if(pf.flashTimer > 0) pf.flashTimer--;
+}
+
+function pfDraw(){
+  const pf = pfGame;
+  const ctx = pf.ctx;
+  const w = pf.width, h = pf.height;
+
+  // Sky gradient
+  const sky = ctx.createLinearGradient(0,0,0,h);
+  sky.addColorStop(0,'#060a18');
+  sky.addColorStop(1,'#0a1230');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0,0,w,h);
+
+  // Scrolling grid lines (parallax feel)
+  ctx.strokeStyle='rgba(0,180,216,.06)';
+  ctx.lineWidth=1;
+  const gridX = (pf.bgOffset * 1.5) % 40;
+  for(let x=-40+gridX;x<w+40;x+=40){
+    ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke();
+  }
+  for(let y=0;y<h;y+=30){
+    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke();
+  }
+
+  // Stars
+  for(let i=0;i<18;i++){
+    const sx=((i*137.5 + pf.bgOffset*0.3)%w);
+    const sy=((i*97.3)%(h*0.7));
+    const alpha=0.2+0.5*Math.abs(Math.sin(Date.now()*0.001+i));
+    ctx.fillStyle=`rgba(255,255,255,${alpha})`;
+    ctx.fillRect(sx,sy,1.5,1.5);
+  }
+
+  // Draw pillars
+  for(let p of pf.pillars){
+    const pw = p.w;
+
+    // Pillar gradient — red/dark red for danger
+    const pg = ctx.createLinearGradient(p.x,0,p.x+pw,0);
+    pg.addColorStop(0,'#3a0010');
+    pg.addColorStop(0.4,'#6b0020');
+    pg.addColorStop(1,'#2a000c');
+
+    // Top pillar
+    ctx.fillStyle = pg;
+    roundRect(ctx, p.x, 0, pw, p.topH, 0);
+    ctx.fill();
+    // Top pillar cap
+    ctx.fillStyle='#e63946';
+    roundRect(ctx, p.x-4, p.topH-10, pw+8, 12, 3);
+    ctx.fill();
+    // Border
+    ctx.strokeStyle='rgba(230,57,70,.7)';
+    ctx.lineWidth=1.5;
+    ctx.beginPath();
+    ctx.strokeRect(p.x+0.75, 0, pw-1.5, p.topH);
+    ctx.stroke();
+
+    // Bottom pillar
+    ctx.fillStyle = pg;
+    roundRect(ctx, p.x, p.botY, pw, p.botH, 0);
+    ctx.fill();
+    // Bottom pillar cap
+    ctx.fillStyle='#e63946';
+    roundRect(ctx, p.x-4, p.botY-2, pw+8, 12, 3);
+    ctx.fill();
+    ctx.strokeStyle='rgba(230,57,70,.7)';
+    ctx.lineWidth=1.5;
+    ctx.beginPath();
+    ctx.strokeRect(p.x+0.75, p.botY, pw-1.5, p.botH);
+    ctx.stroke();
+
+    // Scam text on top pillar (rotated)
+    if(p.topH > 22){
+      ctx.save();
+      ctx.translate(p.x + pw/2, p.topH/2);
+      ctx.rotate(-Math.PI/2);
+      ctx.font='bold 7px monospace';
+      ctx.fillStyle='rgba(255,100,110,.9)';
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+      // Clip text to pillar width
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(-(p.topH/2), -pw/2, p.topH, pw);
+      ctx.clip();
+      ctx.fillText(p.scamTop, 0, 0);
+      ctx.restore();
+      ctx.restore();
+    }
+
+    // Scam text on bottom pillar
+    if(p.botH > 22){
+      ctx.save();
+      ctx.translate(p.x + pw/2, p.botY + p.botH/2);
+      ctx.rotate(-Math.PI/2);
+      ctx.font='bold 7px monospace';
+      ctx.fillStyle='rgba(255,100,110,.9)';
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(-(p.botH/2), -pw/2, p.botH, pw);
+      ctx.clip();
+      ctx.fillText(p.scamBot, 0, 0);
+      ctx.restore();
+      ctx.restore();
+    }
+
+    // Danger glow on pillar edges
+    ctx.save();
+    ctx.globalAlpha=0.12+0.06*Math.sin(Date.now()*0.003);
+    ctx.shadowColor='#e63946';
+    ctx.shadowBlur=10;
+    ctx.strokeStyle='#e63946';
+    ctx.lineWidth=2;
+    ctx.strokeRect(p.x, 0, pw, p.topH);
+    ctx.strokeRect(p.x, p.botY, pw, p.botH);
+    ctx.globalAlpha=1;
+    ctx.restore();
+  }
+
+  // Draw green coins
+  for(let c of pf.coins){
+    if(c.hit) continue;
+    const pulse = 0.5 + 0.5*Math.sin(c.pulse*3);
+    ctx.save();
+    // Glow
+    ctx.shadowColor='#2ecc71';
+    ctx.shadowBlur=8+pulse*6;
+    // Outer ring
+    ctx.strokeStyle=`rgba(46,204,113,${0.5+pulse*0.4})`;
+    ctx.lineWidth=1.5;
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, c.r+3+pulse*3, 0, Math.PI*2);
+    ctx.stroke();
+    // Filled circle
+    const cg = ctx.createRadialGradient(c.x-2,c.y-2,1,c.x,c.y,c.r);
+    cg.addColorStop(0,'#7fff9a');
+    cg.addColorStop(1,'#1a9940');
+    ctx.fillStyle=cg;
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, c.r, 0, Math.PI*2);
+    ctx.fill();
+    ctx.shadowBlur=0;
+    // Check mark inside
+    ctx.strokeStyle='rgba(0,30,10,.8)';
+    ctx.lineWidth=2;
+    ctx.lineCap='round';
+    ctx.beginPath();
+    ctx.moveTo(c.x-4, c.y);
+    ctx.lineTo(c.x-1, c.y+3);
+    ctx.lineTo(c.x+4, c.y-3);
+    ctx.stroke();
+    // Label above coin
+    ctx.font='bold 7px monospace';
+    ctx.fillStyle='#4eff9a';
+    ctx.textAlign='center';
+    ctx.textBaseline='bottom';
+    ctx.shadowColor='rgba(0,0,0,.8)';
+    ctx.shadowBlur=3;
+    ctx.fillText(c.label, c.x, c.y - c.r - 3);
+    ctx.restore();
+  }
+
+  // Flash overlay on collection
+  if(pf.flashTimer > 0){
+    ctx.save();
+    ctx.globalAlpha = pf.flashTimer / 8 * 0.25;
+    ctx.fillStyle = pf.flashColor;
+    ctx.fillRect(0,0,w,h);
+    ctx.restore();
+  }
+
+  // Draw bird
+  drawBird(ctx, pf.bird);
+
+  // HUD — collected count
+  ctx.save();
+  // Left badge
+  ctx.fillStyle='rgba(0,0,0,.75)';
+  roundRect(ctx, 6, 6, 80, 22, 4); ctx.fill();
+  ctx.fillStyle='#4eff9a';
+  ctx.font='bold 10px monospace';
+  ctx.textAlign='left';
+  ctx.textBaseline='middle';
+  for(let i=0;i<4;i++){
+    ctx.beginPath();
+    ctx.arc(16+i*16, 17, 5, 0, Math.PI*2);
+    ctx.fillStyle = i < pf.collected ? '#2ecc71' : 'rgba(255,255,255,.15)';
+    ctx.fill();
+    if(i < pf.collected){
+      ctx.strokeStyle='#7fff9a'; ctx.lineWidth=1;
+      ctx.stroke();
+    }
+  }
+  // Right label
+  ctx.fillStyle='rgba(0,0,0,.75)';
+  roundRect(ctx, w-70, 6, 64, 22, 4); ctx.fill();
+  ctx.fillStyle='rgba(0,180,216,.9)';
+  ctx.font='bold 9px monospace';
+  ctx.textAlign='center';
+  ctx.textBaseline='middle';
+  ctx.fillText(`SPD ${pf.speed.toFixed(1)}×`, w-38, 17);
+  ctx.restore();
+
+  // Progress bar
+  const barW = w - 20;
+  const barH = 4;
+  const barY = h - 6;
+  ctx.save();
+  ctx.fillStyle='rgba(0,0,0,.5)';
+  roundRect(ctx,10,barY,barW,barH,2); ctx.fill();
+  if(pf.collected>0){
+    ctx.fillStyle='rgba(46,204,113,.85)';
+    roundRect(ctx,10,barY,barW*(pf.collected/4),barH,2); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawBird(ctx, b){
+  const x = b.x, y = b.y;
+  const tilt = Math.max(-0.5, Math.min(0.6, b.vy * 0.06));
+  ctx.save();
+  ctx.translate(x+11, y+8);
+  ctx.rotate(tilt);
+
+  // Body
+  ctx.fillStyle='#00b4d8';
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 11, 8, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  // Wing
+  const wingAngle = Math.sin(b.wingPhase) * 0.6;
+  ctx.save();
+  ctx.rotate(wingAngle);
+  ctx.fillStyle='#0090aa';
+  ctx.beginPath();
+  ctx.ellipse(-2, 2, 8, 4, -0.3, 0, Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+
+  // Head
+  ctx.fillStyle='#00cae9';
+  ctx.beginPath();
+  ctx.arc(8, -4, 7, 0, Math.PI*2);
+  ctx.fill();
+
+  // Eye white
+  ctx.fillStyle='#fff';
+  ctx.beginPath();
+  ctx.arc(11, -5, 3, 0, Math.PI*2);
+  ctx.fill();
+  // Pupil
+  ctx.fillStyle='#001a2e';
+  ctx.beginPath();
+  ctx.arc(12, -5, 1.5, 0, Math.PI*2);
+  ctx.fill();
+  // Eye shine
+  ctx.fillStyle='rgba(255,255,255,.8)';
+  ctx.beginPath();
+  ctx.arc(13, -6, 0.7, 0, Math.PI*2);
+  ctx.fill();
+
+  // Beak
+  ctx.fillStyle='#ffd166';
+  ctx.beginPath();
+  ctx.moveTo(16, -4);
+  ctx.lineTo(21, -3);
+  ctx.lineTo(16, -1);
+  ctx.closePath();
+  ctx.fill();
+
+  // Tail feathers
+  ctx.fillStyle='#0077b6';
+  ctx.beginPath();
+  ctx.moveTo(-10, -2);
+  ctx.lineTo(-18, -6);
+  ctx.lineTo(-16, 0);
+  ctx.lineTo(-18, 5);
+  ctx.lineTo(-10, 2);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+}
+
+function truncText(t,max){ return t.length>max?t.slice(0,max)+'…':t; }
+
+let birdGameBonus = 0; // 50 if game was completed, 0 if skipped
+
+function pfWin(skipped){
+  pfGame.running=false;
+  cancelAnimationFrame(pfGame.animFrame);
+  if(pfGame._kd) document.removeEventListener('keydown', pfGame._kd);
+  if(pfGame.canvas){ pfGame.canvas.ontouchstart=null; pfGame.canvas.onclick=null; }
+
+  birdGameBonus = skipped ? 0 : 50;
+
+  document.getElementById('platform-canvas').style.display='none';
+  try{ playGoodChime(); }catch(e){}
+
+  setTimeout(()=>{
+    const notif = document.getElementById('notif-banner');
+    notif.style.display='flex';
+    notif.style.animation='slideDown .4s cubic-bezier(.34,1.56,.64,1) both';
+    try{ playRingtone(true); }catch(e){}
+    const hint = document.getElementById('game-hint');
+    hint.textContent = skipped
+      ? '⏭ Game skipped — no bonus points. A call is incoming...'
+      : '🏆 +50 BONUS PTS! You completed the game! A call is incoming...';
+    hint.style.display='block';
+    document.getElementById('mobile-sub-label').style.display='block';
+  }, 600);
+}
+
+function pfLose(){
+  pfGame.running=false;
+  cancelAnimationFrame(pfGame.animFrame);
+  if(pfGame._kd) document.removeEventListener('keydown', pfGame._kd);
+  if(pfGame.canvas){ pfGame.canvas.ontouchstart=null; pfGame.canvas.onclick=null; }
+  try{ playAlarmBad(); }catch(e){}
+  document.getElementById('platform-canvas').style.display='none';
+  document.getElementById('restart-overlay').style.display='flex';
+  const hint = document.getElementById('game-hint');
+  hint.textContent='💥 Your bird crashed! Press Try Again to restart.';
+}
+
+// ============================================================
+// MAIN SCENE LAUNCH
+// ============================================================
+function launchMainScene(){
+  // Stop any ringtone
+  try{ stopRingtone(); }catch(e){}
+
+  // Hide intro
+  const intro = document.getElementById('intro-overlay');
+  intro.style.transition='opacity .5s';
+  intro.style.opacity='0';
+  setTimeout(()=>{ intro.style.display='none'; },500);
+
+  // Show HUD and main content
+  document.getElementById('hud').style.display='';
+  document.getElementById('main-content').style.display='';
+  document.getElementById('game-timer').style.display='block';
+
+  // Hide hint and sub-label
+  document.getElementById('game-hint').style.display='none';
+  document.getElementById('mobile-sub-label').style.display='none';
+  const skipBtn = document.getElementById('skip-game-btn');
+  if(skipBtn) skipBtn.style.display='none';
+
+  // Apply bird game bonus if game was completed
+  if(birdGameBonus > 0){
+    G.score += birdGameBonus;
+    birdGameBonus = 0;
+  }
+
+  // Start 3-minute timer
+  startMainTimer();
+
+  // Render scene
+  loadState(); updateHUD(); renderScene();
+}
+
+// ============================================================
+// 3-MINUTE TIMER
+// ============================================================
+function startMainTimer(){
+  if(timerStarted) return;
+  timerStarted=true;
+  timerSeconds=180;
+  updateTimerDisplay();
+  timerInterval=setInterval(()=>{
+    timerSeconds--;
+    updateTimerDisplay();
+    if(timerSeconds<=0){ clearInterval(timerInterval); showTimeoutPopup(); }
+  },1000);
+}
+
+function pauseTimer(){ clearInterval(timerInterval); }
+function resumeTimer(){
+  if(!timerStarted||timerSeconds<=0) return;
+  timerInterval=setInterval(()=>{
+    timerSeconds--;
+    updateTimerDisplay();
+    if(timerSeconds<=0){ clearInterval(timerInterval); showTimeoutPopup(); }
+  },1000);
+}
+
+function updateTimerDisplay(){
+  const el=document.getElementById('game-timer');
+  const m=Math.floor(timerSeconds/60), s=timerSeconds%60;
+  el.textContent=`⏱ ${m}:${String(s).padStart(2,'0')}`;
+  if(timerSeconds<=30) el.classList.add('red');
+  else el.classList.remove('red');
+}
+
+function showTimeoutPopup(){
+  // Only show if not in a win/badge state
+  if(document.getElementById('badge-popup').classList.contains('active')) return;
+  document.getElementById('timeout-popup').classList.add('active');
+}
+
+function restartMainScene(){
+  document.getElementById('timeout-popup').classList.remove('active');
+  // Reset state to cumulative baseline (not hard zeros) so cross-mode data is preserved
+  G={level:3,idx:0,health:_m3BaseHealth,trust:_m3BaseTrust,score:_m3BaseScore,good:0,bad:0,pending:false};
+  timerStarted=false;
+  timerSeconds=180;
+  clearInterval(timerInterval);
+  updateHUD();
+  startMainTimer();
+  renderScene();
+}
+
+// ============================================================
+// AUDIO
+// ============================================================
+let audioCtx=null, ringtoneAudio=null, audioUnlocked=false;
+
+function unlockAudio(){
+  if(audioUnlocked) return;
+  if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  const buf=audioCtx.createBuffer(1,1,22050);
+  const src=audioCtx.createBufferSource();
+  src.buffer=buf; src.connect(audioCtx.destination); src.start();
+  audioUnlocked=true;
+  if(ringtoneAudio&&ringtoneAudio.paused) ringtoneAudio.play().catch(e=>{});
+}
+document.addEventListener('click',unlockAudio);
+document.addEventListener('touchstart',unlockAudio);
+document.addEventListener('keydown',unlockAudio);
+
+function getCtx(){
+  if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playRingtone(loop){
+  if(ringtoneAudio){ ringtoneAudio.pause(); ringtoneAudio=null; }
+  ringtoneAudio=new Audio('ringtone.mpeg');
+  ringtoneAudio.loop=loop; ringtoneAudio.volume=0.8;
+  const pp=ringtoneAudio.play();
+  if(pp!==undefined) pp.catch(e=>{
+    const u=()=>{ if(ringtoneAudio&&ringtoneAudio.paused) ringtoneAudio.play().catch(()=>{}); document.removeEventListener('click',u); };
+    document.addEventListener('click',u);
+  });
+  return {stop:()=>{ if(ringtoneAudio){ ringtoneAudio.pause(); ringtoneAudio.currentTime=0; ringtoneAudio=null; } }};
+}
+
+function stopRingtone(){
+  try{ if(ringtoneHandle){ ringtoneHandle.stop(); ringtoneHandle=null; } }catch(e){}
+  clearInterval(callTimer);
+  if(ringtoneAudio){ ringtoneAudio.pause(); ringtoneAudio=null; }
+}
+
+function playDecline(){ const c=getCtx(); if(c.state==='suspended')c.resume(); const o=c.createOscillator(),g=c.createGain(); o.type='sawtooth'; o.frequency.value=380; o.connect(g); g.connect(c.destination); g.gain.setValueAtTime(.08,c.currentTime); g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.5); o.start(); o.stop(c.currentTime+.5); }
+function playAccept(){ const c=getCtx(); if(c.state==='suspended')c.resume(); [0,.12,.24].forEach((d,i)=>{ const o=c.createOscillator(),g=c.createGain(); o.type='sine'; o.frequency.value=[523,659,784][i]; o.connect(g); g.connect(c.destination); g.gain.setValueAtTime(.09,c.currentTime+d); g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d+.12); o.start(c.currentTime+d); o.stop(c.currentTime+d+.14); }); }
+function playAlarmBad(){ const c=getCtx(); if(c.state==='suspended')c.resume(); [0,.15,.3,.45].forEach(d=>{ const o=c.createOscillator(),g=c.createGain(); o.type='square'; o.frequency.value=220; o.frequency.setValueAtTime(220,c.currentTime+d); o.frequency.setValueAtTime(180,c.currentTime+d+.07); o.connect(g); g.connect(c.destination); g.gain.setValueAtTime(.12,c.currentTime+d); g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d+.14); o.start(c.currentTime+d); o.stop(c.currentTime+d+.16); }); }
+function playGoodChime(){ const c=getCtx(); if(c.state==='suspended')c.resume(); [523.25,659.25,783.99,1046.50].forEach((f,i)=>{ const o=c.createOscillator(),g=c.createGain(); o.type='sine'; o.frequency.value=f; o.connect(g); g.connect(c.destination); g.gain.setValueAtTime(0,c.currentTime+i*.1); g.gain.linearRampToValueAtTime(.12,c.currentTime+i*.1+.05); g.gain.exponentialRampToValueAtTime(.001,c.currentTime+i*.1+.4); o.start(c.currentTime+i*.1); o.stop(c.currentTime+i*.1+.42); }); }
+
+function makeWaveform(active){ const h=[6,14,10,20,8,16,12,22,6,18,10,14,8,20,12]; return`<div class="call-waveform">${h.map((v,i)=>`<div class="wv-bar ${active?'active':''}" style="height:${active?4:v}px;animation-delay:${i*.06}s"></div>`).join('')}</div>`; }
+
+// ============================================================
+// HUD
+// ============================================================
+function updateHUD(){
+  const h=Math.max(0,G.health),t=Math.max(0,G.trust);
+  document.getElementById('h-fill').style.width=h+'%';
+  document.getElementById('h-fill').style.background=h>60?'var(--green)':h>30?'var(--amber)':'var(--red)';
+  document.getElementById('h-val').textContent=h+'%';
+  document.getElementById('t-fill').style.width=t+'%';
+  document.getElementById('t-fill').style.background=t>60?'var(--accent)':t>30?'var(--amber)':'var(--red)';
+  document.getElementById('t-val').textContent=t+'%';
+  document.getElementById('sc-num').textContent=Math.max(0,G.score);
+  saveState();
+}
+
+// ============================================================
+// CIN OVERLAYS
+// ============================================================
+function launchCinBad(cin,onDone){
+  const ov=document.getElementById('cin-overlay'),body=document.getElementById('cin-body'),foot=document.getElementById('cin-foot');
+  body.innerHTML='';foot.classList.remove('show');ov.classList.add('active');playAlarmBad();
+  const title=document.createElement('div');title.style.cssText='font-family:var(--font-disp);font-size:1rem;font-weight:700;color:#e63946;margin-bottom:12px;letter-spacing:-.02em;';title.className='glitch';title.textContent='⚠ '+cin.title;body.appendChild(title);
+  if(cin.accs&&cin.accs.length){const ag=document.createElement('div');ag.className='cin-accs';ag.id='cin-ag';cin.accs.forEach(a=>{const[n,s]=a.split('|');const c=document.createElement('div');c.className='cin-acc';c.innerHTML=`<div class="cin-acc-n">${n}</div><div class="cin-acc-s bad">${s}</div>`;ag.appendChild(c);});body.appendChild(ag);if(cin.prog){const p=document.createElement('div');p.className='cin-prog-wrap';p.id='cin-pw';p.innerHTML=`<div class="cin-prog-lbl">ATTACK PROGRESS</div><div class="cin-prog-track"><div class="cin-prog-fill" id="cin-pf"></div></div>`;body.appendChild(p);}}
+  if(cin.dmg){const d=document.createElement('div');d.className='cin-dmg';d.id='cin-d';d.innerHTML=`<div class="cin-dmg-amt">${cin.dmg}</div><div class="cin-dmg-lbl">ESTIMATED LOSS / EXPOSURE</div>`;body.appendChild(d);}
+  const lc=document.createElement('div');lc.style.marginTop='8px';body.appendChild(lc);
+  let li=0;
+  function nl(){if(li>=cin.lines.length){setTimeout(()=>{const ag=document.getElementById('cin-ag');if(ag){ag.classList.add('show');ag.querySelectorAll('.cin-acc').forEach((c,i)=>setTimeout(()=>c.classList.add('comp'),i*200));}const pw=document.getElementById('cin-pw');if(pw){pw.classList.add('show');setTimeout(()=>{document.getElementById('cin-pf').style.width='100%';},100);}const d=document.getElementById('cin-d');if(d)d.classList.add('show');setTimeout(()=>foot.classList.add('show'),1000);},400);window._cinBadDone=onDone;return;}
+    const line=cin.lines[li];const el=document.createElement('div');el.className='cin-line';el.innerHTML=`<span class="cin-p">${line.p}</span><span class="${line.c}">${line.t}</span>`;lc.appendChild(el);requestAnimationFrame(()=>setTimeout(()=>el.classList.add('show'),20));li++;setTimeout(nl,270+Math.random()*110);}
+  setTimeout(nl,500);
+}
+
+function closeCinBad(){
+  document.getElementById('cin-overlay').classList.remove('active');
+  if(window._cinBadDone){ window._cinBadDone(); window._cinBadDone=null; }
+  G={level:3,idx:0,health:_m3BaseHealth,trust:_m3BaseTrust,score:_m3BaseScore,good:0,bad:0,pending:false};
+  updateHUD(); renderScene();
+}
+
+function launchCinGood(fb,pts,onDone){
+  const ov=document.getElementById('cin-good');playGoodChime();
+  document.getElementById('cin-si').textContent=fb.icon||'🛡';
+  document.getElementById('cin-gt').textContent=fb.t;
+  document.getElementById('cin-gs').textContent='//'+(pts>=50?' BEST RESPONSE':' CORRECT DECISION');
+  document.getElementById('cin-gtip').innerHTML=`<strong>Security Insight:</strong> ${fb.tip}`;
+  document.getElementById('cin-pts').textContent='+'+pts+' PTS';
+  const pc=document.getElementById('cin-parts');pc.innerHTML='';
+  for(let i=0;i<30;i++){const p=document.createElement('div');p.className='cin-part';const angle=Math.random()*Math.PI*2,dist=80+Math.random()*200;p.style.cssText=`left:50%;top:50%;--tx:${Math.cos(angle)*dist}px;--ty:${Math.sin(angle)*dist}px;background:${['#2ecc71','#00b4d8','#ffd166'][Math.floor(Math.random()*3)]};animation-delay:${Math.random()*.3}s;animation-duration:${.6+Math.random()*.5}s;`;pc.appendChild(p);}
+  ov.classList.add('active');window._cinGoodDone=onDone;
+}
+
+function closeCinGood(){
+  document.getElementById('cin-good').classList.remove('active');
+  if(window._cinGoodDone){ window._cinGoodDone(); window._cinGoodDone=null; }
+}
+
+function showBadgePopup(){ closeCinGood(); document.getElementById('badge-popup').classList.add('active'); pauseTimer(); }
+function goToLevel2(){ saveState(); window.location.href='level3_scene2.html'; }
+
+// ============================================================
+// CHOICES + MINIGAME FLOW
+// ============================================================
+function renderChoices(){
+  const choicesArea=document.getElementById('choices-area');
+  choicesArea.style.display='block';
+  choicesArea.innerHTML=`
+    <div class="choices-section" role="group" aria-labelledby="choices-lbl">
+      <div class="choices-label" id="choices-lbl">// SELECT YOUR RESPONSE — press 1–4 or Tab+Enter</div>
+      <div class="choice-list">${SCENE.choices.map((c,i)=>`<button class="choice" data-idx="${i}" onclick="handleChoice(${JSON.stringify(c).replace(/"/g,'&quot;')})" aria-label="Option ${c.k}: ${c.text}"><span class="choice-key" aria-hidden="true">${c.k}</span><span>${c.text}</span></button>`).join('')}</div>
+      <div style="font-family:var(--font-mono);font-size:.6rem;color:var(--muted);margin-top:10px;">⌨ Press <kbd style="background:var(--rim);padding:1px 5px;border-radius:2px;">1</kbd>–<kbd style="background:var(--rim);padding:1px 5px;border-radius:2px;">4</kbd> to select</div>
+    </div>`;
+  setTimeout(()=>{const f=document.querySelector('.choice');if(f)f.focus();},80);
+}
+
+function handleChoice(c){
+  if(G.pending)return;
+  G.pending=true;
+  stopRingtone();
+  document.querySelectorAll('.choice').forEach(b=>{b.disabled=true;b.style.opacity='0.4';b.style.cursor='default';});
+  // Launch minigame for this choice
+  pendingChoice=c;
+  const mgDef=MINIGAMES.find(m=>m.forChoice===c.k);
+  if(mgDef) openMiniGame(mgDef, c);
+  else applyChoice(c); // fallback
+}
+
+function applyChoice(c){
+  G.health=Math.min(100,Math.max(0,G.health+(c.hp||0)));
+  G.trust=Math.min(100,Math.max(0,G.trust+(c.tp||0)));
+  G.score+=c.pts;
+  if(c.type==='good'||c.type==='best') G.good++; else G.bad++;
+  updateHUD();
+  const fb=SCENE.fb[c.type]||SCENE.fb.good;
+  announceToSR(`${c.type==='good'||c.type==='best'?'Correct':'Incorrect'} response. Score: ${Math.max(0,G.score)}. Health: ${Math.max(0,G.health)}%.`);
+  if(c.type==='bad'&&fb.cin){ launchCinBad(fb.cin,()=>showFB(fb,c.type)); }
+  else if(c.type==='good'||c.type==='best'){ launchCinGood(fb,c.pts,()=>showFB(fb,c.type)); }
+  else{ showFB(fb,c.type); }
+}
+
+function showFB(fb,type){
+  const cls=(type==='best'||type==='good')?'good':type==='warn'?'warn':'bad';
+  document.getElementById('feedback-area').innerHTML=`
+    <div class="feedback-card ${cls}" role="region">
+      <div class="fc-header"><div class="fc-icon">${fb.icon}</div><div class="fc-title ${cls}">${fb.t}</div></div>
+      <div class="fc-text">${fb.txt}</div>
+      <div class="tip-card"><div class="tip-label">// SECURITY TIP</div><p>${fb.tip}</p></div>
+    </div>`;
+  document.getElementById('feedback-area').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ============================================================
+// MINIGAME ENGINE
+// ============================================================
+function openMiniGame(mgDef, choice){
+  pauseTimer();
+  mgCurrentId = mgDef.id;
+  mgAnswered = false;
+  mgCorrect = false;
+
+  document.getElementById('mg-title').textContent = mgDef.title;
+  document.getElementById('mg-badge').textContent = mgDef.badge;
+  document.getElementById('mg-instruction').textContent = mgDef.instruction;
+  document.getElementById('mg-result').style.display='none';
+  document.getElementById('mg-result').className='mg-result-banner';
+  document.getElementById('mg-submit').style.display='';
+  document.getElementById('mg-submit').disabled=false;
+
+  const body=document.getElementById('mg-content');
+  body.innerHTML='';
+
+  if(mgDef.id==='damagecontrol') buildDamageControl(body);
+  else if(mgDef.id==='dragdrop') buildDragDrop(body);
+  else if(mgDef.id==='findcontact') buildFindContact(body);
+  else if(mgDef.id==='codeword') buildCodeWord(body);
+  else if(mgDef.id==='interrogation') buildInterrogation(body);
+
+  document.getElementById('minigame-overlay').classList.add('active');
+}
+
+function closeMiniGame(fromSubmit){
+  document.getElementById('minigame-overlay').classList.remove('active');
+  resumeTimer();
+  if(fromSubmit){
+    // If minigame was correct → bonus pts; if wrong → reduce pts
+    const c = pendingChoice;
+    if(mgCorrect){
+      c.pts = Math.round(c.pts * 1.25); // 25% bonus for minigame success
+    } else {
+      c.pts = Math.max(0, Math.round(c.pts * 0.75)); // 25% penalty
+      if(c.type==='bad') c.pts = Math.min(c.pts, -20);
+    }
+    applyChoice(c);
+  } else {
+    // Skip — just apply choice normally
+    applyChoice(pendingChoice);
+  }
+  pendingChoice=null;
+}
+
+function submitMiniGame(){
+  if(!mgAnswered){
+    // Flash instruction
+    const inst=document.getElementById('mg-instruction');
+    inst.style.color='#e63946';
+    setTimeout(()=>inst.style.color='',600);
+    return;
+  }
+  const res=document.getElementById('mg-result');
+  res.style.display='block';
+  if(mgCorrect){
+    res.className='mg-result-banner success';
+    res.innerHTML='CORRECT! +25% bonus points awarded.';
+    playGoodChime();
+  } else {
+    res.className='mg-result-banner fail';
+    res.innerHTML='INCORRECT. 25% point deduction applied.';
+    playAlarmBad();
+  }
+  document.getElementById('mg-submit').disabled=true;
+  setTimeout(()=>closeMiniGame(true), 1800);
+}
+
+// ——— Minigame 1: Damage Control (drag & drop triage) ———
+function buildDamageControl(container){
+  const items = [
+    { text: 'Call your bank and report the fraudulent transfer', immediate: true },
+    { text: 'File a complaint on cybercrime.gov.in', immediate: true },
+    { text: 'Call the real Rahul to confirm he is safe', immediate: true },
+    { text: 'Block the scammer\'s UPI ID via your bank app', immediate: true },
+    { text: 'Screenshot all call logs and messages as evidence', immediate: false },
+    { text: 'Change your UPI PIN and banking passwords', immediate: false },
+    { text: 'Warn family members about the scam tactic', immediate: false },
+    { text: 'Post about it on social media', immediate: false },
+  ];
+  const shuffled = [...items].sort(()=>Math.random()-.5);
+
+  container.innerHTML=`
+    <div class="dd-area">
+      <div class="dd-pool" id="dc-pool">
+        <div class="dd-label">ACTIONS — drag each to a zone below</div>
+      </div>
+      <div class="dd-zones-row">
+        <div class="dd-zone" id="dz-now">
+          <div class="dd-zone-label">DO IMMEDIATELY</div>
+        </div>
+        <div class="dd-zone" id="dz-later">
+          <div class="dd-zone-label">DO LATER</div>
+        </div>
+      </div>
+    </div>`;
+
+  // Build items and attach listeners after HTML is in DOM
+  const pool = container.querySelector('#dc-pool');
+  shuffled.forEach((it, i) => {
+    const el = document.createElement('div');
+    el.className = 'dd-item';
+    el.draggable = true;
+    el.id = 'dci-' + i;
+    el.dataset.immediate = it.immediate;
+    el.textContent = it.text;
+    el.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', el.id);
+      setTimeout(() => el.classList.add('dragging'), 0);
+    });
+    el.addEventListener('dragend', () => el.classList.remove('dragging'));
+    pool.appendChild(el);
+  });
+
+  // Attach drop zone listeners
+  ['dz-now', 'dz-later'].forEach(zoneId => {
+    const zone = container.querySelector('#' + zoneId);
+    zone.addEventListener('dragover', e => {
+      e.preventDefault();
+      zone.classList.add('drag-over');
+    });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      const id = e.dataTransfer.getData('text/plain');
+      const el = document.getElementById(id);
+      if (!el) return;
+      zone.appendChild(el);
+      checkDCState();
+    });
+  });
+
+  // Also allow dragging back to pool
+  const pool2 = container.querySelector('#dc-pool');
+  pool2.addEventListener('dragover', e => { e.preventDefault(); pool2.classList.add('drag-over'); });
+  pool2.addEventListener('dragleave', () => pool2.classList.remove('drag-over'));
+  pool2.addEventListener('drop', e => {
+    e.preventDefault();
+    pool2.classList.remove('drag-over');
+    const id = e.dataTransfer.getData('text/plain');
+    const el = document.getElementById(id);
+    if (el) pool2.appendChild(el);
+    checkDCState();
+  });
+
+  function checkDCState(){
+    const nowZone = container.querySelector('#dz-now');
+    const laterZone = container.querySelector('#dz-later');
+    const placed = [...nowZone.querySelectorAll('.dd-item'), ...laterZone.querySelectorAll('.dd-item')];
+    if(placed.length < 4){ mgAnswered = false; return; }
+    let correct = 0;
+    nowZone.querySelectorAll('.dd-item').forEach(el => { if(el.dataset.immediate === 'true') correct++; });
+    laterZone.querySelectorAll('.dd-item').forEach(el => { if(el.dataset.immediate === 'false') correct++; });
+    mgAnswered = true;
+    mgCorrect = (correct >= 4);
+  }
+}
+
+// ——— Minigame 2: Drag & Drop ———
+function buildDragDrop(container){
+  const items=[
+    {text:'Verify caller on saved number',good:true},
+    {text:'Transfer money immediately',good:false},
+    {text:'Call bank official helpline',good:true},
+    {text:'Share your OTP on call',good:false},
+    {text:'Enable 2-step verification',good:true},
+    {text:'Click link from unknown SMS',good:false},
+  ];
+  // Shuffle
+  const shuffled=[...items].sort(()=>Math.random()-.5);
+
+  container.innerHTML=`
+    <div class="dd-area">
+      <div class="dd-pool" id="dd-pool">
+        <div class="dd-label">DRAG FROM HERE</div>
+        ${shuffled.map((it,i)=>`<div class="dd-item ${it.good?'good-item':'bad-item'}" draggable="true" data-good="${it.good}" data-idx="${i}" ondragstart="ddDragStart(event,${i})" id="ddi-${i}">${it.text}</div>`).join('')}
+      </div>
+      <div class="dd-zones-row">
+        <div class="dd-zone" id="dz-safe" ondragover="ddOver(event)" ondrop="ddDrop(event,'safe')">
+          <div class="dd-zone-label">SAFE ACTIONS</div>
+        </div>
+        <div class="dd-zone" id="dz-risky" ondragover="ddOver(event)" ondrop="ddDrop(event,'risky')">
+          <div class="dd-zone-label">RISKY ACTIONS</div>
+        </div>
+      </div>
+    </div>`;
+
+  window._ddItems=shuffled;
+  window._ddDragging=null;
+  window.ddDragStart=function(e,idx){ window._ddDragging=idx; e.dataTransfer.setData('text/plain',idx); };
+  window.ddOver=function(e){ e.preventDefault(); e.currentTarget.classList.add('drag-over'); };
+  window.ddDrop=function(e,zone){
+    e.preventDefault();
+    e.currentTarget.classList.remove('drag-over');
+    const idx=parseInt(e.dataTransfer.getData('text/plain'));
+    const it=window._ddItems[idx];
+    const el=document.getElementById('ddi-'+idx);
+    if(!el) return;
+    el.draggable=false;
+    el.style.cursor='default';
+    const target=document.getElementById('dz-'+zone);
+    target.appendChild(el);
+    checkDDState();
+  };
+  // Remove drag-over on dragleave
+  document.querySelectorAll('.dd-zone').forEach(z=>z.addEventListener('dragleave',e=>e.currentTarget.classList.remove('drag-over')));
+
+  function checkDDState(){
+    const safeZone=document.getElementById('dz-safe');
+    const riskyZone=document.getElementById('dz-risky');
+    const allPlaced=[...safeZone.querySelectorAll('.dd-item'),...riskyZone.querySelectorAll('.dd-item')];
+    if(allPlaced.length<4) return;
+    let correct=0;
+    safeZone.querySelectorAll('.dd-item').forEach(el=>{ if(el.dataset.good==='true') correct++; });
+    riskyZone.querySelectorAll('.dd-item').forEach(el=>{ if(el.dataset.good==='false') correct++; });
+    mgAnswered=true;
+    mgCorrect=(correct>=4);
+  }
+  window.checkDDState=checkDDState;
+}
+
+// ——— Minigame 3: Find the Real Contact ———
+function buildFindContact(container){
+  const contacts = [
+    { name:'Rahul Sharma', num:'+91 98765 43210', since:'Saved 4 years ago', note:'Last called: 2 days ago', real:true },
+    { name:'Rahul Sharma', num:'+91 98765 43210', since:'Saved 3 minutes ago', note:'No call history — newly added', real:false },
+    { name:'Rahul (Bhai)',  num:'+91 98765 43210', since:'Saved 4 years ago',   note:'No call history at all', real:false },
+    { name:'Rahul Sharma', num:'+91 77023 11890', since:'Saved 4 years ago',   note:'Last called: 2 days ago', real:false },
+  ].sort(()=>Math.random()-.5);
+
+  container.innerHTML=`
+    <div class="fc-hint-box">
+      <div class="fc-hint-title">// WHAT YOU KNOW ABOUT THE REAL RAHUL</div>
+      <div class="fc-hint-row"><span class="fc-hint-lbl">Saved number</span><span class="fc-hint-val">+91 98765 43210</span></div>
+      <div class="fc-hint-row"><span class="fc-hint-lbl">Contact saved</span><span class="fc-hint-val">4 years ago</span></div>
+      <div class="fc-hint-row"><span class="fc-hint-lbl">Last call</span><span class="fc-hint-val">2 days ago</span></div>
+    </div>
+    <div style="font-family:var(--font-mono);font-size:.62rem;color:rgba(255,255,255,.35);margin-bottom:10px;">One of these is the real contact. The others are spoofed entries — tap the legitimate one:</div>
+    <div id="fc-grid" style="display:flex;flex-direction:column;gap:8px;"></div>`;
+
+  const grid = container.querySelector('#fc-grid');
+  contacts.forEach((c)=>{
+    const el=document.createElement('div');
+    el.className='fc-card';
+    el.innerHTML=`
+      <div class="fc-name">${c.name}</div>
+      <div class="fc-row"><span class="fc-lbl">NUMBER</span><span class="fc-val">${c.num}</span></div>
+      <div class="fc-row"><span class="fc-lbl">CONTACT SAVED</span><span class="fc-val">${c.since}</span></div>
+      <div class="fc-row"><span class="fc-lbl">CALL HISTORY</span><span class="fc-val">${c.note}</span></div>`;
+    el.onclick=()=>{
+      document.querySelectorAll('.fc-card').forEach(x=>x.classList.remove('fc-selected'));
+      el.classList.add('fc-selected');
+      mgAnswered=true;
+      mgCorrect=c.real;
+    };
+    grid.appendChild(el);
+  });
+}
+
+// ——— Minigame 4: The Interrogation ———
+function buildInterrogation(container){
+  const questions = [
+    {
+      q: 'What is the name of our childhood dog?',
+      why: 'Never posted online. Only family could know.',
+      best: true
+    },
+    {
+      q: 'Where did you go to school?',
+      why: 'Publicly listed on LinkedIn and Instagram bio.',
+      best: false
+    },
+    {
+      q: 'What is Ma\'s date of birth?',
+      why: 'Could appear on family social media posts or public records.',
+      best: false
+    },
+    {
+      q: 'What did we eat at Dadi\'s house last Diwali?',
+      why: 'Hyper-specific shared memory — impossible to find online.',
+      best: true
+    },
+    {
+      q: 'What city were you born in?',
+      why: 'Often listed on social media profiles.',
+      best: false
+    },
+    {
+      q: 'What embarrassing thing happened to you in 7th standard?',
+      why: 'Private memory never shared publicly — defeats any research.',
+      best: true
+    },
+  ].sort(()=>Math.random()-.5);
+
+  container.innerHTML=`
+    <div style="font-family:var(--font-mono);font-size:.62rem;color:rgba(255,255,255,.35);margin-bottom:14px;">Tap the question a scammer could NOT answer even after stalking Rahul's social media:</div>
+    <div id="iq-list" style="display:flex;flex-direction:column;gap:8px;"></div>`;
+
+  const list = container.querySelector('#iq-list');
+  questions.forEach(item=>{
+    const el = document.createElement('div');
+    el.className = 'iq-option';
+    el.textContent = item.q;
+    el.onclick = ()=>{
+      document.querySelectorAll('.iq-option').forEach(x=>x.classList.remove('iq-selected'));
+      el.classList.add('iq-selected');
+      mgAnswered = true;
+      mgCorrect = item.best;
+    };
+    list.appendChild(el);
+  });
+}
+
+// ============================================================
+// SCENE RENDER
+// ============================================================
+let ringtoneHandle=null,callTimer=null,callSeconds=0,callInterval=null;
+
+function renderScene(){
+  G.pending=false;
+  document.getElementById('breadcrumb').innerHTML=`<span class="bc-item now">1. ${SCENE.title}</span><span class="bc-sep">›</span><span class="bc-item">2. Bank KYC Verification Call</span>`;
+  document.getElementById('sh-label').textContent=SCENE.label;
+  document.getElementById('sh-title').textContent=SCENE.title;
+  document.getElementById('sh-meta').textContent=SCENE.meta;
+  document.getElementById('feedback-area').innerHTML='';
+  document.getElementById('choices-area').style.display='none';
+  document.getElementById('choices-area').innerHTML='';
+  document.getElementById('scenario-body').innerHTML=`
+    <div class="phone-wrap"><div class="phone"><div class="phone-notch" aria-hidden="true"><div class="phone-notch-pill"></div></div>
+      <div class="phone-screen" id="phone-screen">
+        <div class="phone-call"><div class="call-status t-mono">INCOMING CALL</div><div class="call-avatar" aria-hidden="true">${SCENE.caller.avatar}</div><div class="call-name">${SCENE.caller.name}</div><div class="call-num t-mono">${SCENE.caller.num}</div>${makeWaveform(false)}<div class="call-subtitle t-mono">Audio simulation active<br>Listen carefully for anomalies</div>
+          <div class="call-btns"><button class="call-btn call-decline" onclick="handleDecline()">📵</button><button class="call-btn call-accept" onclick="handleAccept()">📞</button></div>
+        </div>
+      </div>
+    </div></div>
+    <div style="background:var(--surface);border:1px solid var(--rim);border-radius:6px;padding:14px 16px;margin-bottom:20px;">
+      <div class="t-label" style="margin-bottom:6px;">AUDIO ANALYSIS NOTE</div>
+      <p style="font-size:.84rem;color:var(--body);line-height:1.6;">${SCENE.audioNote}</p>
+    </div>`;
+  setTimeout(()=>{
+    try{ ringtoneHandle=playRingtone(true); }catch(e){}
+  },100);
+  startCallLoop();
+}
+
+function handleDecline(){
+  stopRingtone();
+  playDecline();
+  const ps=document.getElementById('phone-screen');
+  if(ps) ps.innerHTML=`<div class="phone-idle" style="text-align:center;padding:40px 20px;"><div style="font-size:2rem;margin-bottom:10px;">📵</div><div style="font-family:var(--font-mono);font-size:.72rem;color:var(--muted);">CALL DECLINED</div></div>`;
+}
+
+function startCallLoop(){
+  if(callInterval) clearInterval(callInterval);
+  callInterval=setInterval(()=>{
+    const ps=document.getElementById('phone-screen');
+    const isIdle=ps&&(ps.innerHTML.includes('CALL DECLINED')||ps.innerHTML.includes('CALL ENDED'));
+    const isNotConnected=!ps||!ps.innerHTML.includes('CONNECTED');
+    if((isIdle||isNotConnected)&&!G.pending) renderIncomingCall();
+  },3000);
+}
+
+function renderIncomingCall(){
+  const ps=document.getElementById('phone-screen');
+  if(!ps) return;
+  if(ringtoneHandle){ ringtoneHandle.stop(); ringtoneHandle=null; }
+  ps.innerHTML=`
+    <div class="phone-call">
+      <div class="call-status t-mono">INCOMING CALL</div>
+      <div class="call-avatar" aria-hidden="true">${SCENE.caller.avatar}</div>
+      <div class="call-name">${SCENE.caller.name}</div>
+      <div class="call-num t-mono">${SCENE.caller.num}</div>
+      ${makeWaveform(false)}
+      <div class="call-subtitle t-mono">Audio simulation active<br>Listen carefully for anomalies</div>
+      <div class="call-btns">
+        <button class="call-btn call-decline" onclick="handleDecline()">📵</button>
+        <button class="call-btn call-accept" onclick="handleAccept()">📞</button>
+      </div>
+    </div>`;
+  try{ ringtoneHandle=playRingtone(true); }catch(e){}
+}
+
+function handleAccept(){
+  stopCallLoop();
+  stopRingtone();
+  playAccept();
+  callSeconds=0;
+  const ps=document.getElementById('phone-screen');
+  ps.innerHTML=`<div class="phone-answered"><div class="ans-status">CONNECTED</div><div class="ans-name">${SCENE.caller.name}</div><div class="ans-timer t-mono" id="ctd">0:00</div>${makeWaveform(true)}<div class="ans-script" id="call-script" style="opacity:0;transition:opacity .5s;"></div><button class="ans-endcall" onclick="handleEndCall()">📵</button></div>`;
+  callTimer=setInterval(()=>{callSeconds++;const el=document.getElementById('ctd');if(el)el.textContent=`${Math.floor(callSeconds/60)}:${String(callSeconds%60).padStart(2,'0')}`;},1000);
+  const se=document.getElementById('call-script');
+  if(se){
+    se.style.opacity='1';
+    let i=0;
+    const ti=setInterval(()=>{
+      if(!document.getElementById('call-script')){ clearInterval(ti); return; }
+      const cs=document.getElementById('call-script');
+      cs.textContent=SCENE.script.slice(0,i);
+      cs.scrollTop=cs.scrollHeight;
+      i+=2;
+      if(i>SCENE.script.length){ clearInterval(ti); setTimeout(()=>renderChoices(),500); }
+    },30);
+  }
+}
+
+function handleEndCall(){
+  stopRingtone(); playDecline();
+  const ps=document.getElementById('phone-screen');
+  if(ps) ps.innerHTML=`<div class="phone-idle" style="text-align:center;padding:40px 20px;"><div style="font-size:2rem;margin-bottom:10px;">📵</div><div style="font-family:var(--font-mono);font-size:.72rem;color:var(--muted);">CALL ENDED</div></div>`;
+  document.getElementById('choices-area').style.display='none';
+  document.getElementById('choices-area').innerHTML='';
+  startCallLoop();
+}
+
+function stopCallLoop(){ if(callInterval){ clearInterval(callInterval); callInterval=null; } }
+
+// ============================================================
+// KEYBOARD SHORTCUTS
+// ============================================================
+document.addEventListener('keydown',e=>{
+  if(e.key>='1'&&e.key<='4'){const idx=parseInt(e.key)-1;const choices=document.querySelectorAll('.choice:not([disabled])');if(choices[idx])choices[idx].click();}
+  if(e.key==='Escape'){
+    if(document.getElementById('cin-overlay').classList.contains('active')) closeCinBad();
+    if(document.getElementById('cin-good').classList.contains('active')) closeCinGood();
+    if(document.getElementById('badge-popup').classList.contains('active')) document.getElementById('badge-popup').classList.remove('active');
+  }
+});
+
+// ============================================================
+// BOOT
+// ============================================================
+const currentUser=DB.getCurrent();
+if(!currentUser){window.location.href='../auth.html';}
+else{
+  document.getElementById('hud-av').textContent=currentUser.name.charAt(0).toUpperCase();
+  document.getElementById('hud-uname').textContent=currentUser.name.split(' ')[0].toUpperCase();
+}
+</script>
+</body>
+</html>

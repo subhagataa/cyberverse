@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CyberVerse — Mode 02 · Level 2 · Dhaba Discount</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&family=Space+Grotesk:wght@400;500;600&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="shared.css" />
+  <link rel="stylesheet" href="mode2.css" />
+  <style>
+/* ── Walking world ── */
+#walkGame{position:fixed;inset:0;top:44px;z-index:200;display:none;overflow:hidden;}
+.wg-world{position:absolute;inset:0;
+background: url('level2.jpeg');
+/* Cobblestone ground tiles — hidden, image used instead */
+.wg-ground{display:none;}
+
+/* Street label */
+.wg-street-label{position:absolute;bottom:70px;left:50%;transform:translateX(-50%);font-family:var(--font-mono);font-size:.55rem;letter-spacing:.22em;color:rgba(255,255,255,.7);text-shadow:0 1px 4px rgba(0,0,0,.9);white-space:nowrap;text-transform:uppercase;background:rgba(0,0,0,.35);padding:3px 10px;border-radius:10px;}
+
+/* Progress — top left */
+.wg-progress{position:absolute;top:12px;left:16px;display:flex;align-items:center;gap:8px;z-index:30;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:5px 14px;}
+.wg-prog-label{font-family:var(--font-mono);font-size:.55rem;letter-spacing:.12em;color:rgba(255,255,255,.4);}
+.wg-dots{display:flex;gap:6px;}
+.wg-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);transition:background .3s,transform .2s,box-shadow .2s;}
+.wg-dot.visited{background:var(--red);box-shadow:0 0 6px rgba(230,57,70,.5);}
+.wg-dot.found{background:var(--green);transform:scale(1.4);box-shadow:0 0 8px rgba(46,204,113,.6);}
+
+/* Controls — bottom left */
+.wg-hint-label{position:absolute;bottom:46px;left:16px;font-family:var(--font-mono);font-size:.56rem;color:rgba(255,255,255,.7);letter-spacing:.08em;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,.9);}
+.wg-controls{position:absolute;bottom:12px;left:16px;display:flex;gap:4px;z-index:30;}
+.ctrl-key{width:26px;height:26px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:.6rem;color:rgba(255,255,255,.3);}
+
+/* ── Restaurant image cards ── */
+.restaurant{position:absolute;cursor:pointer;display:flex;flex-direction:column;align-items:center;user-select:none;transform:translate(-50%,-100%);transition:transform .15s,filter .2s;}
+.restaurant:hover{transform:translate(-50%,-100%) scale(1.04);}
+.rest-img-wrap{position:relative;width:160px;}
+.rest-img{width:100%;height:auto;display:block;filter:drop-shadow(0 8px 20px rgba(0,0,0,.7)) brightness(.9) saturate(.9);transition:filter .25s;}
+.restaurant.near .rest-img{filter:drop-shadow(0 0 18px rgba(255,200,80,.5)) drop-shadow(0 8px 20px rgba(0,0,0,.7)) brightness(1.05) saturate(1.1);}
+.rest-name-tag{font-family:var(--font-mono);font-size:.58rem;font-weight:600;letter-spacing:.08em;color:rgba(255,255,255,.6);text-align:center;margin-top:4px;text-shadow:0 1px 4px rgba(0,0,0,.8);}
+
+/* Knock hint badge */
+.rest-knock-hint{position:absolute;top:-28px;left:50%;transform:translateX(-50%);background:var(--accent);color:#000;font-family:var(--font-mono);font-size:.55rem;font-weight:700;letter-spacing:.1em;padding:3px 9px;border-radius:12px;white-space:nowrap;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;box-shadow:0 2px 8px rgba(0,180,216,.4);}
+.restaurant.near .rest-knock-hint{opacity:1;transform:translateX(-50%) translateY(-2px);}
+.restaurant.knocked .rest-knock-hint{opacity:0 !important;}
+
+/* Speech bubble */
+.rest-bubble{position:absolute;bottom:calc(100% + 14px);left:50%;transform:translateX(-50%);background:rgba(10,18,32,.95);border:1px solid var(--rim2);border-radius:10px 10px 10px 2px;padding:10px 14px;font-family:var(--font-mono);font-size:.68rem;color:var(--hi);line-height:1.6;white-space:pre-line;box-shadow:0 4px 20px rgba(0,0,0,.7);z-index:50;min-width:180px;max-width:220px;text-align:center;animation:bubblePop .22s cubic-bezier(.34,1.56,.64,1);}
+.rest-bubble.yes{border-color:rgba(46,204,113,.6);background:rgba(20,60,30,.95);color:var(--green);}
+.rest-bubble::after{content:'';position:absolute;top:100%;left:24px;border:7px solid transparent;border-top-color:var(--rim2);}
+.rest-bubble.yes::after{border-top-color:rgba(46,204,113,.6);}
+@keyframes bubblePop{from{opacity:0;transform:translateX(-50%) scale(.8) translateY(8px)}to{opacity:1;transform:translateX(-50%) scale(1) translateY(0)}}
+
+/* Player — male.png with bob + flip */
+#player{position:absolute;z-index:10;transform:translate(-50%,-100%);pointer-events:none;}
+#player-flip{transition:transform .1s ease;}
+#player-shadow{width:34px;height:8px;background:radial-gradient(ellipse,rgba(0,0,0,.55) 0%,transparent 75%);border-radius:50%;margin-top:-4px;transition:transform .15s,opacity .15s;}
+#player-img{width:48px;height:auto;display:block;filter:drop-shadow(0 4px 8px rgba(0,0,0,.7));transition:opacity .05s;}
+/* Slight vertical bob when walking — driven by JS toggling class each frame-swap */
+@keyframes shadowWalk{0%,100%{transform:scaleX(1);opacity:.55}50%{transform:scaleX(.75);opacity:.35}}
+.walking #player-shadow{animation:shadowWalk .32s ease-in-out infinite;}
+
+/* Found flash */
+.wg-found-flash{position:absolute;inset:0;background:rgba(46,204,113,.08);pointer-events:none;animation:foundFlash .5s ease-out forwards;}
+@keyframes foundFlash{from{opacity:1}to{opacity:0}}
+
+/* QR scan line animation (used in popup scanning overlays) */
+@keyframes qrScanAnim{0%{transform:translateY(0)}50%{transform:translateY(177px)}100%{transform:translateY(0)}}
+
+/* ── Game scene (phase 2) — body needs scroll, not fixed ── */
+#gameScene{display:none;padding-top:44px;}
+
+/* ── Phase-2 countdown timer ── */
+#phaseTimer{
+  position:fixed;top:54px;right:16px;z-index:300;
+  display:none;align-items:center;gap:8px;
+  background:rgba(6,9,14,.92);border:1px solid rgba(255,255,255,.12);
+  border-radius:22px;padding:6px 16px;
+  font-family:var(--font-mono);
+  box-shadow:0 4px 20px rgba(0,0,0,.5);
+  backdrop-filter:blur(6px);
+}
+#phaseTimer.active{display:flex;}
+#phaseTimer.warn{border-color:rgba(244,162,97,.5);}
+#phaseTimer.danger{border-color:rgba(230,57,70,.55);animation:ptPulse .7s ease-in-out infinite;}
+@keyframes ptPulse{0%,100%{box-shadow:0 4px 20px rgba(0,0,0,.5)}50%{box-shadow:0 4px 20px rgba(0,0,0,.5),0 0 0 4px rgba(230,57,70,.18)}}
+.pt-icon{font-size:.75rem;}
+.pt-label{font-size:.52rem;letter-spacing:.14em;color:rgba(255,255,255,.35);text-transform:uppercase;}
+#ptDisplay{font-size:.9rem;font-weight:700;letter-spacing:.06em;color:var(--green);min-width:2.6ch;text-align:right;transition:color .3s;}
+#phaseTimer.warn #ptDisplay{color:var(--amber);}
+#phaseTimer.danger #ptDisplay{color:var(--red);}
+
+/* ── Outcome / game alert — mode1 style ── */
+.game-alert{position:fixed;inset:0;z-index:9000;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.88);backdrop-filter:blur(8px);}
+.game-alert.show{display:flex;animation:reveal 0.25s ease;}
+.game-alert-box{max-width:460px;width:90%;background:var(--surface);border:1px solid var(--rim2);border-radius:var(--r);padding:28px 24px;text-align:center;display:flex;flex-direction:column;gap:14px;box-shadow:0 30px 80px rgba(0,0,0,0.8);}
+.alert-icon{font-size:2.8rem;}
+.alert-title{font-family:var(--font-disp);font-size:1.4rem;font-weight:800;line-height:1.2;}
+.alert-title.danger{color:var(--red);}
+.alert-title.success{color:var(--green);}
+.alert-title.warn{color:var(--amber);}
+.alert-body{font-size:0.88rem;color:var(--body);line-height:1.7;}
+.alert-sub{font-family:var(--font-mono);font-size:0.68rem;color:var(--muted);line-height:1.5;}
+.alert-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:4px;}
+.alert-btn-pri{background:var(--accent);color:var(--ink);border:none;font-family:var(--font-mono);font-size:0.73rem;font-weight:700;padding:11px 22px;border-radius:20px;cursor:pointer;transition:background 0.2s;}
+.alert-btn-pri:hover{background:#48cae4;}
+.alert-btn-sec{background:transparent;color:var(--body);border:1px solid var(--rim2);font-family:var(--font-mono);font-size:0.7rem;padding:11px 20px;border-radius:20px;cursor:pointer;}
+.alert-btn-sec:hover{border-color:var(--accent);color:var(--accent);}
+@keyframes reveal{from{opacity:0;transform:scale(0.97)}to{opacity:1;transform:scale(1)}}
+
+/* ── Standard HUD bars (matches all other levels) ── */
+.hud{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:0 20px;background:transparent;backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.08);z-index:1000;}
+.hud-left{display:flex;align-items:center;gap:10px;}
+.hud-mode{font-family:var(--font-mono);font-size:.62rem;letter-spacing:.18em;color:var(--accent);}
+.hud-inner{display:flex;gap:10px;margin-top:6px;width:100%;}
+.hud-right{display:flex;align-items:center;gap:14px;}
+.hud-stat{display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--body);}
+.hud-divider{width:1px;height:14px;background:rgba(255,255,255,.15);}
+.hud-bar{flex:1;display:flex;flex-direction:column;}
+.hud-bar-label{display:flex;align-items:center;gap:6px;font-size:.7rem;color:var(--muted);margin-bottom:2px;}
+.hud-bar-label span{color:var(--hi);font-weight:600;}
+.bar-track{width:70%;height:3px;background:#111;border-radius:10px;overflow:hidden;}
+.bar-fill{height:100%;width:100%;background:var(--green);transition:width .4s ease,background .4s ease;}
+.hud-points{font-family:var(--font-mono);font-size:.72rem;color:var(--hi);}
+.battery{width:28px;height:10px;border:1px solid #aaa;border-radius:2px;position:relative;overflow:hidden;}
+.battery-fill{height:100%;width:80%;background:var(--green);transition:width .4s ease;}
+  </style>
+</head>
+<body>
+
+<!-- HUD -->
+<div class="hud" id="hud">
+  <div class="hud-left">
+    <span class="hud-mode">MODE 02</span>
+  </div>
+  <div class="hud-inner">
+    <div class="hud-bar">
+      <div class="hud-bar-label">Security Health <span id="h-val">100%</span></div>
+      <div class="bar-track"><div class="bar-fill" id="h-fill" style="background:var(--green);"></div></div>
+    </div>
+    <div class="hud-bar">
+      <div class="hud-bar-label">Trust Level <span id="t-val">100%</span></div>
+      <div class="bar-track"><div class="bar-fill" id="t-fill" style="background:var(--accent);"></div></div>
+    </div>
+  </div>
+  <div class="hud-right">
+    <div class="hud-stat">
+      <div class="battery"><div class="battery-fill" id="batteryFill"></div></div>
+      <span id="batteryPct">80%</span>
+    </div>
+    <div class="hud-divider"></div>
+    <div class="hud-stat">₹<span id="balanceAmt">5000</span></div>
+    <div class="hud-divider"></div>
+    <div class="hud-points" id="hudPoints">⭐ 0 pts</div>
+  </div>
+</div>
+
+<!-- ══ INFO CARD SCREEN ══ -->
+<div id="infoScreen" style="position:fixed;inset:0;z-index:400;background:rgba(6,9,14,.92);display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto;">
+  <div style="max-width:560px;width:100%;background:#0f1620;border:1px solid rgba(0,180,216,.18);border-radius:14px;padding:34px 34px 30px;box-shadow:0 24px 80px rgba(0,0,0,.6);">
+    <div style="display:inline-block;font-family:var(--font-mono);font-size:.62rem;letter-spacing:.18em;color:var(--accent);border:1px solid rgba(0,180,216,.4);padding:4px 11px;border-radius:4px;margin-bottom:16px;">MODE 02 · LEVEL 02</div>
+    <div style="font-family:var(--font-disp);font-size:clamp(1.8rem,6vw,3rem);font-weight:800;color:var(--white);line-height:1.05;margin-bottom:8px;letter-spacing:-.02em;">Dhaba Discount</div>
+    <div style="font-family:var(--font-mono);font-size:.68rem;color:var(--muted);letter-spacing:.08em;margin-bottom:18px;">Delhi &nbsp;·&nbsp; Student Food Hunt &nbsp;·&nbsp; Find the discount</div>
+    <div style="height:1px;background:rgba(255,255,255,.07);margin-bottom:18px;"></div>
+    <p style="font-size:.92rem;color:var(--body);line-height:1.75;margin-bottom:14px;">You're a student in Delhi, short on cash. You've heard some dhabas offer <strong style="color:var(--white);">student discounts</strong>. Walk around and find which one does.</p>
+    <p style="font-size:.92rem;color:var(--body);line-height:1.75;margin-bottom:20px;">Once you find it — sit down and use the QR code on the table. But be careful what you scan.</p>
+    <div style="background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:16px 18px;margin-bottom:22px;">
+      <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06);">
+        <div style="font-family:var(--font-mono);font-size:.58rem;font-weight:700;letter-spacing:.1em;background:var(--accent);color:#000;padding:3px 8px;border-radius:3px;white-space:nowrap;flex-shrink:0;margin-top:2px;">MOVE</div>
+        <div style="font-family:var(--font-mono);font-size:.74rem;color:var(--hi);line-height:1.6;">Arrow keys or WASD to walk around</div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06);">
+        <div style="font-family:var(--font-mono);font-size:.58rem;font-weight:700;letter-spacing:.1em;background:var(--accent);color:#000;padding:3px 8px;border-radius:3px;white-space:nowrap;flex-shrink:0;margin-top:2px;">KNOCK</div>
+        <div style="font-family:var(--font-mono);font-size:.74rem;color:var(--hi);line-height:1.6;">Get close to a restaurant and click it</div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;">
+        <div style="font-family:var(--font-mono);font-size:.58rem;font-weight:700;letter-spacing:.1em;background:var(--accent);color:#000;padding:3px 8px;border-radius:3px;white-space:nowrap;flex-shrink:0;margin-top:2px;">FIND</div>
+        <div style="font-family:var(--font-mono);font-size:.74rem;color:var(--hi);line-height:1.6;">One out of 6 restaurants offers student discount</div>
+      </div>
+      <div style="border-top:1px solid rgba(255,255,255,.06);padding-top:10px;margin-top:2px;font-family:var(--font-mono);font-size:.68rem;color:var(--amber);font-style:italic;line-height:1.6;">Click anywhere to dismiss replies &nbsp;·&nbsp; Find the right dhaba to unlock phase 2</div>
+    </div>
+    <button onclick="startWalkGame()" style="display:inline-flex;align-items:center;gap:10px;background:var(--accent);color:#000;font-family:var(--font-mono);font-size:.75rem;font-weight:700;letter-spacing:.18em;padding:14px 30px;border:none;border-radius:6px;cursor:pointer;transition:background .2s,transform .15s;text-transform:uppercase;" onmouseover="this.style.background='#48cae4';this.style.transform='translateY(-2px)'" onmouseout="this.style.background='var(--accent)';this.style.transform='translateY(0)'">START EXPLORING →</button>
+  </div>
+</div>
+
+<!-- ══ WALKING GAME ══ -->
+<div id="walkGame">
+  <div class="wg-world">
+    <div class="wg-ground"></div>
+    <!-- Progress — top left -->
+    <div class="wg-progress" id="wgProgress">
+      <span class="wg-prog-label">VISITED</span>
+      <div class="wg-dots" id="wgDots"></div>
+    </div>
+
+    <!-- Player (male.png) -->
+    <div id="player">
+      <div id="player-flip">
+        <img id="player-img" src="images_mode2/male.png" alt="Player" draggable="false"/>
+      </div>
+      <div id="player-shadow"></div>
+    </div>
+
+    <div id="restaurants"></div>
+
+    <div class="wg-street-label">Connaught Place, New Delhi · Student Food Hunt</div>
+    <div class="wg-hint-label">Arrow keys or WASD to move · Click restaurant when close</div>
+    <div class="wg-controls">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+        <div class="ctrl-key">▲</div>
+        <div style="display:flex;gap:3px;">
+          <div class="ctrl-key">◀</div><div class="ctrl-key">▼</div><div class="ctrl-key">▶</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ GAME SCENE — Phase 2: Dhaba QR ══ -->
+<div id="gameScene">
+<div class="level-screen" id="level2">
+  <div class="l1-layout" id="l2layout">
+
+    <!-- LEFT: PHONE -->
+    <div class="l1-phone-col">
+      <div class="phone-shell">
+      <div class="phone-inner">
+
+        <div class="android-statusbar">
+          <span class="sb-time" id="sbTime">10:42</span>
+          <div class="sb-pres-timer" style="visibility:hidden;">–</div>
+          <div class="sb-icons">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 2C3.5 2 1.3 3.2 0 5l1.5 1.5C2.6 5 4.2 4 6 4s3.4 1 4.5 2.5L12 5c-1.3-1.8-3.5-3-6-3z" fill="currentColor" opacity="0.6"/><path d="M6 5.5c-1.1 0-2.1.5-2.8 1.2L4.7 8.2C5.1 7.7 5.5 7.5 6 7.5s.9.2 1.3.7l1.5-1.5C8.1 6 7.1 5.5 6 5.5z" fill="currentColor" opacity="0.9"/><circle cx="6" cy="10" r="1" fill="currentColor"/></svg>
+            <div class="sb-battery"><div class="sb-bat-fill" id="sbBatFill" style="width:80%;background:var(--green)"></div></div>
+            <span class="sb-batpct" id="sbBatPct">80%</span>
+          </div>
+        </div>
+
+        <div class="app-screen" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+          <div class="upi-app" id="upiHome">
+            <div class="upi-app-header">
+              <div class="upi-app-logo">💳</div>
+              <div>
+                <div class="upi-app-name">PaySafe UPI</div>
+                <div class="upi-app-tagline">Secure · Fast · Verified</div>
+              </div>
+            </div>
+            <div class="upi-balance-strip">
+              <div>
+                <div class="upi-bal-label">Balance</div>
+                <div class="upi-bal-amt" id="upiBalDisplay">₹5,000</div>
+              </div>
+              <div style="font-family:var(--font-mono);font-size:0.58rem;color:rgba(255,255,255,0.3);">SBI ••• 4821</div>
+            </div>
+            <!-- Only "Scan for Menu" visible initially; "Scan to Pay" revealed after ordering -->
+            <div class="upi-actions-grid" id="phoneActionsGrid">
+              <button class="upi-action-btn" id="btnScanMenu" onclick="phoneScanMenu()">
+                <div class="upi-action-icon">📋</div>
+                <div class="upi-action-label">Scan for Menu</div>
+                <div class="upi-action-sub">View menu via QR</div>
+              </button>
+              <!-- Hidden until food is ordered -->
+              <button class="upi-action-btn" id="btnScanPay" onclick="phoneScanPay()" style="display:none;">
+                <div class="upi-action-icon">📷</div>
+                <div class="upi-action-label">Scan to Pay</div>
+                <div class="upi-action-sub">Scan payment QR</div>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="android-navbar">
+          <button class="nav-btn" onclick="goUpiHome()">⬛</button>
+          <button class="nav-btn" onclick="goUpiHome()">●</button>
+          <button class="nav-btn">▣</button>
+        </div>
+
+      </div></div>
+    </div>
+
+    <!-- RIGHT: QR SCENE -->
+    <div class="l1-side-col">
+
+      <div class="hint-box" id="hintBox">
+        <div class="hint-box-header" onclick="toggleHints()">
+          <div class="hint-box-title">💡 Hints <span class="hint-cost-tag">1 free · then −100 pts each</span></div>
+          <div class="hint-header-right">
+            <span class="hint-count-tag" id="hintUsedTag">0/3 used</span>
+            <span class="hint-chevron">▾</span>
+          </div>
+        </div>
+        <div class="hint-body" id="hintBody"></div>
+      </div>
+
+      <!-- PANEL A: Menu QR (shown first) -->
+      <div class="qr-scene-card" id="panelMenuQR">
+        <div class="qr-scene-header">// DELHI DHABA — MENU QR</div>
+        <div class="qr-scene-body">
+
+          <div style="text-align:center;margin-bottom:4px;">
+            <div class="qr-meter-label">🍛 Delhi Dhaba</div>
+            <div class="qr-meter-amount" style="font-size:1.1rem;">Connaught Place</div>
+            <div class="qr-meter-sub">Student Discount Available ✓</div>
+          </div>
+
+          <!-- Menu QR sticker -->
+          <div class="qr-sticker-outer" id="stickerOuter" onclick="inspectMenuQR()">
+            <div class="qr-sticker-card">
+              <svg viewBox="0 0 29 29" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+                <rect width="29" height="29" fill="white"/>
+                <rect x="1" y="1" width="7" height="7" fill="black"/><rect x="2" y="2" width="5" height="5" fill="white"/><rect x="3" y="3" width="3" height="3" fill="black"/>
+                <rect x="21" y="1" width="7" height="7" fill="black"/><rect x="22" y="2" width="5" height="5" fill="white"/><rect x="23" y="3" width="3" height="3" fill="black"/>
+                <rect x="1" y="21" width="7" height="7" fill="black"/><rect x="2" y="22" width="5" height="5" fill="white"/><rect x="3" y="23" width="3" height="3" fill="black"/>
+                <rect x="9" y="1" width="1" height="1" fill="black"/><rect x="11" y="1" width="2" height="1" fill="black"/><rect x="14" y="1" width="1" height="1" fill="black"/><rect x="16" y="1" width="2" height="1" fill="black"/>
+                <rect x="9" y="3" width="2" height="1" fill="black"/><rect x="13" y="3" width="3" height="1" fill="black"/><rect x="18" y="3" width="1" height="1" fill="black"/>
+                <rect x="9" y="5" width="1" height="1" fill="black"/><rect x="12" y="5" width="1" height="2" fill="black"/><rect x="15" y="5" width="2" height="1" fill="black"/>
+                <rect x="1" y="9" width="2" height="1" fill="black"/><rect x="5" y="9" width="1" height="2" fill="black"/>
+                <rect x="9" y="9" width="3" height="1" fill="black"/><rect x="14" y="9" width="1" height="3" fill="black"/>
+                <rect x="17" y="9" width="2" height="1" fill="black"/><rect x="21" y="9" width="1" height="1" fill="black"/><rect x="24" y="9" width="2" height="2" fill="black"/>
+                <rect x="1" y="11" width="1" height="2" fill="black"/><rect x="4" y="11" width="3" height="1" fill="black"/>
+                <rect x="9" y="11" width="1" height="1" fill="black"/><rect x="12" y="11" width="2" height="2" fill="black"/>
+                <rect x="17" y="11" width="1" height="2" fill="black"/><rect x="20" y="11" width="3" height="1" fill="black"/>
+                <rect x="1" y="14" width="3" height="1" fill="black"/><rect x="6" y="14" width="2" height="1" fill="black"/>
+                <rect x="10" y="14" width="1" height="2" fill="black"/><rect x="13" y="14" width="3" height="1" fill="black"/>
+                <rect x="18" y="14" width="1" height="1" fill="black"/><rect x="22" y="14" width="3" height="2" fill="black"/>
+                <rect x="1" y="17" width="2" height="2" fill="black"/><rect x="5" y="17" width="1" height="1" fill="black"/>
+                <rect x="8" y="17" width="3" height="1" fill="black"/><rect x="13" y="17" width="1" height="2" fill="black"/>
+                <rect x="16" y="17" width="2" height="1" fill="black"/><rect x="20" y="17" width="1" height="1" fill="black"/>
+                <rect x="9" y="21" width="2" height="1" fill="black"/><rect x="13" y="21" width="1" height="2" fill="black"/>
+                <rect x="16" y="21" width="3" height="1" fill="black"/><rect x="21" y="21" width="1" height="1" fill="black"/>
+                <rect x="9" y="23" width="1" height="1" fill="black"/><rect x="12" y="23" width="2" height="2" fill="black"/>
+                <rect x="17" y="23" width="1" height="1" fill="black"/><rect x="20" y="23" width="2" height="1" fill="black"/>
+                <rect x="9" y="26" width="3" height="2" fill="black"/><rect x="14" y="26" width="1" height="1" fill="black"/>
+                <rect x="17" y="26" width="2" height="2" fill="black"/><rect x="21" y="26" width="1" height="1" fill="black"/>
+              </svg>
+              <div class="qr-sticker-badge">MENU QR</div>
+              <div class="qr-peel-corner"></div>
+            </div>
+          </div>
+
+          <div class="qr-tap-hint" id="tapHintMenu" onclick="inspectMenuQR()">📋 Tap QR to inspect</div>
+
+          <div class="qr-inspect-options" id="menuInspectOptions">
+            <div class="qr-inspect-notice">There's a QR sticker on the table for the menu. What would you like to do?</div>
+            <button class="qr-inspect-btn" onclick="triggerScanMenuQR()">
+              <span class="qr-inspect-btn-icon">📷</span>
+              <div>
+                <div class="qr-inspect-btn-label">Scan the QR</div>
+                <div class="qr-inspect-btn-sub">Use phone camera to view menu</div>
+              </div>
+            </button>
+            <button class="qr-inspect-btn" onclick="triggerAskWaiter()">
+              <span class="qr-inspect-btn-icon">🙋</span>
+              <div>
+                <div class="qr-inspect-btn-label">Ask waiter for paper menu</div>
+                <div class="qr-inspect-btn-sub">Skip QR — get a printed menu</div>
+              </div>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- PANEL B: Payment QR (hidden until food ordered) -->
+      <div class="qr-scene-card" id="panelPayQR" style="display:none;">
+        <div class="qr-scene-header">// DELHI DHABA — PAYMENT QR</div>
+        <div class="qr-scene-body">
+
+          <div style="text-align:center;margin-bottom:12px;">
+            <div class="qr-meter-label">💳 Payment</div>
+            <div class="qr-meter-amount" id="payAmountLabel">₹–</div>
+            <div class="qr-meter-sub">Waiter brought the payment QR</div>
+          </div>
+
+          <!-- Payment QR (safe — from waiter) -->
+          <div class="qr-sticker-outer" id="payQROuter" onclick="inspectPayQR()">
+            <div class="qr-sticker-card" style="border-color:rgba(46,204,113,.4);">
+              <svg viewBox="0 0 29 29" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+                <rect width="29" height="29" fill="white"/>
+                <rect x="1" y="1" width="7" height="7" fill="black"/><rect x="2" y="2" width="5" height="5" fill="white"/><rect x="3" y="3" width="3" height="3" fill="black"/>
+                <rect x="21" y="1" width="7" height="7" fill="black"/><rect x="22" y="2" width="5" height="5" fill="white"/><rect x="23" y="3" width="3" height="3" fill="black"/>
+                <rect x="1" y="21" width="7" height="7" fill="black"/><rect x="2" y="22" width="5" height="5" fill="white"/><rect x="3" y="23" width="3" height="3" fill="black"/>
+                <rect x="9" y="2" width="2" height="2" fill="black"/><rect x="12" y="2" width="1" height="2" fill="black"/><rect x="15" y="2" width="2" height="1" fill="black"/>
+                <rect x="9" y="6" width="3" height="1" fill="black"/><rect x="14" y="5" width="2" height="2" fill="black"/>
+                <rect x="2" y="9" width="1" height="3" fill="black"/><rect x="5" y="9" width="2" height="2" fill="black"/>
+                <rect x="9" y="9" width="4" height="2" fill="black"/><rect x="15" y="9" width="2" height="3" fill="black"/>
+                <rect x="18" y="9" width="3" height="1" fill="black"/><rect x="22" y="10" width="2" height="2" fill="black"/>
+                <rect x="2" y="13" width="2" height="2" fill="black"/><rect x="6" y="13" width="1" height="2" fill="black"/>
+                <rect x="10" y="13" width="2" height="1" fill="black"/><rect x="14" y="13" width="3" height="2" fill="black"/>
+                <rect x="9" y="17" width="3" height="2" fill="black"/><rect x="14" y="17" width="2" height="3" fill="black"/>
+                <rect x="9" y="22" width="2" height="2" fill="black"/><rect x="13" y="21" width="2" height="3" fill="black"/>
+                <rect x="17" y="21" width="3" height="2" fill="black"/><rect x="22" y="22" width="2" height="2" fill="black"/>
+                <rect x="9" y="25" width="4" height="2" fill="black"/><rect x="16" y="25" width="2" height="2" fill="black"/>
+              </svg>
+              <div class="qr-sticker-badge" style="background:var(--green);color:#000;">PAY QR</div>
+            </div>
+          </div>
+
+          <div class="qr-tap-hint" id="tapHintPay" onclick="inspectPayQR()">💳 Tap QR to inspect</div>
+
+          <div class="qr-inspect-options" id="payInspectOptions">
+            <div class="qr-inspect-notice">Payment QR brought by waiter. It shows <strong>delhidhaba@okaxis</strong>. How would you like to pay?</div>
+            <button class="qr-inspect-btn" onclick="payByScanQR()">
+              <span class="qr-inspect-btn-icon">📷</span>
+              <div>
+                <div class="qr-inspect-btn-label">Scan QR to pay</div>
+                <div class="qr-inspect-btn-sub">Use PaySafe UPI to scan and pay</div>
+              </div>
+            </button>
+            <button class="qr-inspect-btn" onclick="payByCash()">
+              <span class="qr-inspect-btn-icon">💵</span>
+              <div>
+                <div class="qr-inspect-btn-label">Pay cash</div>
+                <div class="qr-inspect-btn-sub">Give exact cash to the waiter</div>
+              </div>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══ SCAN RESULT POPUP (same .m2-popup-overlay structure as level 1) ══ -->
+<div class="m2-popup-overlay" id="popupOverlay" onclick="popupOverlayClick(event)">
+  <div class="m2-popup-box" id="popupBox">
+    <div class="m2-popup-header">
+      <span id="popupHeader"></span>
+      <button class="m2-popup-close-x" onclick="closePopup()">✕</button>
+    </div>
+    <div class="m2-popup-body" id="popupBody"></div>
+    <div class="m2-popup-footer" id="popupFooter">
+      <button class="m2-popup-btn-close" onclick="closePopup()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ GAME ALERT (same structure as level 1) ══ -->
+<div class="game-alert" id="gameAlert">
+  <div class="game-alert-box">
+    <div class="alert-icon" id="alertIcon">⚠️</div>
+    <div class="alert-title" id="alertTitle"></div>
+    <div class="alert-body" id="alertBody"></div>
+    <div class="alert-sub" id="alertSub"></div>
+    <div class="alert-btns" id="alertBtns"></div>
+  </div>
+</div>
+
+<!-- TEACHING LESSON POPUP -->
+<div id="lessonOverlay" style="position:fixed;inset:0;z-index:1100;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,0.88);backdrop-filter:blur(8px);">
+  <div style="max-width:520px;width:100%;background:var(--surface);border:1px solid var(--rim2);border-top:3px solid var(--amber);border-radius:var(--r);padding:28px 26px;display:flex;flex-direction:column;gap:16px;box-shadow:0 30px 80px rgba(0,0,0,0.8);max-height:90vh;overflow-y:auto;">
+    <!-- Header -->
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="font-size:2rem;">📚</div>
+      <div>
+        <div style="font-family:var(--font-mono);font-size:0.6rem;letter-spacing:0.2em;color:var(--amber);margin-bottom:4px;">SECURITY LESSON</div>
+        <div style="font-family:var(--font-disp);font-size:1.1rem;font-weight:700;color:var(--white);">QR Code Safety at Restaurants</div>
+      </div>
+    </div>
+    <!-- What went wrong -->
+    <div style="background:rgba(230,57,70,0.07);border:1px solid rgba(230,57,70,0.25);border-left:3px solid var(--red);border-radius:var(--r);padding:14px 16px;">
+      <div style="font-family:var(--font-mono);font-size:0.58rem;letter-spacing:0.16em;color:var(--red);margin-bottom:8px;">❌ WHAT'S DANGEROUS</div>
+      <ul style="font-size:0.82rem;color:var(--body);line-height:1.8;padding-left:18px;margin:0;">
+        <li>Scanning a QR code from a printed menu or table sticker without checking what it opens</li>
+        <li>Installing unknown apps just to "view a menu" — apps can request access to SMS, contacts, and camera</li>
+        <li>Entering your UPI PIN on any page that opens from an unknown QR</li>
+        <li>Trusting a QR code just because it looks official or is placed on a branded item</li>
+      </ul>
+    </div>
+    <!-- What is safe -->
+    <div style="background:rgba(46,204,113,0.07);border:1px solid rgba(46,204,113,0.25);border-left:3px solid var(--green);border-radius:var(--r);padding:14px 16px;">
+      <div style="font-family:var(--font-mono);font-size:0.58rem;letter-spacing:0.16em;color:var(--green);margin-bottom:8px;">✅ WHAT'S SAFE</div>
+      <ul style="font-size:0.82rem;color:var(--body);line-height:1.8;padding-left:18px;margin:0;">
+        <li>Ask the waiter for a physical menu or to bring their official payment QR directly to you</li>
+        <li>Pay in cash when unsure — it is always zero-risk</li>
+        <li>After scanning any QR, verify the "Pay to:" name matches the restaurant before entering your PIN</li>
+        <li>Never install an app from a QR code in a public place</li>
+      </ul>
+    </div>
+    <!-- Key rule -->
+    <div style="background:rgba(244,162,97,0.07);border:1px solid rgba(244,162,97,0.25);border-radius:var(--r);padding:12px 16px;font-family:var(--font-mono);font-size:0.72rem;color:var(--amber);line-height:1.65;text-align:center;">
+      💡 <strong style="color:var(--white);">Rule of thumb:</strong> A QR code on a menu or table is a scammer's easiest target.<br>When in doubt — ask a human, not a QR code.
+    </div>
+    <!-- Button -->
+    <button onclick="closeLesson()" style="background:var(--accent);color:var(--ink);border:none;font-family:var(--font-mono);font-size:0.72rem;font-weight:700;padding:12px;border-radius:20px;cursor:pointer;transition:background 0.2s;margin-top:4px;">
+      Got it — Next Level →
+    </button>
+  </div>
+</div>
+
+<!-- ══ PHASE-2 COUNTDOWN TIMER (top-right, shown after restaurant found) ══ -->
+<div id="phaseTimer">
+  <span class="pt-icon">⏱</span>
+  <span class="pt-label">Time Left</span>
+  <span id="ptDisplay">3:00</span>
+</div>
+
+<!-- ══ TIMER START POPUP ══ -->
+<div id="timerPopupOverlay" style="position:fixed;inset:0;z-index:1200;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);">
+  <div style="max-width:400px;width:100%;background:#0f1620;border:1px solid rgba(0,180,216,.25);border-top:3px solid var(--accent);border-radius:14px;padding:30px 28px 26px;box-shadow:0 30px 80px rgba(0,0,0,.7);text-align:center;">
+    <div style="font-size:2.2rem;margin-bottom:12px;">⏱️</div>
+    <div style="font-family:var(--font-disp);font-size:1.3rem;font-weight:800;color:var(--white);margin-bottom:8px;letter-spacing:-.01em;">You're Inside the Dhaba!</div>
+    <div style="font-family:var(--font-mono);font-size:.72rem;color:var(--muted);letter-spacing:.08em;margin-bottom:18px;">PHASE 2 · MAKE YOUR DECISION</div>
+    <div style="background:rgba(0,180,216,.07);border:1px solid rgba(0,180,216,.2);border-radius:8px;padding:14px 16px;margin-bottom:20px;font-size:.88rem;color:var(--body);line-height:1.7;">
+      You have <strong style="color:var(--white);font-size:1rem;">3 minutes</strong> to inspect the QR codes, order your food, and pay safely.<br><br>
+      <span style="color:var(--amber);font-family:var(--font-mono);font-size:.7rem;">Think carefully — one wrong scan could cost you.</span>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:22px;">
+      <div style="font-family:var(--font-mono);font-size:2rem;font-weight:700;color:var(--accent);letter-spacing:.04em;">3:00</div>
+    </div>
+    <button onclick="dismissTimerPopup()" style="width:100%;background:var(--accent);color:#000;font-family:var(--font-mono);font-size:.75rem;font-weight:700;letter-spacing:.16em;padding:13px;border:none;border-radius:6px;cursor:pointer;text-transform:uppercase;transition:background .2s;" onmouseover="this.style.background='#48cae4'" onmouseout="this.style.background='var(--accent)'">
+      Let's Go — Start Timer →
+    </button>
+  </div>
+</div>
+
+<script>
+/* ════════════════════ DB + STATE ════════════════════ */
+/* ── Load cumulative cross-mode baseline (must be before DB) ── */
+const _m2l2User = (()=>{ try{ return JSON.parse(localStorage.getItem('cv_current')||'null'); }catch(e){return null;} })();
+const _m2l2Cum  = (()=>{ try{ return JSON.parse(localStorage.getItem('cv_cumulative')||'null'); }catch(e){return null;} })();
+const _m2l2BaseHealth = _m2l2User ? Math.min(100, Math.max(0, _m2l2User.securityHealth ?? 100)) : (_m2l2Cum ? Math.min(100, Math.max(0, _m2l2Cum.avgHealth ?? 100)) : 100);
+const _m2l2BaseTrust  = _m2l2User ? Math.min(100, Math.max(0, _m2l2User.trustLevel    ?? 100)) : (_m2l2Cum ? Math.min(100, Math.max(0, _m2l2Cum.avgTrust  ?? 100)) : 100);
+const _m2l2BaseScore  = _m2l2User ? (_m2l2User.totalScore || 0) : (_m2l2Cum ? (_m2l2Cum.totalScore || 0) : 0);
+
+const DB = {
+  balance: parseInt(localStorage.getItem('cv_balance') || '5000'),
+  points:  Math.max(parseInt(localStorage.getItem('cv_points') || '0'), _m2l2BaseScore),
+  userId:  localStorage.getItem('cv_userId') || null,
+};
+const S = {
+  battery: 80,
+  hintsUsed: [],
+  menuQRInspected: false,
+  payQRInspected: false,
+  menuReceived: false,   // true after waiter brings paper menu
+  selectedDish: null,    // dish chosen from menu
+  orderPlaced: false,    // true after submit clicked
+};
+
+const MENU_ITEMS = [
+  { id:'d1', name:'Dal Makhani',          price: 180, emoji:'🫕' },
+  { id:'d2', name:'Butter Chicken',       price: 260, emoji:'🍛' },
+  { id:'d3', name:'Paneer Tikka Masala',  price: 240, emoji:'🥘' },
+  { id:'d4', name:'Chole Bhature',        price: 150, emoji:'🫓' },
+  { id:'d5', name:'Aloo Paratha (×2)',    price: 120, emoji:'🫔' },
+  { id:'d6', name:'Masala Chai + Samosa', price:  90, emoji:'🍵' },
+];
+
+const HINTS_DATA = [
+  { n:1, free:true,  text:'A legitimate restaurant menu QR opens directly in your browser as a simple webpage — no app installation, no permissions required.' },
+  { n:2, free:false, text:'If a QR pops up asking you to install an app and grant access to contacts, camera, and SMS — it is a data-harvesting attack, not a menu.' },
+  { n:3, free:false, text:'When in doubt, always ask the waiter for a paper menu. The payment QR brought by a waiter in person is safe to use.' },
+];
+
+function dbSave(){
+  localStorage.setItem('cv_balance', DB.balance);
+  localStorage.setItem('cv_points',  DB.points);
+}
+
+/* ── Load carry-over state from level1 (takes priority over cumulative) ── */
+const _m2State = (()=>{ try{ return JSON.parse(localStorage.getItem('cv_m2_state')||'null'); }catch(e){return null;} })();
+const METERS = {
+  health: _m2State ? Math.max(0, _m2State.health) : _m2l2BaseHealth,
+  trust:  _m2State ? Math.max(0, _m2State.trust)  : _m2l2BaseTrust,
+  good:   _m2State ? (_m2State.good || 0) : 0,
+  bad:    _m2State ? (_m2State.bad  || 0) : 0
+};
+
+function adjustMeters(hp, tp) {
+  METERS.health = Math.max(0, Math.min(100, METERS.health + (hp || 0)));
+  METERS.trust  = Math.max(0, Math.min(100, METERS.trust  + (tp || 0)));
+  updateHUD();
+}
+
+function updateHUD(){
+  const b = Math.max(0, S.battery);
+  document.getElementById('batteryPct').textContent = b + '%';
+  const sbf = document.getElementById('sbBatFill');
+  if(sbf){ sbf.style.width=b+'%'; sbf.style.background=b<20?'var(--red)':b<40?'var(--amber)':'var(--green)'; }
+  const sbBatPct = document.getElementById('sbBatPct');
+  if(sbBatPct) sbBatPct.textContent = b + '%';
+  const balEl = document.getElementById('balanceAmt');
+  if(balEl) balEl.textContent = '₹' + DB.balance.toLocaleString('en-IN');
+  const upiEl = document.getElementById('upiBalDisplay');
+  if(upiEl) upiEl.textContent = '₹' + DB.balance.toLocaleString('en-IN');
+  document.getElementById('hudPoints').textContent = '⭐' + DB.points.toLocaleString('en-IN') + ' pts';
+  /* health/trust bars */
+  const h = METERS.health, t = METERS.trust;
+  const hv = document.getElementById('h-val'), hf = document.getElementById('h-fill');
+  const tv = document.getElementById('t-val'), tf = document.getElementById('t-fill');
+  if(hv) hv.textContent = h + '%';
+  if(hf){ hf.style.width = h + '%'; hf.style.background = h>60?'var(--green)':h>30?'var(--amber)':'var(--red)'; }
+  if(tv) tv.textContent = t + '%';
+  if(tf){ tf.style.width = t + '%'; tf.style.background = t>60?'var(--accent)':t>30?'var(--amber)':'var(--red)'; }
+}
+const addPts = p => { DB.points += p; updateHUD(); flashPts(); dbSave(); };
+const usePts = p => { DB.points = Math.max(0, DB.points-p); updateHUD(); dbSave(); };
+function flashPts(){ const el=document.getElementById('hudPoints'); if(el){ el.classList.add('points-flash'); setTimeout(()=>el.classList.remove('points-flash'),600); } }
+
+/* ════════════════════ HINTS ════════════════════ */
+function buildHints(){
+  const body = document.getElementById('hintBody'); body.innerHTML='';
+  HINTS_DATA.forEach((h,i)=>{
+    const item=document.createElement('div');
+    const revealed=S.hintsUsed.includes(h.n);
+    const avail=h.free||(i>0&&S.hintsUsed.includes(HINTS_DATA[i-1].n));
+    item.className='hint-item'+(revealed?' hint-revealed':(!avail?' hint-locked':''));
+    item.id='hitem-'+h.n;
+    item.innerHTML=`<div class="hint-num">${h.n}</div><div><p class="hint-text">${revealed?h.text:'???'}</p><p class="hint-action">${revealed?'':(h.free?'Click to reveal (free)':(avail?'Click · costs 100 pts':'Reveal previous hint first'))}</p></div>`;
+    if(!revealed) item.onclick=()=>revealHint(h.n);
+    body.appendChild(item);
+  });
+  document.getElementById('hintUsedTag').textContent=S.hintsUsed.length+'/3 used';
+}
+function revealHint(n){
+  const hint=HINTS_DATA.find(h=>h.n===n);
+  if(!hint||S.hintsUsed.includes(n)) return;
+  const idx=HINTS_DATA.findIndex(h=>h.n===n);
+  if(idx>0&&!S.hintsUsed.includes(HINTS_DATA[idx-1].n)){ showPopup('Hint Locked','<p style="color:var(--muted)">Reveal hint '+(n-1)+' first.</p>'); return; }
+  if(!hint.free){ if(DB.points<100){ showPopup('Not Enough Points','<p style="color:var(--red)">You need 100 points.</p>'); return; } usePts(100); }
+  S.hintsUsed.push(n); buildHints();
+}
+function toggleHints(){ document.getElementById('hintBox').classList.toggle('open'); }
+
+/* ════════════════════ POPUP ════════════════════ */
+function showPopup(header, body, footerHtml){
+  document.getElementById('popupHeader').innerHTML = header;
+  document.getElementById('popupBody').innerHTML = body;
+  document.getElementById('popupFooter').innerHTML = footerHtml ||
+    '<button class="m2-popup-btn-close" onclick="closePopup()">Close</button>';
+  document.getElementById('popupOverlay').classList.add('active');
+}
+function closePopup(){ document.getElementById('popupOverlay').classList.remove('active'); }
+function popupOverlayClick(e){ if(e.target===document.getElementById('popupOverlay')) closePopup(); }
+
+function showAlert({icon,cls,title,body,sub,btns}){
+  document.getElementById('alertIcon').textContent=icon;
+  const t=document.getElementById('alertTitle'); t.textContent=title; t.className='alert-title '+(cls||'');
+  document.getElementById('alertBody').innerHTML=body;
+  document.getElementById('alertSub').textContent=sub||'';
+  const bc=document.getElementById('alertBtns'); bc.innerHTML='';
+  btns.forEach(b=>{ const btn=document.createElement('button'); btn.className=b.cls; btn.textContent=b.text; btn.onclick=b.fn; bc.appendChild(btn); });
+  document.getElementById('gameAlert').classList.add('show');
+}
+function closeAlert(){ document.getElementById('gameAlert').classList.remove('show'); }
+
+function showLesson(){
+  closeAlert();
+  document.getElementById('lessonOverlay').style.display = 'flex';
+}
+function closeLesson(){
+  document.getElementById('lessonOverlay').style.display = 'none';
+  // Save result and go to ending screen
+  try {
+    localStorage.removeItem('cv_m2_state'); // clear carry-over
+    const _ptsTotal2 = Math.max(0, DB.points || parseInt(localStorage.getItem('cv_points') || '0'));
+    const _m2BaseScore = _m2l2User ? (_m2l2User.totalScore || 0) : (_m2l2Cum ? (_m2l2Cum.totalScore || 0) : 0);
+    const _earnedPts2 = Math.max(0, _ptsTotal2 - _m2BaseScore);
+    localStorage.setItem('cv_result', JSON.stringify({
+      level:      2,
+      health:     Math.max(0, METERS.health),
+      trust:      Math.max(0, METERS.trust),
+      score:      _earnedPts2,
+      baseScore:  _m2BaseScore,
+      totalScore: _ptsTotal2,
+      good:       METERS.good || 0,
+      bad:        METERS.bad  || 0
+    }));
+  } catch(e){}
+  window.location.href = '../ending.html';
+}
+
+/* ════════════════════ UPI PHONE BUTTONS ════════════════════ */
+function goUpiHome(){}  // no extra screen needed
+
+// Phone: "Scan for Menu" button
+function phoneScanMenu(){
+  showPopup('📋 Scan for Menu',
+    '<p style="font-family:var(--font-mono);font-size:.78rem;color:var(--body);line-height:1.7;">Tap the QR code on the right panel to inspect it first.</p>',
+    '<button class="m2-popup-btn-close" onclick="closePopup()">OK</button>'
+  );
+}
+
+// Phone: "Scan to Pay" button (only visible after ordering)
+function phoneScanPay(){
+  showPopup('💳 Scan to Pay',
+    '<p style="font-family:var(--font-mono);font-size:.78rem;color:var(--body);line-height:1.7;">Tap the payment QR on the right panel to inspect it and pay.</p>',
+    '<button class="m2-popup-btn-close" onclick="closePopup()">OK</button>'
+  );
+}
+
+/* ════════════════════ MENU QR FLOW ════════════════════ */
+function inspectMenuQR(){
+  if(S.menuQRInspected) return;
+  S.menuQRInspected = true;
+  document.getElementById('tapHintMenu').style.display = 'none';
+  document.getElementById('menuInspectOptions').classList.add('show');
+}
+
+// Right panel option: Scan QR — shows scanning animation first, then permissions
+function triggerScanMenuQR(){
+  // ── Step 1: Show scanning popup with animated QR ──
+  showPopup(
+    '📷 Scanning Menu QR…',
+    `<div style="text-align:center;padding:8px 0 12px;">
+       <p style="font-family:var(--font-mono);font-size:.7rem;color:var(--body);margin-bottom:14px;letter-spacing:.06em;">Please wait while the QR code is being scanned…</p>
+       <!-- Animated QR with scan line -->
+       <div style="position:relative;width:180px;height:180px;margin:0 auto;background:#fff;border-radius:6px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.5);">
+         <!-- Animated scan line — placed first so SVG renders on top of white bg, scan line on top of both -->
+         <div id="menuScanLine" style="position:absolute;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--accent),transparent);box-shadow:0 0 10px var(--accent),0 0 20px var(--accent);animation:qrScanAnim 1.4s ease-in-out infinite;top:0;z-index:10;pointer-events:none;"></div>
+         <svg viewBox="0 0 29 29" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:100%;height:100%;display:block;z-index:1;">
+           <rect width="29" height="29" fill="white"/>
+           <rect x="1" y="1" width="7" height="7" fill="black"/><rect x="2" y="2" width="5" height="5" fill="white"/><rect x="3" y="3" width="3" height="3" fill="black"/>
+           <rect x="21" y="1" width="7" height="7" fill="black"/><rect x="22" y="2" width="5" height="5" fill="white"/><rect x="23" y="3" width="3" height="3" fill="black"/>
+           <rect x="1" y="21" width="7" height="7" fill="black"/><rect x="2" y="22" width="5" height="5" fill="white"/><rect x="3" y="23" width="3" height="3" fill="black"/>
+           <rect x="9" y="1" width="1" height="1" fill="black"/><rect x="11" y="1" width="2" height="1" fill="black"/><rect x="14" y="1" width="1" height="1" fill="black"/><rect x="16" y="1" width="2" height="1" fill="black"/>
+           <rect x="9" y="3" width="2" height="1" fill="black"/><rect x="13" y="3" width="3" height="1" fill="black"/><rect x="18" y="3" width="1" height="1" fill="black"/>
+           <rect x="9" y="5" width="1" height="1" fill="black"/><rect x="12" y="5" width="1" height="2" fill="black"/><rect x="15" y="5" width="2" height="1" fill="black"/>
+           <rect x="1" y="9" width="2" height="1" fill="black"/><rect x="5" y="9" width="1" height="2" fill="black"/>
+           <rect x="9" y="9" width="3" height="1" fill="black"/><rect x="14" y="9" width="1" height="3" fill="black"/>
+           <rect x="17" y="9" width="2" height="1" fill="black"/><rect x="21" y="9" width="1" height="1" fill="black"/>
+           <rect x="1" y="11" width="1" height="2" fill="black"/><rect x="4" y="11" width="3" height="1" fill="black"/>
+           <rect x="9" y="11" width="1" height="1" fill="black"/><rect x="12" y="11" width="2" height="2" fill="black"/>
+           <rect x="17" y="11" width="1" height="2" fill="black"/><rect x="20" y="11" width="3" height="1" fill="black"/>
+           <rect x="1" y="14" width="3" height="1" fill="black"/><rect x="6" y="14" width="2" height="1" fill="black"/>
+           <rect x="10" y="14" width="1" height="2" fill="black"/><rect x="13" y="14" width="3" height="1" fill="black"/>
+           <rect x="1" y="17" width="2" height="2" fill="black"/><rect x="5" y="17" width="1" height="1" fill="black"/>
+           <rect x="8" y="17" width="3" height="1" fill="black"/><rect x="13" y="17" width="1" height="2" fill="black"/>
+           <rect x="9" y="21" width="2" height="1" fill="black"/><rect x="13" y="21" width="1" height="2" fill="black"/>
+           <rect x="16" y="21" width="3" height="1" fill="black"/><rect x="21" y="21" width="1" height="1" fill="black"/>
+           <rect x="9" y="23" width="1" height="1" fill="black"/><rect x="12" y="23" width="2" height="2" fill="black"/>
+           <rect x="9" y="26" width="3" height="2" fill="black"/><rect x="14" y="26" width="1" height="1" fill="black"/>
+           <rect x="17" y="26" width="2" height="2" fill="black"/><rect x="21" y="26" width="1" height="1" fill="black"/>
+         </svg>
+         <!-- Corner brackets -->
+         <div style="position:absolute;top:6px;left:6px;width:16px;height:16px;border-top:2px solid var(--accent);border-left:2px solid var(--accent);border-radius:1px;z-index:10;"></div>
+         <div style="position:absolute;top:6px;right:6px;width:16px;height:16px;border-top:2px solid var(--accent);border-right:2px solid var(--accent);border-radius:1px;z-index:10;"></div>
+         <div style="position:absolute;bottom:6px;left:6px;width:16px;height:16px;border-bottom:2px solid var(--accent);border-left:2px solid var(--accent);border-radius:1px;z-index:10;"></div>
+         <div style="position:absolute;bottom:6px;right:6px;width:16px;height:16px;border-bottom:2px solid var(--accent);border-right:2px solid var(--accent);border-radius:1px;z-index:10;"></div>
+       </div>
+       <div style="font-family:var(--font-mono);font-size:.65rem;color:var(--accent);margin-top:12px;letter-spacing:.12em;">SCANNING…</div>
+     </div>`,
+    `<button class="m2-popup-btn-close" disabled style="opacity:.4;cursor:default;">Please wait…</button>`
+  );
+  // ── Step 2: After 2.2s, swap to the permissions popup ──
+  setTimeout(()=> showMenuPermissionsPopup(), 2200);
+}
+
+function showMenuPermissionsPopup(){
+  document.getElementById('popupHeader').innerHTML = '📷 Menu QR Scanned';
+  document.getElementById('popupBody').innerHTML = `
+    <p style="font-family:var(--font-mono);font-size:.72rem;color:var(--body);margin-bottom:12px;">Your phone followed these redirects:</p>
+    <div style="background:var(--ink3);border-radius:6px;padding:10px 12px;margin-bottom:10px;font-family:var(--font-mono);font-size:.65rem;line-height:2.1;">
+      <span style="color:var(--amber);">qr.in/redirect</span> <span style="color:rgba(255,255,255,.2);">→</span>
+      <span style="color:var(--amber);">menu-viewer.online</span> <span style="color:rgba(255,255,255,.2);">→</span>
+      <span style="color:var(--red);">dhabamenus.com/popup</span>
+    </div>
+    <div style="background:rgba(230,57,70,.05);border:1px solid rgba(230,57,70,.15);border-radius:6px;padding:8px 10px;font-family:var(--font-mono);font-size:.63rem;color:var(--muted);margin-bottom:12px;">
+      ⚠ <span style="color:var(--amber);">3 redirects</span> · Final domain is <span style="color:var(--red);">not the restaurant</span>
+    </div>
+    <div style="background:var(--ink3);border:1px solid var(--rim);border-radius:8px;padding:12px 14px;">
+      <div style="font-family:var(--font-disp);font-size:.88rem;font-weight:700;color:var(--hi);margin-bottom:6px;">APP REQUIRED FOR MENU</div>
+      <div style="font-family:var(--font-mono);font-size:.66rem;color:var(--body);margin-bottom:8px;">To view today's specials and get 10% OFF, allow:</div>
+      <div style="background:rgba(230,57,70,.07);border:1px solid rgba(230,57,70,.2);border-radius:6px;padding:9px 11px;">
+        <div style="font-family:var(--font-mono);font-size:.63rem;color:var(--red);margin-bottom:5px;letter-spacing:.08em;">APP REQUIRES PERMISSION TO:</div>
+        <div style="font-family:var(--font-mono);font-size:.67rem;color:var(--hi);padding:2px 0;">☑ Access to contacts</div>
+        <div style="font-family:var(--font-mono);font-size:.67rem;color:var(--hi);padding:2px 0;">☑ Access to photos &amp; files</div>
+        <div style="font-family:var(--font-mono);font-size:.67rem;color:var(--hi);padding:2px 0;">☑ Access to camera</div>
+        <div style="font-family:var(--font-mono);font-size:.67rem;color:var(--hi);padding:2px 0;">☑ Install "Dhaba Menu Viewer"</div>
+      </div>
+      <div style="font-family:var(--font-mono);font-size:.59rem;color:var(--muted);margin-top:7px;font-style:italic;">Or continue without offer</div>
+    </div>`;
+  document.getElementById('popupFooter').innerHTML =
+    `<button class="m2-popup-btn" style="background:rgba(230,57,70,.12);border:1px solid rgba(230,57,70,.3);color:var(--red);width:100%;padding:11px;border-radius:7px;font-family:var(--font-mono);font-size:.72rem;font-weight:600;cursor:pointer;margin-bottom:8px;" onclick="chooseAllowPerms()">⬇ Allow app permissions &amp; Install app</button>
+     <button class="m2-popup-btn-close" onclick="declinePermissions()">✕ Decline and try other options</button>`;
+}
+
+// Right panel option: Ask Waiter
+function triggerAskWaiter(){
+  showPopupMenuOrder();
+}
+
+/* ════════════════════ PERMISSIONS CHOICE ════════════════════ */
+function chooseAllowPerms(){
+  closePopup();
+  METERS.bad = (METERS.bad || 0) + 1;
+  adjustMeters(-30, -25);
+  updateHUD();
+  showAlert({
+    icon:'☠', cls:'danger',
+    title:'LEVEL FAILED — APP INSTALLED',
+    body:'You installed "Dhaba Menu Viewer" and granted access to contacts, camera, and SMS. <br><br>Your phone is now compromised. Contacts uploaded to a remote server. Bank OTPs will be intercepted via SMS forwarding.',
+    sub:'App installed. Your phone is hacked. No menu was shown.',
+    btns:[{ text:'▶ Try Again', cls:'alert-btn-pri', fn:()=>{ closeAlert(); retryPhase2(); } }]
+  });
+}
+
+function declinePermissions(){
+  // Close popup and restore the inspect options so player can try waiter
+  closePopup();
+  // Re-show menu inspect options in case they were hidden
+  document.getElementById('menuInspectOptions').classList.add('show');
+  document.getElementById('tapHintMenu').style.display = 'none';
+}
+
+/* ════════════════════ PAPER MENU + ORDER ════════════════════ */
+function showPopupMenuOrder(){
+  closePopup();
+  S.menuReceived = true;
+
+  const itemsHtml = MENU_ITEMS.map(item => `
+    <label style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:6px;cursor:pointer;border:1px solid var(--rim);margin-bottom:6px;transition:background .15s;" onmouseover="this.style.background='rgba(0,180,216,.06)'" onmouseout="this.style.background=''" onclick="selectDish('${item.id}',this)">
+      <input type="radio" name="dish" value="${item.id}" style="accent-color:var(--accent);flex-shrink:0;"/>
+      <span style="font-size:1.2rem;">${item.emoji}</span>
+      <div style="flex:1;">
+        <div style="font-family:var(--font-disp);font-size:.82rem;font-weight:600;color:var(--hi);">${item.name}</div>
+      </div>
+      <div style="font-family:var(--font-mono);font-size:.72rem;color:var(--accent);white-space:nowrap;">₹${item.price}</div>
+    </label>`).join('');
+
+  showPopup(
+    '🙋 Waiter Has Brought Your Menu',
+    `<p style="font-family:var(--font-mono);font-size:.72rem;color:var(--body);margin-bottom:14px;line-height:1.6;">The waiter has brought a printed menu. Choose one item to order:</p>
+     <div id="menuItemsList">${itemsHtml}</div>
+     <p id="menuSelectErr" style="font-family:var(--font-mono);font-size:.65rem;color:var(--red);display:none;margin-top:6px;">Please select an item first.</p>`,
+    `<button class="m2-popup-btn-close" style="background:var(--accent);color:#000;font-weight:700;border:none;padding:11px;border-radius:7px;font-family:var(--font-mono);font-size:.75rem;cursor:pointer;width:100%;" onclick="submitOrder()">Submit Order →</button>`
+  );
+}
+
+let selectedDishId = null;
+function selectDish(id, labelEl){
+  selectedDishId = id;
+  // Highlight selected row
+  document.querySelectorAll('#menuItemsList label').forEach(l => l.style.borderColor = 'var(--rim)');
+  if(labelEl) labelEl.style.borderColor = 'var(--accent)';
+  document.getElementById('menuSelectErr').style.display = 'none';
+}
+
+function submitOrder(){
+  if(!selectedDishId){ document.getElementById('menuSelectErr').style.display='block'; return; }
+  const dish = MENU_ITEMS.find(d=>d.id===selectedDishId);
+  S.selectedDish = dish;
+  S.orderPlaced = true;
+  addPts(100);
+
+  // Update payment label on right panel
+  document.getElementById('payAmountLabel').textContent = '₹' + dish.price;
+
+  // Change popup to "food has arrived, proceed to pay"
+  document.getElementById('popupHeader').innerHTML = '🍽️ Food Is On Its Way!';
+  document.getElementById('popupBody').innerHTML = `
+    <div style="text-align:center;padding:8px 0 12px;">
+      <div style="font-size:2.5rem;margin-bottom:8px;">${dish.emoji}</div>
+      <div style="font-family:var(--font-disp);font-size:1rem;font-weight:700;color:var(--hi);margin-bottom:4px;">${dish.name}</div>
+      <div style="font-family:var(--font-mono);font-size:.72rem;color:var(--accent);">₹${dish.price}</div>
+    </div>
+    <p style="font-family:var(--font-mono);font-size:.72rem;color:var(--body);line-height:1.65;text-align:center;">The waiter has noted your order. Your food will be ready shortly. When you're done, you'll need to pay.</p>`;
+  document.getElementById('popupFooter').innerHTML =
+    `<button class="m2-popup-btn-close" style="background:var(--accent);color:#000;font-weight:700;border:none;padding:11px;border-radius:7px;font-family:var(--font-mono);font-size:.75rem;cursor:pointer;width:100%;" onclick="proceedToPay()">Proceed to Pay →</button>`;
+}
+
+function proceedToPay(){
+  closePopup();
+  // Hide "Scan for Menu", reveal "Scan to Pay"
+  document.getElementById('btnScanMenu').style.display = 'none';
+  document.getElementById('btnScanPay').style.display = '';
+  // Switch right panel to payment QR
+  document.getElementById('panelMenuQR').style.display = 'none';
+  document.getElementById('panelPayQR').style.display = '';
+}
+
+/* ════════════════════ PAYMENT QR FLOW ════════════════════ */
+function inspectPayQR(){
+  if(S.payQRInspected) return;
+  S.payQRInspected = true;
+  document.getElementById('tapHintPay').style.display = 'none';
+  document.getElementById('payInspectOptions').classList.add('show');
+}
+
+function payByScanQR(){
+  closePopup();
+  const dish = S.selectedDish;
+
+  // ── Step 1: Show scanning animation popup ──
+  showPopup(
+    '📷 Scanning Payment QR…',
+    `<div style="text-align:center;padding:8px 0 12px;">
+       <p style="font-family:var(--font-mono);font-size:.7rem;color:var(--body);margin-bottom:14px;letter-spacing:.06em;">Please wait while payment QR is being scanned…</p>
+       <div style="position:relative;width:180px;height:180px;margin:0 auto;background:#fff;border-radius:6px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.5);">
+         <!-- Scan line — green for payment QR, placed before SVG so z-index works reliably -->
+         <div style="position:absolute;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--green),transparent);box-shadow:0 0 10px var(--green),0 0 20px var(--green);animation:qrScanAnim 1.4s ease-in-out infinite;top:0;z-index:10;pointer-events:none;"></div>
+         <svg viewBox="0 0 29 29" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:100%;height:100%;display:block;z-index:1;">
+           <rect width="29" height="29" fill="white"/>
+           <rect x="1" y="1" width="7" height="7" fill="black"/><rect x="2" y="2" width="5" height="5" fill="white"/><rect x="3" y="3" width="3" height="3" fill="black"/>
+           <rect x="21" y="1" width="7" height="7" fill="black"/><rect x="22" y="2" width="5" height="5" fill="white"/><rect x="23" y="3" width="3" height="3" fill="black"/>
+           <rect x="1" y="21" width="7" height="7" fill="black"/><rect x="2" y="22" width="5" height="5" fill="white"/><rect x="3" y="23" width="3" height="3" fill="black"/>
+           <rect x="9" y="2" width="2" height="2" fill="black"/><rect x="12" y="2" width="1" height="2" fill="black"/><rect x="15" y="2" width="2" height="1" fill="black"/>
+           <rect x="9" y="6" width="3" height="1" fill="black"/><rect x="14" y="5" width="2" height="2" fill="black"/>
+           <rect x="2" y="9" width="1" height="3" fill="black"/><rect x="5" y="9" width="2" height="2" fill="black"/>
+           <rect x="9" y="9" width="4" height="2" fill="black"/><rect x="15" y="9" width="2" height="3" fill="black"/>
+           <rect x="18" y="9" width="3" height="1" fill="black"/><rect x="22" y="10" width="2" height="2" fill="black"/>
+           <rect x="2" y="13" width="2" height="2" fill="black"/><rect x="6" y="13" width="1" height="2" fill="black"/>
+           <rect x="10" y="13" width="2" height="1" fill="black"/><rect x="14" y="13" width="3" height="2" fill="black"/>
+           <rect x="9" y="17" width="3" height="2" fill="black"/><rect x="14" y="17" width="2" height="3" fill="black"/>
+           <rect x="9" y="22" width="2" height="2" fill="black"/><rect x="13" y="21" width="2" height="3" fill="black"/>
+           <rect x="17" y="21" width="3" height="2" fill="black"/><rect x="22" y="22" width="2" height="2" fill="black"/>
+           <rect x="9" y="25" width="4" height="2" fill="black"/><rect x="16" y="25" width="2" height="2" fill="black"/>
+         </svg>
+         <div style="position:absolute;top:6px;left:6px;width:16px;height:16px;border-top:2px solid var(--green);border-left:2px solid var(--green);border-radius:1px;z-index:10;"></div>
+         <div style="position:absolute;top:6px;right:6px;width:16px;height:16px;border-top:2px solid var(--green);border-right:2px solid var(--green);border-radius:1px;z-index:10;"></div>
+         <div style="position:absolute;bottom:6px;left:6px;width:16px;height:16px;border-bottom:2px solid var(--green);border-left:2px solid var(--green);border-radius:1px;z-index:10;"></div>
+         <div style="position:absolute;bottom:6px;right:6px;width:16px;height:16px;border-bottom:2px solid var(--green);border-right:2px solid var(--green);border-radius:1px;z-index:10;"></div>
+       </div>
+       <div style="font-family:var(--font-mono);font-size:.65rem;color:var(--green);margin-top:12px;letter-spacing:.12em;">SCANNING…</div>
+     </div>`,
+    `<button class="m2-popup-btn-close" disabled style="opacity:.4;cursor:default;">Processing…</button>`
+  );
+
+  // ── Step 2: After 2.2s, show success ──
+  setTimeout(()=>{
+    closePopup();
+    stopPhaseTimer();
+    METERS.good = (METERS.good || 0) + 1;
+    adjustMeters(5, 10);
+    addPts(500);
+    DB.balance = Math.max(0, DB.balance - dish.price);
+    updateHUD(); dbSave();
+    showAlert({
+      icon:'🎉', cls:'success',
+      title:'LEVEL COMPLETE!',
+      body:`You safely paid ₹${dish.price} for ${dish.emoji} ${dish.name} by scanning the verified payment QR brought by the waiter.<br><br>The QR linked directly to <strong>delhidhaba@okaxis</strong> — no redirects, no app required.`,
+      sub:'You avoided the malicious menu QR, ordered via waiter, and paid safely. +500 pts.',
+      btns:[{ text:'Next Level →', cls:'alert-btn-pri', fn:showLesson }]
+    });
+  }, 2200);
+}
+
+function payByCash(){
+  closePopup();
+  stopPhaseTimer();
+  METERS.good = (METERS.good || 0) + 1;
+  adjustMeters(5, 10);
+  const dish = S.selectedDish;
+  addPts(450);
+  DB.balance = Math.max(0, DB.balance - dish.price);
+  updateHUD(); dbSave();
+  showAlert({
+    icon:'✅', cls:'success',
+    title:'LEVEL COMPLETE!',
+    body:`You paid ₹${dish.price} for ${dish.emoji} ${dish.name} in cash. Safe and simple.<br><br>When you're uncertain about a QR code, paying cash is always a zero-risk option.`,
+    sub:'Avoided the malicious QR entirely. Paid in cash. Safe. +450 pts.',
+    btns:[{ text:'Next Level →', cls:'alert-btn-pri', fn:showLesson }]
+  });
+}
+
+function retryPhase2(){
+  // Reset all state
+  stopPhaseTimer();
+  document.getElementById('timerPopupOverlay').style.display='none';
+  S.menuQRInspected=false; S.payQRInspected=false;
+  S.menuReceived=false; S.selectedDish=null; S.orderPlaced=false;
+  selectedDishId=null;
+  visitedIds=[]; activeBubble=null;
+  player={x:50,y:50};
+
+  // Hide game scene
+  document.getElementById('gameScene').style.display='none';
+  document.getElementById('level2').style.display='none';
+  document.getElementById('walkGame').style.display='none';
+
+  // Reset phone UI
+  document.getElementById('btnScanMenu').style.display='';
+  document.getElementById('btnScanPay').style.display='none';
+
+  // Reset right panels
+  document.getElementById('tapHintMenu').style.display='block';
+  document.getElementById('menuInspectOptions').classList.remove('show');
+  document.getElementById('tapHintPay').style.display='block';
+  document.getElementById('payInspectOptions').classList.remove('show');
+  document.getElementById('panelMenuQR').style.display='';
+  document.getElementById('panelPayQR').style.display='none';
+  document.getElementById('payAmountLabel').textContent='₹–';
+
+  // Go back to info screen
+  document.getElementById('infoScreen').style.display='flex';
+  // Clear knocked state on restaurants
+  document.querySelectorAll('.restaurant.knocked').forEach(el=>el.classList.remove('knocked'));
+}
+
+/* ════════════════════ WALKING GAME ════════════════════ */
+const RESTAURANTS = [
+  { id:0, name:'Ami Bangali',   img:'images_mode2/res1.png', x:30, y:38, hasDiscount:false },
+  { id:1, name:'South Express', img:'images_mode2/res2.png', x:62, y:30, hasDiscount:false },
+  { id:2, name:'Mumbai Snacks',     img:'images_mode2/res4.png', x:78, y:50, hasDiscount:true  },
+  { id:3, name:'Delhi Dhaba',   img:'images_mode2/res3.png', x:30, y:75, hasDiscount:false },
+  { id:4, name:'Quick Bite Cafe',   img:'images_mode2/res5.png', x:50, y:50, hasDiscount:false },
+  { id:5, name:'Punjabi Tadka',     img:'images_mode2/res6.png', x:68, y:76, hasDiscount:false },
+];
+let player={x:56,y:50}, keys={}, walkInterval=null, visitedIds=[], activeBubble=null, gameActive=false;
+const SPEED=3, INTERACT_DIST=100;
+
+/* ── Sprite swap state ── */
+// 36 walk frames: frame_000.png … frame_035.png
+const WALK_FRAMES = Array.from({length:36}, (_,i)=>'images_mode2/frame_'+String(i).padStart(3,'0')+'.png');
+const IDLE_SPRITE = 'images_mode2/male.png';
+let walkFrame = 0;
+let walkFrameTimer = 0;
+const WALK_FRAME_MS = 55;
+let lastTimestamp = 0;
+let wasMoving = false;
+
+// Preload all walk frames so they show instantly
+WALK_FRAMES.forEach(src=>{ const i=new Image(); i.src=src; });
+
+function setSprite(src){
+  const img = document.getElementById('player-img');
+  if(img && !img.src.endsWith(src)) img.src = src;
+}
+
+function startWalkGame(){
+  document.getElementById('infoScreen').style.display='none';
+  document.getElementById('walkGame').style.display='block';
+  initWalkGame();
+}
+function initWalkGame(){
+  const container=document.getElementById('restaurants'); container.innerHTML='';
+
+  // Build progress dots
+  const dotsWrap=document.getElementById('wgDots');
+  dotsWrap.innerHTML=RESTAURANTS.map(r=>`<div class="wg-dot" id="wdot-${r.id}" title="${r.name}"></div>`).join('');
+
+  RESTAURANTS.forEach(r=>{
+    const div=document.createElement('div');
+    div.className='restaurant'; div.id='rest-'+r.id;
+    div.style.cssText=`left:${r.x}%;top:${r.y}%;`;
+    div.innerHTML=`
+      <div class="rest-img-wrap">
+        <img class="rest-img" src="${r.img}" alt="${r.name}" draggable="false"/>
+        <div class="rest-knock-hint">🚪 Click to knock!</div>
+      </div>
+      <div class="rest-name-tag">${r.name}</div>`;
+    div.addEventListener('click',(e)=>{ e.stopPropagation(); knockRestaurant(r.id); });
+    container.appendChild(div);
+  });
+
+  const playerEl=document.getElementById('player');
+  playerEl.style.left=player.x+'%'; playerEl.style.top=player.y+'%';
+  // Reset sprite to idle
+  setSprite(IDLE_SPRITE);
+  walkFrame=0; walkFrameTimer=0; wasMoving=false; lastTimestamp=performance.now();
+  gameActive=true;
+  document.addEventListener('keydown',onKeyDown);
+  document.addEventListener('keyup',onKeyUp);
+  document.getElementById('walkGame').addEventListener('click',dismissBubble);
+  walkInterval=requestAnimationFrame(gameLoop);
+}
+function onKeyDown(e){ keys[e.key]=true; if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault(); }
+function onKeyUp(e){ keys[e.key]=false; }
+
+function gameLoop(timestamp){
+  if(!gameActive) return;
+  walkInterval = requestAnimationFrame(gameLoop);
+
+  const dt = timestamp - lastTimestamp;
+  lastTimestamp = timestamp;
+
+  const bounds={minX:8,maxX:90,minY:18,maxY:85};
+  let moved=false;
+  const flipEl=document.getElementById('player-flip');
+  if(keys['ArrowLeft'] ||keys['a']||keys['A']){ player.x-=SPEED/12; moved=true; if(flipEl)flipEl.style.transform='scaleX(-1)'; }
+  if(keys['ArrowRight']||keys['d']||keys['D']){ player.x+=SPEED/12; moved=true; if(flipEl)flipEl.style.transform='scaleX(1)'; }
+  if(keys['ArrowUp']   ||keys['w']||keys['W']){ player.y-=SPEED/12; moved=true; }
+  if(keys['ArrowDown'] ||keys['s']||keys['S']){ player.y+=SPEED/12; moved=true; }
+  player.x=Math.max(bounds.minX,Math.min(bounds.maxX,player.x));
+  player.y=Math.max(bounds.minY,Math.min(bounds.maxY,player.y));
+
+  const playerEl=document.getElementById('player');
+  playerEl.style.left=player.x+'%'; playerEl.style.top=player.y+'%';
+
+  if(moved){
+    playerEl.classList.add('walking');
+    // Advance through 36 walk frames
+    walkFrameTimer += dt;
+    if(walkFrameTimer >= WALK_FRAME_MS){
+      walkFrameTimer = 0;
+      walkFrame = (walkFrame + 1) % WALK_FRAMES.length;
+      setSprite(WALK_FRAMES[walkFrame]);
+    }
+    wasMoving = true;
+  } else {
+    playerEl.classList.remove('walking');
+    if(wasMoving){
+      // Just stopped — reset to idle sprite and frame counter
+      setSprite(IDLE_SPRITE);
+      walkFrameTimer = 0;
+      walkFrame = 0;
+      wasMoving = false;
+    }
+  }
+
+  // Proximity check for restaurant glow
+  const wgEl=document.getElementById('walkGame');
+  const wgW=wgEl.offsetWidth, wgH=wgEl.offsetHeight;
+  const px=player.x/100*wgW, py=player.y/100*wgH;
+  RESTAURANTS.forEach(r=>{
+    const rx=r.x/100*wgW, ry=r.y/100*wgH;
+    const dist=Math.hypot(px-rx,py-ry);
+    const el=document.getElementById('rest-'+r.id);
+    if(el){ if(dist<INTERACT_DIST) el.classList.add('near'); else el.classList.remove('near'); }
+  });
+}
+function knockRestaurant(id){
+  if(!gameActive) return;
+  const wgEl=document.getElementById('walkGame');
+  const wgW=wgEl.offsetWidth, wgH=wgEl.offsetHeight;
+  const px=player.x/100*wgW, py=player.y/100*wgH;
+  const r=RESTAURANTS.find(r=>r.id===id);
+  const rx=r.x/100*wgW, ry=r.y/100*wgH;
+  const dist=Math.hypot(px-rx,py-ry);
+  if(dist>INTERACT_DIST){ showBubble(id,"Come a bit closer!",false,true); return; }
+  dismissBubble();
+  if(r.hasDiscount){
+    showBubble(id,"YES! We have a discount\nfor students! 🎉 Come in!",true,false);
+    if(!visitedIds.includes(id)){
+      visitedIds.push(id);
+      document.getElementById('wdot-'+id).className='wg-dot found';
+      const el=document.getElementById('rest-'+id);
+      if(el) el.classList.add('knocked');
+      addPts(200);
+    }
+    const flash=document.createElement('div'); flash.className='wg-found-flash';
+    document.getElementById('walkGame').appendChild(flash); setTimeout(()=>flash.remove(),600);
+    setTimeout(()=>{ stopWalkGame(); launchGameScene(); },2200);
+  } else {
+    const noMsgs=[
+      "No, we don't offer\nstudent discount here. Sorry!",
+      "We don't have student\noffers. Try elsewhere!",
+      "Sorry, no student\ndiscounts available.",
+      "Not here, sorry!\nMaybe try another place.",
+      "We don't do discounts.\nSorry about that!",
+    ];
+    showBubble(id,noMsgs[visitedIds.length%noMsgs.length],false,false);
+    if(!visitedIds.includes(id)){
+      visitedIds.push(id);
+      document.getElementById('wdot-'+id).className='wg-dot visited';
+      const el=document.getElementById('rest-'+id);
+      if(el) el.classList.add('knocked');
+      addPts(30);
+    }
+  }
+}
+function showBubble(restId,text,isYes,isTooFar){
+  // Remove any existing bubble first (by id OR by class, belt-and-braces)
+  document.querySelectorAll('.rest-bubble').forEach(b=>b.remove());
+  activeBubble=null;
+
+  const el=document.getElementById('rest-'+restId); if(!el) return;
+  const bubble=document.createElement('div');
+  bubble.className='rest-bubble'+(isYes?' yes':'');
+  bubble.id='activeBubble'; bubble.textContent=text;
+  if(isTooFar){ bubble.style.borderColor='rgba(244,162,97,.5)'; bubble.style.color='var(--amber)'; }
+  // Stop clicks on the bubble itself from re-triggering the restaurant
+  bubble.addEventListener('click',e=>{ e.stopPropagation(); dismissBubble(); });
+  el.querySelector('.rest-img-wrap').appendChild(bubble);
+  activeBubble=restId;
+}
+function dismissBubble(e){
+  if(e&&e.target.closest&&e.target.closest('.restaurant')) return;
+  document.querySelectorAll('.rest-bubble').forEach(b=>b.remove());
+  activeBubble=null;
+}
+function stopWalkGame(){
+  gameActive=false;
+  cancelAnimationFrame(walkInterval); walkInterval=null;
+  document.removeEventListener('keydown',onKeyDown); document.removeEventListener('keyup',onKeyUp);
+}
+function launchGameScene(){
+  document.getElementById('walkGame').style.display='none';
+  document.getElementById('gameScene').style.display='block';
+  document.getElementById('level2').style.display='flex';
+  document.getElementById('l2layout').style.display='grid';
+  buildHints(); updateHUD();
+  // Show the timer-start popup
+  document.getElementById('timerPopupOverlay').style.display='flex';
+}
+
+/* ════════════════════ PHASE-2 TIMER ════════════════════ */
+let _ptInterval=null, _ptSeconds=180;
+
+function dismissTimerPopup(){
+  document.getElementById('timerPopupOverlay').style.display='none';
+  startPhaseTimer();
+}
+
+function startPhaseTimer(){
+  _ptSeconds=180;
+  const el=document.getElementById('phaseTimer');
+  el.classList.add('active');
+  el.classList.remove('warn','danger');
+  _renderPT();
+  _ptInterval=setInterval(()=>{
+    _ptSeconds--;
+    _renderPT();
+    const el=document.getElementById('phaseTimer');
+    if(_ptSeconds<=30){ el.classList.remove('warn'); el.classList.add('danger'); }
+    else if(_ptSeconds<=60){ el.classList.remove('danger'); el.classList.add('warn'); }
+    if(_ptSeconds<=0){ clearInterval(_ptInterval); _ptInterval=null; _onPhaseTimerEnd(); }
+  },1000);
+}
+
+function stopPhaseTimer(){
+  if(_ptInterval){ clearInterval(_ptInterval); _ptInterval=null; }
+  const el=document.getElementById('phaseTimer');
+  el.classList.remove('active','warn','danger');
+}
+
+function _renderPT(){
+  const s=Math.max(0,_ptSeconds);
+  const m=Math.floor(s/60), sec=s%60;
+  document.getElementById('ptDisplay').textContent=m+':'+(sec<10?'0':'')+sec;
+}
+
+function _onPhaseTimerEnd(){
+  stopPhaseTimer();
+  showAlert({
+    icon:'⏰', cls:'danger',
+    title:'TIME\'S UP!',
+    body:'You took too long to decide. The dhaba closed for the afternoon break before you could order.',
+    sub:'3 minutes ran out. Try again and act faster!',
+    btns:[{ text:'Try Again', cls:'alert-btn-pri', fn:()=>{ closeAlert(); retryPhase2(); } }]
+  });
+}
+
+/* Init */
+updateHUD();
+</script>
+</body>
+</html>

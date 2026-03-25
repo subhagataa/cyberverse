@@ -1,0 +1,2343 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>CYBERVERSE — Level 3: Scene 2 (KYC Deepfake Call)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared.css">
+<style>
+.sh-label{font-family:var(--font-mono);font-size:.65rem;letter-spacing:.2em;color:var(--accent);margin-bottom:6px;}
+.sh-title{font-family:var(--font-disp);font-size:1.5rem;font-weight:700;color:var(--white);}
+.sh-meta{font-family:var(--font-mono);font-size:.68rem;color:var(--muted);margin-top:4px;}
+.scenario-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap;}
+#cin-overlay{position:fixed;inset:0;z-index:5000;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;opacity:0;pointer-events:none;transition:opacity 0.3s ease;}
+#cin-overlay.active{opacity:1;pointer-events:all;}
+#cin-overlay::before{content:'';position:absolute;inset:0;z-index:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.15) 2px,rgba(0,0,0,.15) 4px);pointer-events:none;animation:sl .1s linear infinite;}
+@keyframes sl{0%{background-position:0 0}100%{background-position:0 4px}}
+.cin-vig{position:absolute;inset:0;z-index:1;background:radial-gradient(ellipse at center,transparent 40%,rgba(230,57,70,.4) 100%);animation:vigp .8s ease-in-out infinite alternate;pointer-events:none;}
+@keyframes vigp{0%{opacity:.6}100%{opacity:1}}
+.cin-term{position:relative;z-index:10;width:min(700px,92vw);background:rgba(8,12,18,.97);border:1px solid #e63946;border-radius:8px;box-shadow:0 0 80px rgba(230,57,70,.3),inset 0 0 40px rgba(230,57,70,.04);overflow:hidden;max-height:90vh;display:flex;flex-direction:column;}
+.cin-tbar{background:rgba(230,57,70,.15);border-bottom:1px solid rgba(230,57,70,.3);padding:10px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.cin-dot{width:10px;height:10px;border-radius:50%;}
+.cin-dot.r{background:#e63946}.cin-dot.a{background:#f4a261}.cin-dot.g{background:#2ecc71}
+.cin-tbar-txt{font-family:var(--font-mono);font-size:.65rem;letter-spacing:.2em;color:rgba(230,57,70,.8);margin-left:6px;text-transform:uppercase;}
+.cin-tbar-live{margin-left:auto;font-family:var(--font-mono);font-size:.6rem;color:#e63946;animation:blink .6s ease-in-out infinite;}
+.cin-body{padding:18px 20px;font-family:var(--font-mono);font-size:.76rem;line-height:1.8;color:#e63946;overflow-y:auto;flex:1;}
+.cin-line{display:flex;align-items:flex-start;gap:10px;margin-bottom:2px;opacity:0;transform:translateX(-6px);transition:opacity .2s ease,transform .2s ease;}
+.cin-line.show{opacity:1;transform:translateX(0);}
+.cin-p{color:rgba(230,57,70,.5);flex-shrink:0;min-width:36px;}
+.cr{color:#e63946}.ca{color:#f4a261}.cg{color:#2ecc71}.cd{color:rgba(230,57,70,.4)}.cw{color:#eef4fa}.cc{color:#00b4d8}
+.cin-accs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0;opacity:0;transition:opacity .3s ease;}
+.cin-accs.show{opacity:1;}
+.cin-acc{background:rgba(230,57,70,.06);border:1px solid rgba(230,57,70,.2);border-radius:4px;padding:9px 11px;}
+.cin-acc.comp{border-color:rgba(230,57,70,.6);background:rgba(230,57,70,.12);animation:ap .5s ease-in-out 3;}
+@keyframes ap{0%,100%{box-shadow:none}50%{box-shadow:0 0 14px rgba(230,57,70,.5)}}
+.cin-acc-n{font-family:var(--font-mono);font-size:.6rem;color:rgba(255,255,255,.7);margin-bottom:2px;}
+.cin-acc-s{font-family:var(--font-mono);font-size:.58rem;color:rgba(230,57,70,.5);}
+.cin-acc-s.bad{color:#e63946;font-weight:600;}
+.cin-prog-wrap{margin:12px 0 6px;opacity:0;transition:opacity .3s ease;}
+.cin-prog-wrap.show{opacity:1;}
+.cin-prog-lbl{font-family:var(--font-mono);font-size:.58rem;color:rgba(230,57,70,.6);margin-bottom:4px;letter-spacing:.1em;}
+.cin-prog-track{height:4px;background:rgba(230,57,70,.15);border-radius:2px;overflow:hidden;}
+.cin-prog-fill{height:100%;background:linear-gradient(90deg,#e63946,#ff6b6b);border-radius:2px;width:0%;transition:width 2.5s cubic-bezier(.1,.8,.3,1);box-shadow:0 0 8px rgba(230,57,70,.6);}
+.cin-dmg{text-align:center;margin:14px 0 6px;opacity:0;transition:opacity .4s ease;}
+.cin-dmg.show{opacity:1;}
+.cin-dmg-amt{font-family:var(--font-disp);font-size:clamp(1.8rem,5vw,3rem);font-weight:800;color:#e63946;display:inline-block;}
+.cin-dmg-lbl{font-family:var(--font-mono);font-size:.62rem;letter-spacing:.2em;color:rgba(230,57,70,.6);margin-top:3px;}
+.cin-foot{border-top:1px solid rgba(230,57,70,.2);padding:12px 18px;display:flex;align-items:center;justify-content:space-between;opacity:0;transition:opacity .4s ease;flex-shrink:0;}
+.cin-foot.show{opacity:1;}
+.cin-foot-msg{font-family:var(--font-mono);font-size:.62rem;color:rgba(230,57,70,.5);letter-spacing:.1em;}
+.cin-cont{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;background:rgba(230,57,70,.15);border:1px solid rgba(230,57,70,.5);color:#e63946;padding:9px 18px;border-radius:4px;cursor:pointer;transition:all .2s;}
+.cin-cont:hover{background:rgba(230,57,70,.25);box-shadow:0 0 16px rgba(230,57,70,.3);}
+.glitch{animation:glm .3s ease-in-out 4 .5s;}
+@keyframes glm{0%,100%{transform:translate(0)}20%{transform:translate(-3px,1px);filter:hue-rotate(90deg)}40%{transform:translate(3px,-1px);filter:hue-rotate(-90deg)}60%{transform:translate(-2px,2px)}80%{transform:translate(2px,-2px);filter:hue-rotate(45deg)}}
+#cin-good{position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .3s ease;}
+#cin-good.active{opacity:1;pointer-events:all;}
+.cin-shield{font-size:4rem;margin-bottom:18px;animation:sb .6s cubic-bezier(.34,1.56,.64,1) forwards;transform:scale(0);}
+@keyframes sb{to{transform:scale(1)}}
+.cin-gtitle{font-family:var(--font-disp);font-size:clamp(1.6rem,5vw,2.8rem);font-weight:800;color:var(--green);margin-bottom:8px;text-align:center;animation:fu .5s .3s ease both;}
+.cin-gsub{font-family:var(--font-mono);font-size:.72rem;color:rgba(46,204,113,.6);letter-spacing:.2em;text-align:center;margin-bottom:28px;animation:fu .5s .5s ease both;}
+.cin-gtip{max-width:480px;background:rgba(46,204,113,.07);border:1px solid rgba(46,204,113,.2);border-radius:6px;padding:16px 20px;font-size:.86rem;color:rgba(255,255,255,.75);line-height:1.7;text-align:center;animation:fu .5s .7s ease both;margin-bottom:24px;}
+.cin-gtip strong{color:var(--green);}
+.cin-pts{display:inline-flex;align-items:center;gap:8px;background:rgba(46,204,113,.12);border:1px solid rgba(46,204,113,.3);border-radius:30px;padding:10px 24px;font-family:var(--font-mono);font-size:.88rem;color:var(--green);animation:fu .5s .9s ease both;margin-bottom:28px;}
+.cin-parts{position:fixed;inset:0;pointer-events:none;z-index:4999;}
+.cin-part{position:absolute;width:6px;height:6px;border-radius:50%;background:var(--green);animation:pb 1s ease-out forwards;}
+@keyframes pb{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--tx),var(--ty)) scale(0);opacity:0}}
+@keyframes fu{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+/* badge popup final styles */
+.badge-full-pop{position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,.96);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;backdrop-filter:blur(4px);}
+.badge-full-pop.active{opacity:1;pointer-events:all;}
+.badge-card{max-width:520px;width:90vw;background:linear-gradient(145deg,#0e121b,#05080c);border:1px solid #2ecc71;border-radius:28px;padding:28px 24px;text-align:center;box-shadow:0 0 50px rgba(46,204,113,.2);animation:fu .4s ease;}
+.badge-icon{font-size:5rem;margin-bottom:12px;}
+.badge-title{font-family:var(--font-disp);font-size:2rem;font-weight:800;color:#2ecc71;margin-bottom:8px;}
+.badge-sub{font-family:var(--font-mono);font-size:.7rem;color:rgba(46,204,113,.6);letter-spacing:2px;margin-bottom:18px;}
+.badge-insight{background:rgba(46,204,113,.08);border-left:3px solid #2ecc71;padding:14px 18px;margin:18px 0;border-radius:12px;text-align:left;font-size:.85rem;color:var(--white);line-height:1.6;}
+.badge-tip{border-top:1px solid rgba(46,204,113,.2);margin-top:12px;padding-top:14px;font-family:var(--font-mono);font-size:.7rem;color:#9aaebf;text-align:left;}
+.btn-badge{background:rgba(46,204,113,.15);border:1px solid #2ecc71;color:#2ecc71;padding:12px 24px;border-radius:40px;font-family:var(--font-mono);font-weight:600;font-size:.85rem;cursor:pointer;transition:all .2s;margin-top:12px;}
+.btn-badge:hover{background:#2ecc71;color:#000;box-shadow:0 0 18px rgba(46,204,113,.5);}
+
+/* ========== FIXED PHONE UI — NO BROKEN BLACK SPACE, SIMPLE END CALL BUTTON ========== */
+.phone-answered {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: #000;
+    padding: 16px 14px 18px 14px;
+}
+.ans-status {
+    font-family: var(--font-mono);
+    font-size: .6rem;
+    color: var(--green);
+    letter-spacing: 1px;
+    text-align: center;
+    margin-bottom: 8px;
+}
+.ans-name {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: .85rem;
+    text-align: center;
+    color: #fff;
+    margin-bottom: 4px;
+}
+.ans-timer {
+    font-family: var(--font-mono);
+    font-size: .6rem;
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: 10px;
+}
+.ans-script-container {
+    flex: 1;
+    overflow-y: auto;
+    margin: 8px 0 12px 0;
+    background: rgba(20, 22, 32, 0.6);
+    border-radius: 12px;
+    padding: 12px 10px;
+    border: 1px solid rgba(230,57,70,0.2);
+    min-height: 130px;
+    max-height: 160px;
+}
+.ans-script {
+    font-family: var(--font-mono);
+    font-size: .7rem;
+    line-height: 1.55;
+    color: #e0e4f0;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+/* end-call button — inherit from shared.css (same as scene 1) */
+.phone-screen {
+    background: #000;
+    border-radius: 32px;
+    overflow: hidden;
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto;
+    aspect-ratio: 9 / 19;
+    position: relative;
+    box-shadow: 0 20px 35px -10px rgba(0,0,0,0.5);
+}
+.phone-call, .phone-answered, .phone-idle {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.phone-call {
+    justify-content: center;
+    padding: 20px 16px;
+}
+.call-subtitle {
+    font-size: .6rem;
+    color: var(--muted);
+    margin-top: 12px;
+}
+.call-waveform {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    margin: 12px 0;
+    height: 24px;
+    align-items: center;
+}
+.wv-bar {
+    width: 3px;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: height 0.08s;
+    animation: pulseWave 0.9s infinite alternate ease;
+}
+@keyframes pulseWave {
+    0% { opacity: 0.3; height: 4px; }
+    100% { opacity: 1; height: 18px; }
+}
+.call-avatar {
+    font-size: 3rem;
+    background: rgba(230,57,70,0.2);
+    width: 70px;
+    height: 70px;
+    border-radius: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 8px auto;
+    border: 1px solid var(--accent);
+}
+.call-name {
+    font-weight: 700;
+    font-size: 1rem;
+    color: white;
+    text-align: center;
+}
+.call-num {
+    font-size: 0.6rem;
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: 12px;
+}
+/* call buttons — inherit from shared.css (same as scene 1) */
+
+/* ===== MINIGAME OVERLAY ===== */
+#mg-overlay{position:fixed;inset:0;z-index:7000;background:rgba(0,0,0,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s ease;padding:16px;box-sizing:border-box;}
+#mg-overlay.active{opacity:1;pointer-events:all;}
+.mg-box{width:min(660px,98vw);max-height:calc(100vh - 32px);background:rgba(8,14,28,.98);border:1px solid rgba(0,180,216,.4);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;}
+.mg-header{background:rgba(0,180,216,.07);border-bottom:1px solid rgba(0,180,216,.18);padding:13px 20px;display:flex;align-items:center;gap:12px;flex-shrink:0;}
+.mg-title{font-family:var(--font-disp);font-size:.95rem;font-weight:700;color:#00b4d8;flex:1;}
+.mg-badge{font-family:var(--font-mono);font-size:.55rem;background:rgba(0,180,216,.14);border:1px solid rgba(0,180,216,.3);color:#00b4d8;padding:3px 10px;border-radius:20px;letter-spacing:.1em;}
+.mg-body{padding:18px 20px;flex:1;overflow-y:auto;min-height:0;display:flex;flex-direction:column;}
+.mg-instruction{font-family:var(--font-mono);font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:16px;line-height:1.65;background:rgba(0,180,216,.04);border-left:3px solid rgba(0,180,216,.28);padding:9px 13px;border-radius:0 6px 6px 0;flex-shrink:0;}
+.mg-foot{border-top:1px solid rgba(0,180,216,.14);padding:11px 18px;display:flex;justify-content:flex-end;gap:10px;flex-shrink:0;}
+.mg-btn{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.1em;padding:9px 20px;border-radius:6px;cursor:pointer;transition:all .2s;border:1px solid;}
+.mg-btn.primary{background:rgba(0,180,216,.14);border-color:rgba(0,180,216,.5);color:#00b4d8;}
+.mg-btn.primary:hover{background:rgba(0,180,216,.24);}
+.mg-btn.primary:disabled{opacity:.35;cursor:not-allowed;}
+.mg-result{padding:12px 16px;border-radius:8px;font-family:var(--font-mono);font-size:.78rem;margin-top:14px;text-align:center;display:none;line-height:1.6;}
+.mg-result.show{display:block;}
+.mg-result.ok{background:rgba(46,204,113,.08);border:1px solid rgba(46,204,113,.3);color:rgba(46,204,113,.9);}
+.mg-result.fail{background:rgba(230,57,70,.08);border:1px solid rgba(230,57,70,.3);color:rgba(230,57,70,.9);}
+
+/* MG-A: Damage Control Timeline */
+.dc-pool{display:flex;flex-direction:column;gap:7px;margin-bottom:14px;}
+.dc-step{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:10px 14px;cursor:grab;user-select:none;font-family:'Space Grotesk',sans-serif;font-size:.82rem;color:rgba(255,255,255,.82);transition:border-color .15s,background .15s;}
+.dc-step:active{cursor:grabbing;opacity:.6;}
+.dc-step.dragging{opacity:.25;}
+.dc-step.correct-pos{border-color:rgba(46,204,113,.55);background:rgba(46,204,113,.06);}
+.dc-step.wrong-pos{border-color:rgba(230,57,70,.55);background:rgba(230,57,70,.06);}
+.dc-handle{color:rgba(255,255,255,.2);font-size:1rem;flex-shrink:0;}
+.dc-num{font-family:var(--font-mono);font-size:.65rem;color:rgba(0,180,216,.6);background:rgba(0,180,216,.1);border:1px solid rgba(0,180,216,.2);border-radius:4px;padding:2px 7px;flex-shrink:0;}
+.dc-zone{border:2px dashed rgba(0,180,216,.2);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px;min-height:54px;transition:border-color .2s,background .2s;}
+.dc-zone.drag-over{border-color:rgba(0,180,216,.55);background:rgba(0,180,216,.04);}
+.dc-label{font-family:var(--font-mono);font-size:.6rem;color:rgba(0,180,216,.45);letter-spacing:.1em;margin-bottom:4px;}
+
+/* MG-B: Phishing Email Spotter */
+.pe-email{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:10px;overflow:hidden;margin-bottom:12px;}
+.pe-email-header{background:rgba(255,255,255,.05);padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.07);}
+.pe-header-row{display:flex;gap:8px;align-items:baseline;margin-bottom:3px;}
+.pe-field{font-family:var(--font-mono);font-size:.58rem;color:rgba(255,255,255,.3);min-width:36px;}
+.pe-value{font-family:var(--font-mono);font-size:.68rem;color:rgba(255,255,255,.75);}
+.pe-email-body{padding:12px 14px;font-family:'Space Grotesk',sans-serif;font-size:.82rem;color:rgba(255,255,255,.78);line-height:1.65;}
+.pe-span{cursor:pointer;border-radius:3px;padding:1px 3px;transition:background .15s;}
+.pe-span:hover{background:rgba(255,255,255,.1);}
+.pe-span.flagged{background:rgba(230,57,70,.25);border-bottom:2px solid #e63946;color:#fff;}
+.pe-span.correct{background:rgba(46,204,113,.2);border-bottom:2px solid #2ecc71;}
+.pe-span.missed{background:rgba(255,165,0,.2);border-bottom:2px solid orange;}
+.pe-tally{font-family:var(--font-mono);font-size:.65rem;color:rgba(255,255,255,.35);margin-bottom:10px;}
+.pe-tally span{color:#00b4d8;}
+
+/* MG-C: Red Flags Scanner */
+.rf-timer-bar{height:5px;background:rgba(0,180,216,.15);border-radius:3px;margin-bottom:14px;overflow:hidden;flex-shrink:0;}
+.rf-timer-fill{height:100%;background:linear-gradient(90deg,#2ecc71,#00b4d8);width:100%;border-radius:3px;}
+.rf-statement-box{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:14px 18px;margin-bottom:14px;min-height:64px;display:flex;align-items:center;flex-shrink:0;}
+.rf-statement{font-family:'Space Grotesk',sans-serif;font-size:.88rem;color:rgba(255,255,255,.88);line-height:1.5;}
+.rf-actions{display:flex;gap:10px;margin-bottom:4px;flex-shrink:0;}
+.rf-btn{flex:1;padding:11px;border-radius:8px;font-family:var(--font-mono);font-size:.7rem;letter-spacing:.08em;cursor:pointer;transition:all .15s;border:1px solid;}
+.rf-btn.flag{background:rgba(230,57,70,.1);border-color:rgba(230,57,70,.4);color:#e63946;}
+.rf-btn.flag:hover{background:rgba(230,57,70,.22);}
+.rf-btn.legit{background:rgba(46,204,113,.08);border-color:rgba(46,204,113,.35);color:#2ecc71;}
+.rf-btn.legit:hover{background:rgba(46,204,113,.18);}
+.rf-btn:disabled{opacity:.35;cursor:not-allowed;}
+.rf-progress{font-family:var(--font-mono);font-size:.6rem;color:rgba(255,255,255,.3);text-align:center;flex-shrink:0;}
+.rf-feedback-flash{text-align:center;font-family:var(--font-mono);font-size:.7rem;height:22px;margin-bottom:6px;flex-shrink:0;transition:opacity .25s;}
+
+/* MG-D: Data Safety Sort */
+.ds-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.ds-zone{border:2px dashed rgba(0,180,216,.25);border-radius:10px;padding:10px;min-height:100px;transition:border-color .2s,background .2s;}
+.ds-zone.drag-over{border-color:rgba(0,180,216,.6);background:rgba(0,180,216,.04);}
+.ds-zone-label{font-family:var(--font-mono);font-size:.58rem;color:rgba(0,180,216,.55);letter-spacing:.1em;margin-bottom:8px;text-align:center;}
+.ds-zone-safe{border-color:rgba(46,204,113,.25);}
+.ds-zone-safe .ds-zone-label{color:rgba(46,204,113,.6);}
+.ds-zone-safe.drag-over{border-color:rgba(46,204,113,.6);background:rgba(46,204,113,.04);}
+.ds-pool{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px;min-height:48px;}
+.ds-chip{font-family:var(--font-mono);font-size:.68rem;padding:6px 11px;border-radius:20px;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.75);background:rgba(255,255,255,.05);cursor:grab;user-select:none;transition:all .15s;}
+.ds-chip:active{cursor:grabbing;opacity:.6;}
+.ds-chip.dragging{opacity:.3;}
+.ds-dropped{font-family:var(--font-mono);font-size:.62rem;padding:5px 10px;border-radius:16px;border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.65);background:rgba(255,255,255,.04);margin-bottom:5px;display:inline-flex;align-items:center;gap:5px;}
+.phone-idle {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 40px 20px;
+}
+
+/* ═══════════════════════════════════════════════════
+   BATTLE GAME  —  LANDSCAPE HORIZONTAL MOBILE UI
+   ═══════════════════════════════════════════════════ */
+#BG{position:fixed;inset:0;z-index:9999;background:#000;font-family:'IBM Plex Mono',monospace;overflow:hidden;}
+#BG.off{display:none;}
+
+/* ── SPLASH — CINEMATIC ─────────────────────────── */
+#BS{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;background:#000;overflow:hidden;
+}
+#BS.off{display:none;}
+/* animated grid bg */
+.sp-bg-grid{
+  position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 50% 70% at 50% 50%,rgba(0,180,216,.09) 0%,transparent 65%),
+    radial-gradient(ellipse 30% 50% at 20% 50%,rgba(0,100,200,.1) 0%,transparent 60%),
+    radial-gradient(ellipse 30% 50% at 80% 50%,rgba(180,20,30,.1) 0%,transparent 60%),
+    repeating-linear-gradient(0deg,transparent,transparent 47px,rgba(0,180,216,.03) 47px,rgba(0,180,216,.03) 48px),
+    repeating-linear-gradient(90deg,transparent,transparent 47px,rgba(0,180,216,.03) 47px,rgba(0,180,216,.03) 48px);
+  z-index:0;
+}
+.sp-particles{position:absolute;inset:0;pointer-events:none;z-index:1;overflow:hidden;}
+.sp-content{
+  position:relative;z-index:2;
+  display:flex;align-items:center;justify-content:center;
+  gap:clamp(20px,4vw,60px);width:100%;padding:0 clamp(16px,4vw,48px);
+}
+/* Characters */
+.sp-char-zone{
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  flex-shrink:0;
+}
+.sp-char-img{
+  width:clamp(80px,16vw,180px);height:auto;
+  filter:drop-shadow(0 0 30px rgba(0,0,0,.5));
+  animation:spCharFloat 3s ease-in-out infinite;
+}
+@keyframes spCharFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.sp-char-flip{transform:scaleX(-1);}
+.sp-char-flip:hover,.sp-char-flip{animation:spCharFloatFlip 3s .4s ease-in-out infinite;}
+@keyframes spCharFloatFlip{0%,100%{transform:scaleX(-1) translateY(0)}50%{transform:scaleX(-1) translateY(-10px)}}
+.sp-char-label{
+  font-size:clamp(.5rem,.75vw,.62rem);letter-spacing:.2em;color:rgba(0,180,216,.8);
+  background:rgba(0,180,216,.1);border:1px solid rgba(0,180,216,.3);
+  border-radius:20px;padding:3px 12px;
+}
+.sp-char-label-red{color:rgba(230,57,70,.8);background:rgba(230,57,70,.1);border-color:rgba(230,57,70,.3);}
+/* Center */
+.sp-center{
+  display:flex;flex-direction:column;align-items:center;gap:clamp(8px,1.5vh,14px);
+  text-align:center;flex-shrink:0;min-width:0;
+}
+.sp-eyebrow{
+  font-size:clamp(.52rem,.8vw,.66rem);letter-spacing:.25em;color:rgba(0,180,216,.65);
+  background:rgba(0,180,216,.08);border:1px solid rgba(0,180,216,.2);border-radius:20px;
+  padding:4px 14px;
+}
+.sp-vs-badge{
+  font-family:'Syne',sans-serif;font-size:clamp(1.2rem,2.5vw,2rem);font-weight:800;
+  color:rgba(255,255,255,.15);letter-spacing:.08em;
+  text-shadow:0 0 30px rgba(255,255,255,.1);
+}
+.sp-h1{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(1.6rem,4vw,3rem);
+  font-weight:800;color:#fff;line-height:1.1;letter-spacing:-.02em;
+}
+.sp-h1 em{color:#00b4d8;font-style:normal;display:block;}
+.sp-divider{width:clamp(40px,6vw,80px);height:2px;background:linear-gradient(90deg,transparent,rgba(0,180,216,.6),transparent);border-radius:2px;}
+.sp-sub{font-size:clamp(.52rem,.78vw,.65rem);color:rgba(255,255,255,.3);letter-spacing:.15em;max-width:280px;}
+.sp-tap-wrap{position:relative;display:flex;align-items:center;justify-content:center;margin-top:4px;}
+.sp-ripple{
+  position:absolute;width:clamp(72px,12vw,100px);height:clamp(72px,12vw,100px);
+  border-radius:50%;border:2px solid rgba(0,180,216,.35);
+  animation:spRipple 1.8s ease-out infinite;
+}
+.sp-ripple:nth-child(2){animation-delay:.65s;}
+@keyframes spRipple{0%{transform:scale(.7);opacity:1}100%{transform:scale(1.7);opacity:0}}
+.sp-tap-btn{
+  position:relative;z-index:2;
+  width:clamp(56px,10vw,80px);height:clamp(56px,10vw,80px);
+  border-radius:50%;border:2px solid #00b4d8;
+  background:linear-gradient(135deg,rgba(0,180,216,.2),rgba(0,100,200,.1));
+  box-shadow:0 0 30px rgba(0,180,216,.3),inset 0 0 16px rgba(0,180,216,.1);
+  display:flex;align-items:center;justify-content:center;
+  animation:spBounce 1.2s ease-in-out infinite;
+}
+@keyframes spBounce{0%,100%{transform:scale(1);box-shadow:0 0 30px rgba(0,180,216,.3)}50%{transform:scale(1.1);box-shadow:0 0 50px rgba(0,180,216,.6)}}
+.sp-tap-arrow{font-size:clamp(1.2rem,2.2vw,1.8rem);color:#00b4d8;line-height:1;padding-left:3px;}
+.sp-tap-lbl{font-size:clamp(.48rem,.72vw,.6rem);letter-spacing:.2em;color:rgba(255,255,255,.25);text-transform:uppercase;animation:tapBlink 1.6s ease-in-out infinite;}
+
+/* ── INSTRUCTIONS — POLISHED ─────────────────────── */
+#BI{
+  position:absolute;inset:0;display:none;
+  align-items:stretch;background:#000;overflow:hidden;
+}
+#BI.on{display:flex;}
+.bi-bg-glow{
+  position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 60% 80% at 35% 50%,rgba(0,80,160,.12) 0%,transparent 60%),
+    radial-gradient(ellipse 40% 60% at 70% 50%,rgba(0,40,100,.1) 0%,transparent 50%);
+}
+.bi-layout{
+  display:flex;width:100%;height:100%;align-items:stretch;position:relative;z-index:2;
+}
+/* LEFT panel */
+.bi-left{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:clamp(16px,3vw,40px);gap:clamp(10px,2vh,18px);
+  border-right:1px solid rgba(0,180,216,.1);
+  text-align:center;
+  background:rgba(0,4,16,.5);
+}
+.bi-chars-preview{
+  display:flex;align-items:flex-end;justify-content:center;gap:clamp(10px,2vw,24px);margin-bottom:4px;
+}
+.bi-preview-char{display:flex;flex-direction:column;align-items:center;gap:6px;}
+.bi-preview-img{
+  width:clamp(55px,10vw,100px);height:auto;
+  filter:drop-shadow(0 4px 12px rgba(0,0,0,.6));
+  animation:biCharFloat 3s ease-in-out infinite;
+}
+@keyframes biCharFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.bi-preview-flip{transform:scaleX(-1);}
+.bi-preview-flip{animation:biCharFloatFlip 3s .5s ease-in-out infinite;}
+@keyframes biCharFloatFlip{0%,100%{transform:scaleX(-1) translateY(0)}50%{transform:scaleX(-1) translateY(-6px)}}
+.bi-preview-tag{
+  font-size:clamp(.45rem,.65vw,.55rem);letter-spacing:.18em;
+  border-radius:20px;padding:2px 10px;font-family:'IBM Plex Mono',monospace;
+}
+.bi-preview-tag-blue{color:rgba(0,180,216,.85);background:rgba(0,180,216,.12);border:1px solid rgba(0,180,216,.3);}
+.bi-preview-tag-red{color:rgba(230,57,70,.85);background:rgba(230,57,70,.1);border:1px solid rgba(230,57,70,.3);}
+.bi-preview-vs{
+  font-family:'Syne',sans-serif;font-size:clamp(1rem,2vw,1.5rem);
+  font-weight:800;color:rgba(255,255,255,.12);align-self:center;letter-spacing:.05em;
+}
+.bi-ico{font-size:clamp(1.8rem,4vw,3rem);}
+.bi-h{
+  font-family:'Syne',sans-serif;font-size:clamp(1rem,2.5vw,1.7rem);
+  font-weight:800;color:#fff;line-height:1.2;max-width:280px;
+}
+.bi-tag{font-size:clamp(.48rem,.7vw,.6rem);letter-spacing:.2em;color:rgba(0,180,216,.5);}
+/* RIGHT panel */
+.bi-right{
+  width:clamp(260px,42%,440px);flex-shrink:0;
+  display:flex;flex-direction:column;justify-content:center;
+  padding:clamp(16px,3vw,36px);gap:clamp(10px,1.8vh,16px);
+  background:rgba(0,6,18,.7);
+}
+.bi-right-title{
+  font-size:clamp(.52rem,.78vw,.62rem);letter-spacing:.25em;
+  color:rgba(0,180,216,.45);text-transform:uppercase;margin-bottom:4px;
+}
+.bi-row{
+  display:flex;align-items:flex-start;gap:clamp(10px,1.5vw,14px);
+  padding:clamp(10px,1.5vh,13px) clamp(12px,1.8vw,16px);
+  background:linear-gradient(135deg,rgba(0,180,216,.04),rgba(0,40,80,.08));
+  border:1px solid rgba(0,180,216,.1);border-radius:10px;
+  transition:border-color .2s,background .2s;
+}
+.bi-row:hover{border-color:rgba(0,180,216,.25);background:rgba(0,180,216,.06);}
+.bi-num{
+  font-family:'Syne',sans-serif;font-size:clamp(1.1rem,2.2vw,1.6rem);
+  font-weight:800;color:rgba(0,180,216,.35);flex-shrink:0;line-height:1;min-width:clamp(20px,2vw,28px);
+}
+.bi-text{font-size:clamp(.58rem,.82vw,.7rem);color:rgba(255,255,255,.58);line-height:1.65;}
+.bi-text strong{color:rgba(255,255,255,.9);}
+.bi-text em{color:#00b4d8;font-style:normal;}
+.bi-start{
+  margin-top:4px;padding:clamp(13px,2vh,18px);
+  background:linear-gradient(135deg,rgba(0,180,216,.14),rgba(0,100,200,.1));
+  border:1.5px solid rgba(0,180,216,.55);
+  border-radius:12px;color:#00b4d8;
+  font-family:'IBM Plex Mono',monospace;font-size:clamp(.65rem,1vw,.78rem);
+  letter-spacing:.18em;text-transform:uppercase;cursor:pointer;
+  transition:all .25s;
+  box-shadow:0 0 20px rgba(0,180,216,.1);
+}
+.bi-start:hover{
+  background:linear-gradient(135deg,rgba(0,180,216,.25),rgba(0,100,200,.2));
+  box-shadow:0 0 40px rgba(0,180,216,.3);
+  transform:translateY(-1px);
+}
+
+/* ── ARENA ───────────────────────────────────────── */
+#BA{
+  position:absolute;inset:0;display:none;flex-direction:row;
+  background:#000;
+}
+#BA.on{display:flex;}
+
+/* LEFT: field */
+.ba-field{
+  flex:1;min-width:0;position:relative;overflow:hidden;
+  display:flex;flex-direction:column;
+  background:linear-gradient(160deg,#030d1a 0%,#050f20 50%,#020910 100%);
+}
+.ba-scanlines{
+  position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.15) 3px,rgba(0,0,0,.15) 4px);
+}
+.ba-glow{
+  position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 70% 60% at 50% 40%,rgba(0,30,60,.6) 0%,transparent 70%);
+}
+/* perspective floor */
+.ba-floor{
+  position:absolute;bottom:0;left:0;right:0;height:36%;z-index:1;
+  background:linear-gradient(180deg,transparent,rgba(0,15,40,.8));
+  border-top:1px solid rgba(0,180,216,.08);
+}
+.ba-floor::after{
+  content:'';position:absolute;inset:0;
+  background-image:
+    repeating-linear-gradient(90deg,rgba(0,180,216,.06) 0,rgba(0,180,216,.06) 1px,transparent 1px,transparent 48px),
+    repeating-linear-gradient(0deg,rgba(0,180,216,.05) 0,rgba(0,180,216,.05) 1px,transparent 1px,transparent 22px);
+}
+
+/* top bar */
+.ba-bar{
+  position:relative;z-index:10;flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:clamp(6px,1.2vh,10px) clamp(10px,2vw,18px);
+  background:rgba(0,0,0,.55);border-bottom:1px solid rgba(0,180,216,.08);
+  backdrop-filter:blur(4px);
+}
+.ba-bar-round{
+  font-size:clamp(.55rem,.9vw,.7rem);letter-spacing:.18em;
+  color:#00b4d8;background:rgba(0,180,216,.1);
+  border:1px solid rgba(0,180,216,.25);padding:4px 12px;border-radius:20px;
+}
+.ba-bar-title{font-size:clamp(.45rem,.7vw,.58rem);letter-spacing:.15em;color:rgba(255,255,255,.2);}
+
+/* HP bars */
+.ba-hps{
+  position:relative;z-index:10;flex-shrink:0;
+  display:flex;align-items:center;gap:clamp(8px,1.5vw,16px);
+  padding:clamp(5px,1vh,8px) clamp(10px,2vw,18px);
+  background:rgba(0,0,0,.3);
+}
+.ba-hp-block{flex:1;}
+.ba-hp-name{font-size:clamp(.5rem,.75vw,.62rem);letter-spacing:.1em;color:rgba(255,255,255,.35);margin-bottom:4px;}
+.ba-hp-track{height:clamp(5px,1vh,7px);background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;}
+.ba-hp-bar{height:100%;border-radius:4px;transition:width .45s ease;}
+.ba-hp-bar.p{background:linear-gradient(90deg,#0077b6,#00b4d8);}
+.ba-hp-bar.e{background:linear-gradient(90deg,#c1121f,#e63946);}
+.ba-hp-num{font-size:clamp(.48rem,.7vw,.6rem);color:rgba(255,255,255,.3);margin-top:3px;}
+.ba-vs-sep{font-size:clamp(.6rem,.9vw,.75rem);color:rgba(255,255,255,.15);flex-shrink:0;font-weight:700;}
+
+/* characters */
+.ba-stage{
+  flex:1;min-height:0;position:relative;z-index:5;
+  display:flex;align-items:flex-end;justify-content:space-between;
+  padding:0 clamp(8%,12vw,16%) clamp(4%,7vh,8%);
+}
+.ba-char{display:flex;flex-direction:column;align-items:center;gap:clamp(3px,0.6vh,6px);}
+.ba-sprite{display:flex;flex-direction:column;align-items:center;position:relative;}
+
+/* character images */
+.ba-shadow-el{
+  width:clamp(60px,10vw,100px);height:clamp(6px,1vh,10px);
+  background:rgba(0,0,0,.5);border-radius:50%;margin-top:2px;
+  filter:blur(3px);
+}
+.ba-char-name{font-size:clamp(.5rem,.75vw,.62rem);letter-spacing:.12em;color:rgba(255,255,255,.35);text-transform:uppercase;}
+/* player glow */
+.ba-char.player .ba-char-img{
+  filter:drop-shadow(0 0 18px rgba(0,180,216,.55)) drop-shadow(0 6px 20px rgba(0,0,0,.8));
+}
+/* scammer — mirror + red glow */
+.ba-char.enemy .ba-char-img{
+  transform:scaleX(-1);
+  filter:drop-shadow(0 0 18px rgba(230,57,70,.55)) drop-shadow(0 6px 20px rgba(0,0,0,.8));
+}
+
+/* sprite anims */
+.ba-sprite.shk{animation:aShk .32s ease-in-out;}
+@keyframes aShk{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}60%{transform:translateX(8px)}80%{transform:translateX(-4px)}}
+.ba-sprite.dead{animation:aDead .55s ease forwards;}
+@keyframes aDead{to{transform:rotate(-85deg) translateX(-20px);opacity:.2;}}
+.ba-sprite.punch{animation:aPunch .38s ease;}
+@keyframes aPunch{0%{transform:translateX(0)}35%{transform:translateX(28px) scaleX(1.08)}100%{transform:translateX(0)}}
+.ba-sprite.shield{animation:aShield .38s ease;}
+@keyframes aShield{0%{transform:scale(1)}30%{transform:scale(1.18) translateX(-8px)}100%{transform:scale(1)}}
+
+/* floating battle msg */
+.ba-fmsg{
+  position:absolute;top:clamp(8px,1.5vh,14px);left:50%;transform:translateX(-50%);
+  z-index:20;pointer-events:none;
+  background:rgba(0,0,0,.88);border-radius:6px;
+  padding:clamp(6px,1vh,9px) clamp(12px,2vw,18px);
+  font-size:clamp(.55rem,.9vw,.7rem);letter-spacing:.05em;
+  white-space:nowrap;opacity:0;transition:opacity .25s;border:1px solid rgba(255,255,255,.1);
+}
+.ba-fmsg.on{opacity:1;}
+.ba-fmsg.atk{border-color:rgba(230,57,70,.5);color:#ff6b6b;}
+.ba-fmsg.ok{border-color:rgba(0,180,216,.5);color:#00b4d8;}
+.ba-fmsg.win{border-color:rgba(46,204,113,.5);color:#2ecc71;}
+
+/* round flash */
+.ba-flash{
+  position:absolute;inset:0;z-index:25;pointer-events:none;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(0,180,216,.05);opacity:0;transition:opacity .18s;
+}
+.ba-flash.on{opacity:1;}
+.ba-flash-txt{font-family:'Syne',sans-serif;font-size:clamp(1.8rem,5vw,3.5rem);font-weight:800;color:#fff;letter-spacing:-.02em;}
+
+
+/* ── CHARACTER IMAGES ─────────────────────────────── */
+.ba-char-img{
+  width:clamp(80px,13vw,140px);
+  height:auto;
+  object-fit:contain;
+  display:block;
+  filter:drop-shadow(0 8px 24px rgba(0,0,0,.7));
+  transition:filter .3s;
+}
+.ba-char.player .ba-char-img{
+  filter:drop-shadow(0 0 16px rgba(0,180,216,.5)) drop-shadow(0 8px 24px rgba(0,0,0,.7));
+}
+.ba-char.enemy .ba-char-img{
+  filter:drop-shadow(0 0 16px rgba(230,57,70,.5)) drop-shadow(0 8px 24px rgba(0,0,0,.7)) scaleX(-1);
+}
+/* dead red cross overlay */
+.ba-dead-cross{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  pointer-events:none;z-index:50;
+}
+.ba-dead-cross svg{
+  width:clamp(60px,10vw,110px);height:clamp(60px,10vw,110px);
+  animation:crossPop .4s cubic-bezier(.34,1.56,.64,1) forwards;
+  transform:scale(0);
+}
+@keyframes crossPop{to{transform:scale(1);}}
+
+/* ── SCAMMER BLOCKS — loop-flying ─────────────────── */
+.ba-scam-block{
+  position:absolute;z-index:15;
+  width:clamp(62px,9.5vw,110px);height:clamp(44px,7vh,78px);
+  border-radius:8px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:3px;
+  font-weight:800;letter-spacing:.03em;text-transform:uppercase;
+  border:2px solid #e63946;
+  background:linear-gradient(135deg,rgba(180,20,30,.4),rgba(80,0,10,.7));
+  box-shadow:0 0 22px rgba(230,57,70,.55),inset 0 0 18px rgba(230,57,70,.12);
+  pointer-events:none;
+  /* JS sets transform & transition for looping */
+}
+.ba-scam-block .bk-icon{font-size:clamp(1.3rem,2.2vw,1.8rem);filter:drop-shadow(0 0 6px #e63946);}
+.ba-scam-block .bk-label{font-size:clamp(.42rem,.7vw,.58rem);color:#ff8a8a;text-align:center;line-height:1.2;padding:0 4px;}
+.ba-scam-block .bk-crack{position:absolute;inset:0;border-radius:8px;
+  background:repeating-linear-gradient(45deg,transparent,transparent 8px,rgba(255,60,60,.07) 8px,rgba(255,60,60,.07) 9px);pointer-events:none;}
+
+/* ── FULL-SIDE SHIELD — light blue covers entire player side ─── */
+#ba-shield-svg{
+  position:absolute;z-index:30;pointer-events:none;
+  left:0;top:0;width:100%;height:100%;overflow:visible;
+}
+.shield-arc{
+  fill:rgba(173,232,255,.18);
+  stroke:#7dd8ff;stroke-width:5;
+  filter:drop-shadow(0 0 22px rgba(125,216,255,1)) drop-shadow(0 0 8px rgba(173,232,255,.8));
+  transform-origin:50% 50%;
+  transform:scaleX(0);
+  transition:transform .45s cubic-bezier(.34,1.56,.64,1);
+}
+.shield-arc.on{transform:scaleX(1);}
+.shield-arc.off{transform:scaleX(0);transition:transform .3s ease-in;}
+.shield-inner{
+  fill:rgba(173,232,255,.09);
+  stroke:rgba(173,232,255,.55);stroke-width:2.5;
+  stroke-dasharray:12 6;
+  transform-origin:50% 50%;
+  transform:scaleX(0);
+  transition:transform .45s cubic-bezier(.34,1.56,.64,1) .06s;
+}
+.shield-inner.on{transform:scaleX(1);}
+.shield-inner.off{transform:scaleX(0);transition:transform .25s ease-in;}
+/* animated hexagonal pattern on shield */
+.shield-hex{
+  fill:none;stroke:rgba(173,232,255,.18);stroke-width:1.5;
+  transform-origin:50% 50%;transform:scaleX(0);
+  transition:transform .45s cubic-bezier(.34,1.56,.64,1) .1s;
+}
+.shield-hex.on{transform:scaleX(1);}
+.shield-hex.off{transform:scaleX(0);}
+/* shield flash on block-hit */
+@keyframes shieldImpact{
+  0%{filter:drop-shadow(0 0 22px rgba(125,216,255,1)) drop-shadow(0 0 8px rgba(173,232,255,.8));}
+  30%{filter:drop-shadow(0 0 70px rgba(173,232,255,1)) drop-shadow(0 0 40px #fff) brightness(2);}
+  100%{filter:drop-shadow(0 0 22px rgba(125,216,255,1)) drop-shadow(0 0 8px rgba(173,232,255,.8));}
+}
+.shield-arc.impact{animation:shieldImpact .35s ease;}
+
+/* ── BLOCK DESTRUCTION SHARDS ─────────────────────── */
+.ba-shard{
+  position:absolute;z-index:20;pointer-events:none;
+  border-radius:3px;
+  animation:shardFly var(--sDur,.75s) ease-out forwards;
+}
+@keyframes shardFly{
+  0%{opacity:1;transform:translate(0,0) rotate(0deg) scale(1);}
+  100%{opacity:0;transform:translate(var(--sx),var(--sy)) rotate(var(--sRot)) scale(0);}
+}
+
+/* ── MEGA COUNTER BLOCK (4× scammer size) ─────────── */
+.ba-mega-block{
+  position:absolute;z-index:28;pointer-events:none;
+  /* 4× scammer = ~4×100px */
+  width:clamp(240px,38vw,420px);height:clamp(160px,26vh,300px);
+  border-radius:16px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:8px;
+  border:3px solid #00b4d8;
+  background:linear-gradient(135deg,rgba(0,80,160,.5),rgba(0,20,60,.8));
+  box-shadow:0 0 60px rgba(0,180,216,.7),0 0 120px rgba(0,180,216,.3),inset 0 0 40px rgba(0,180,216,.15);
+  font-weight:900;
+  opacity:0;
+  transform:scale(0.1);
+}
+.ba-mega-block .bk-icon{font-size:clamp(3rem,6vw,5.5rem);filter:drop-shadow(0 0 16px #00b4d8);}
+.ba-mega-block .bk-label{font-size:clamp(.8rem,1.4vw,1.3rem);color:#7be0ff;text-align:center;line-height:1.3;padding:0 12px;letter-spacing:.08em;}
+.ba-mega-block.assemble{animation:megaAssemble .6s cubic-bezier(.34,1.56,.64,1) forwards;}
+@keyframes megaAssemble{
+  0%{opacity:0;transform:scale(0.1) rotate(-8deg);}
+  60%{opacity:1;transform:scale(1.08) rotate(2deg);}
+  80%{transform:scale(.96) rotate(-1deg);}
+  100%{opacity:1;transform:scale(1) rotate(0deg);}
+}
+.ba-mega-block.launch{animation:megaLaunch 1s cubic-bezier(.22,.9,.36,1) forwards;}
+@keyframes megaLaunch{
+  0%{opacity:1;transform:scale(1) translateX(0);}
+  15%{transform:scale(1.1) translateX(-20px);}
+  85%{opacity:1;transform:scale(.9) translateX(var(--mDx,70vw));}
+  100%{opacity:0;transform:scale(.2) translateX(var(--mDx,70vw));}
+}
+
+/* ── SCREEN SHAKE ─────────────────────────────────── */
+@keyframes screenShake{
+  0%,100%{transform:translate(0,0);}
+  15%{transform:translate(-7px,5px);}
+  30%{transform:translate(7px,-5px);}
+  50%{transform:translate(-5px,7px);}
+  70%{transform:translate(5px,-4px);}
+  85%{transform:translate(-3px,3px);}
+}
+.ba-field.shake{animation:screenShake .38s ease;}
+
+/* ── SCREEN FLASH ─────────────────────────────────── */
+.ba-hit-flash{
+  position:absolute;inset:0;z-index:35;pointer-events:none;
+  background:rgba(230,57,70,.4);opacity:0;
+  animation:hitFlash .35s ease forwards;
+}
+.ba-good-flash{
+  position:absolute;inset:0;z-index:35;pointer-events:none;
+  background:rgba(0,180,216,.25);opacity:0;
+  animation:hitFlash .4s ease forwards;
+}
+@keyframes hitFlash{0%{opacity:0;}25%{opacity:1;}100%{opacity:0;}}
+
+/* death overlay */
+.ba-death{
+  position:absolute;inset:0;z-index:40;
+  background:radial-gradient(ellipse at center, rgba(60,0,0,.97) 0%, rgba(0,0,0,.99) 70%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:clamp(16px,3vw,32px);gap:clamp(8px,1.5vh,14px);text-align:center;
+  opacity:0;pointer-events:none;transition:opacity .4s;
+}
+.ba-death.on{opacity:1;pointer-events:all;}
+.ba-death-cross-wrap{
+  animation:crossPopIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+.ba-death-cross-svg{
+  width:clamp(70px,12vw,120px);height:clamp(70px,12vw,120px);
+  filter:drop-shadow(0 0 24px rgba(230,57,70,.9));
+}
+@keyframes crossPopIn{from{transform:scale(0) rotate(-15deg);opacity:0;}to{transform:scale(1) rotate(0deg);opacity:1;}}
+.ba-death-h{font-family:'Syne',sans-serif;font-size:clamp(1.2rem,3vw,2rem);font-weight:800;color:#e63946;}
+.ba-death-s{font-size:clamp(.55rem,.8vw,.68rem);letter-spacing:.15em;color:rgba(255,255,255,.3);}
+.ba-death-tip{
+  max-width:clamp(200px,40vw,380px);
+  font-size:clamp(.6rem,.85vw,.72rem);color:rgba(255,255,255,.55);line-height:1.65;
+  background:rgba(230,57,70,.06);border:1px solid rgba(230,57,70,.2);
+  border-radius:8px;padding:clamp(10px,1.5vh,14px) clamp(12px,2vw,16px);
+}
+.ba-retry{
+  padding:clamp(10px,1.5vh,13px) clamp(20px,3vw,30px);
+  background:rgba(230,57,70,.1);border:1.5px solid rgba(230,57,70,.5);
+  border-radius:8px;color:#e63946;
+  font-family:'IBM Plex Mono',monospace;font-size:clamp(.6rem,.9vw,.75rem);
+  letter-spacing:.12em;cursor:pointer;text-transform:uppercase;transition:all .2s;
+}
+.ba-retry:hover{background:rgba(230,57,70,.22);}
+
+/* RIGHT: choices panel */
+.ba-panel{
+  width:clamp(220px,36%,360px);flex-shrink:0;
+  background:#020c18;border-left:1.5px solid rgba(0,180,216,.12);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.ba-panel-hd{
+  padding:clamp(10px,2vh,16px) clamp(12px,2vw,18px);
+  border-bottom:1px solid rgba(0,180,216,.08);flex-shrink:0;
+  background:rgba(0,0,0,.4);
+}
+.ba-panel-tag{font-size:clamp(.48rem,.7vw,.58rem);letter-spacing:.2em;color:rgba(230,57,70,.6);text-transform:uppercase;margin-bottom:6px;}
+.ba-panel-atk{
+  font-size:clamp(.65rem,1vw,.8rem);font-weight:600;color:rgba(255,255,255,.85);
+  line-height:1.45;min-height:2.9em;
+}
+.ba-panel-atk.red{color:#ff7b7b;}
+.ba-choices-hd{
+  padding:clamp(6px,1vh,10px) clamp(12px,2vw,18px) clamp(4px,.8vh,7px);
+  font-size:clamp(.48rem,.7vw,.58rem);letter-spacing:.18em;
+  color:rgba(0,180,216,.45);text-transform:uppercase;flex-shrink:0;
+}
+.ba-choices{
+  flex:1;display:flex;flex-direction:column;
+  gap:clamp(8px,1.5vh,12px);padding:0 clamp(12px,2vw,18px) clamp(12px,2vh,18px);
+  min-height:0;overflow:hidden;
+}
+.ba-btn{
+  flex:1;min-height:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:clamp(8px,1.5vh,12px) clamp(10px,1.8vw,16px);
+  border-radius:10px;cursor:pointer;border:1.5px solid;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:clamp(.62rem,.95vw,.78rem);font-weight:600;
+  text-align:center;line-height:1.5;letter-spacing:.04em;
+  text-transform:uppercase;transition:all .18s;position:relative;overflow:hidden;
+}
+.ba-btn::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .15s;background:rgba(255,255,255,.04);}
+.ba-btn:hover::before,.ba-btn:active::before{opacity:1;}
+.ba-btn.safe{background:rgba(0,100,180,.1);border-color:rgba(0,180,216,.4);color:#00b4d8;}
+.ba-btn.safe:hover{background:rgba(0,100,180,.18);box-shadow:0 0 18px rgba(0,180,216,.15);}
+.ba-btn.bad{background:rgba(180,20,20,.06);border-color:rgba(230,57,70,.25);color:rgba(230,57,70,.7);}
+.ba-btn.bad:hover{background:rgba(180,20,20,.14);}
+.ba-btn:disabled{opacity:.35;cursor:not-allowed;}
+.ba-btn-icon{font-size:clamp(1.2rem,2.2vw,1.8rem);margin-bottom:clamp(4px,.8vh,7px);}
+.ba-btn-label{font-size:clamp(.6rem,.95vw,.78rem);}
+
+/* ── VICTORY ─────────────────────────────────────── */
+#BV{
+  position:absolute;inset:0;display:none;
+  align-items:center;justify-content:center;
+  background:radial-gradient(ellipse 80% 80% at 50% 50%,#021a0e 0%,#000 80%);
+  cursor:pointer;
+}
+#BV.on{display:flex;}
+.bv-parts{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+.bvp{position:absolute;width:clamp(4px,0.7vw,7px);height:clamp(4px,0.7vw,7px);border-radius:50%;animation:bvpFly 1.8s ease-out forwards;}
+@keyframes bvpFly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--vx),var(--vy)) scale(0);opacity:0}}
+
+/* Popup card */
+.bv-popup{
+  position:relative;z-index:10;
+  width:min(560px,90vw);
+  max-height:90vh;
+  overflow-y:auto;
+  background:linear-gradient(145deg,#04160b 0%,#030f06 100%);
+  border:2px solid rgba(46,204,113,.6);
+  border-radius:24px;
+  box-shadow:0 0 80px rgba(46,204,113,.3),0 0 160px rgba(46,204,113,.1),inset 0 0 60px rgba(46,204,113,.04);
+  padding:clamp(20px,4vw,40px) clamp(20px,4vw,36px);
+  text-align:center;
+  animation:popupSlideIn .6s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes popupSlideIn{from{transform:scale(.7) translateY(40px);opacity:0;}to{transform:scale(1) translateY(0);opacity:1;}}
+.bv-popup-glow{
+  position:absolute;inset:0;border-radius:24px;pointer-events:none;
+  background:radial-gradient(ellipse at top,rgba(46,204,113,.1) 0%,transparent 60%);
+}
+.bv-popup-inner{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:clamp(10px,2vh,16px);}
+/* badge chip */
+.bv-notif{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(46,204,113,.15);border:1px solid rgba(46,204,113,.5);
+  border-radius:30px;padding:6px 18px;
+  font-size:clamp(.58rem,.85vw,.7rem);color:#2ecc71;white-space:nowrap;
+  letter-spacing:.12em;
+  animation:fu .5s .1s both;
+}
+/* Defeated scammer image */
+.bv-defeat-wrap{animation:fu .6s .2s both;}
+.bv-defeat-img-wrap{
+  position:relative;display:inline-block;
+}
+.bv-defeated-img{
+  width:clamp(70px,14vw,120px);height:auto;
+  opacity:.55;
+  filter:grayscale(40%) drop-shadow(0 0 10px rgba(230,57,70,.4));
+}
+.bv-defeat-cross{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:clamp(60px,12vw,110px);height:clamp(60px,12vw,110px);
+  filter:drop-shadow(0 0 16px rgba(230,57,70,1));
+  animation:crossPopIn .5s .4s cubic-bezier(.34,1.56,.64,1) both;
+}
+.bv-ico{font-size:clamp(2.5rem,5vw,4rem);animation:bvIco .55s .5s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes bvIco{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+.bv-h{font-family:'Syne',sans-serif;font-size:clamp(1.4rem,3.5vw,2.4rem);font-weight:800;color:#2ecc71;animation:fu .5s .55s both;}
+.bv-sub{font-size:clamp(.55rem,.8vw,.66rem);letter-spacing:.22em;color:rgba(46,204,113,.55);animation:fu .5s .6s both;}
+.bv-tip{
+  max-width:440px;
+  font-size:clamp(.6rem,.85vw,.72rem);color:rgba(255,255,255,.6);
+  line-height:1.7;background:rgba(46,204,113,.05);
+  border:1px solid rgba(46,204,113,.18);border-radius:10px;
+  padding:clamp(10px,1.8vh,16px) clamp(14px,2.2vw,20px);
+  animation:fu .5s .7s both;text-align:left;
+}
+.bv-tip strong{color:#2ecc71;}
+/* Tap to continue hint */
+.bv-tap-hint{
+  display:flex;align-items:center;gap:10px;
+  font-size:clamp(.55rem,.85vw,.68rem);letter-spacing:.2em;
+  color:rgba(46,204,113,.65);text-transform:uppercase;
+  animation:fu .5s .9s both, tapBlink 1.4s 1.2s ease-in-out infinite;
+}
+@keyframes tapBlink{0%,100%{opacity:.5}50%{opacity:1}}
+.bv-tap-pulse{
+  width:10px;height:10px;border-radius:50%;background:#2ecc71;flex-shrink:0;
+  animation:tapPulse 1.2s ease-in-out infinite;
+}
+@keyframes tapPulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(46,204,113,.7)}50%{transform:scale(1.2);box-shadow:0 0 0 8px rgba(46,204,113,0)}}
+@keyframes fu{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+</style>
+</head>
+<body class="page-enter">
+
+<!-- ══════════ BATTLE GAME ══════════ -->
+<div id="BG">
+
+<!-- SPLASH: cinematic full-screen -->
+<div id="BS" onclick="BG.showInstr()">
+  <div class="sp-bg-grid"></div>
+  <div class="sp-particles" id="sp-particles"></div>
+  <div class="sp-content">
+    <!-- Left character -->
+    <div class="sp-char-zone sp-char-player">
+      <img src="image_mode3/fight_f.png" class="sp-char-img" alt="Player"/>
+      <div class="sp-char-label">DEFENDER</div>
+    </div>
+    <!-- Center title area -->
+    <div class="sp-center">
+      <div class="sp-eyebrow">⚡ CYBERVERSE // LEVEL 3</div>
+      <div class="sp-vs-badge">VS</div>
+      <div class="sp-h1">DEFEAT THE<br><em>SCAMMER</em></div>
+      <div class="sp-divider"></div>
+        <div class="sp-tap-wrap">
+        <div class="sp-ripple"></div>
+        <div class="sp-ripple"></div>
+        <div class="sp-tap-btn">
+          <span class="sp-tap-arrow">▶</span>
+        </div>
+      </div>
+     </div>
+    <!-- Right character -->
+    <div class="sp-char-zone sp-char-enemy">
+      <img src="image_mode3/fight_s.png" class="sp-char-img sp-char-flip" alt="Scammer"/>
+      <div class="sp-char-label sp-char-label-red">SCAMMER</div>
+    </div>
+  </div>
+</div>
+
+<!-- INSTRUCTIONS: polished how-to screen -->
+<div id="BI">
+  <div class="bi-bg-glow"></div>
+  <div class="bi-layout">
+    <!-- Left panel — visual preview characters -->
+    <div class="bi-left">
+      <div class="bi-chars-preview">
+        <div class="bi-preview-char">
+          <img src="image_mode3/fight_f.png" class="bi-preview-img" alt="Player"/>
+          <div class="bi-preview-tag bi-preview-tag-blue">YOU</div>
+        </div>
+        <div class="bi-preview-vs">VS</div>
+        <div class="bi-preview-char">
+          <img src="image_mode3/fight_s.png" class="bi-preview-img bi-preview-flip" alt="Scammer"/>
+          <div class="bi-preview-tag bi-preview-tag-red">SCAMMER</div>
+        </div>
+      </div>
+      <div class="bi-ico">⚔️</div>
+      <div class="bi-h">Destroy the Scammer<br>by Making Right Choices</div>
+    </div>
+    <!-- Right panel — instructions -->
+    <div class="bi-right">
+      <div class="bi-right-title">HOW TO PLAY</div>
+      <div class="bi-row">
+        <div class="bi-num">1</div>
+        <div class="bi-text">Scammer <strong>hurls attacks</strong> from the right side. Watch the battle field.</div>
+      </div>
+      <div class="bi-row">
+        <div class="bi-num">2</div>
+        <div class="bi-text">Tap the <strong>correct choice</strong> from the right panel to block and counter-strike.</div>
+      </div>
+      <div class="bi-row">
+        <div class="bi-num">3</div>
+        <div class="bi-text">Wrong choice = <strong>you die instantly</strong>. Tap <em>Try Again</em> to restart.</div>
+      </div>
+      <div class="bi-row">
+        <div class="bi-num">4</div>
+        <div class="bi-text">Survive all <strong>3 rounds</strong> → Scammer defeated → Level 2 unlocks!</div>
+      </div>
+      <button class="bi-start" onclick="BG.start()">⚔ BEGIN BATTLE</button>
+    </div>
+  </div>
+</div>
+
+<!-- BATTLE ARENA: landscape split left=field right=choices -->
+<div id="BA">
+  <div class="ba-field" id="ba-field">
+    <div class="ba-glow"></div>
+    <div class="ba-scanlines"></div>
+    <div class="ba-floor"></div>
+    <div class="ba-bar">
+      <div class="ba-bar-round" id="ba-rnd">ROUND 1 / 3</div>
+      <div class="ba-bar-title">CYBER BATTLE ARENA</div>
+    </div>
+    <div class="ba-hps">
+      <div class="ba-hp-block">
+        <div class="ba-hp-name">PLAYER</div>
+        <div class="ba-hp-track"><div class="ba-hp-bar p" id="ba-php" style="width:100%"></div></div>
+        <div class="ba-hp-num" id="ba-phv">3 / 3</div>
+      </div>
+      <div class="ba-vs-sep">VS</div>
+      <div class="ba-hp-block" style="text-align:right">
+        <div class="ba-hp-name" style="text-align:right">SCAMMER</div>
+        <div class="ba-hp-track"><div class="ba-hp-bar e" id="ba-ehp" style="width:100%"></div></div>
+        <div class="ba-hp-num" style="text-align:right" id="ba-ehv">3 / 3</div>
+      </div>
+    </div>
+    <div class="ba-stage">
+      <div class="ba-char player">
+        <div class="ba-sprite" id="ba-ps">
+          <img src="image_mode3/fight_f.png" class="ba-char-img" alt="Player" draggable="false"/>
+          <div class="ba-shadow-el"></div>
+        </div>
+        <div class="ba-char-name">PLAYER</div>
+      </div>
+      <div class="ba-char enemy">
+        <div class="ba-sprite" id="ba-es">
+          <img src="image_mode3/fight_s.png" class="ba-char-img" alt="Scammer" draggable="false"/>
+          <div class="ba-shadow-el"></div>
+        </div>
+        <div class="ba-char-name">SCAMMER</div>
+      </div>
+    </div>
+    <div class="ba-fmsg" id="ba-msg"></div>
+    <div class="ba-flash" id="ba-flash"><div class="ba-flash-txt" id="ba-ftxt"></div></div>
+    <!-- Full-side light-blue shield — covers entire left/player column -->
+    <svg id="ba-shield-svg" viewBox="0 0 800 500" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="shieldGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="rgba(173,232,255,0.32)"/>
+          <stop offset="100%" stop-color="rgba(125,216,255,0.05)"/>
+        </linearGradient>
+      </defs>
+      <!-- hex shimmer pattern -->
+      <g id="ba-shield-hex-grp" class="shield-hex">
+        <path d="M22,40 l16,-9 l16,9 l0,18 l-16,9 l-16,-9 Z" />
+        <path d="M54,40 l16,-9 l16,9 l0,18 l-16,9 l-16,-9 Z" />
+        <path d="M38,67 l16,-9 l16,9 l0,18 l-16,9 l-16,-9 Z" />
+        <path d="M22,94 l16,-9 l16,9 l0,18 l-16,9 l-16,-9 Z" />
+        <path d="M54,94 l16,-9 l16,9 l0,18 l-16,9 l-16,-9 Z" />
+        <path d="M22,148 l16,-9 l16,9 l0,18 l-16,9 l-16,-9 Z" />
+        <path d="M54,148 l16,-9 l16,9 l0,18 l-16,9 l-16,-9 Z" />
+        <path d="M38,175 l16,-9 l16,9 l0,18 l-16,9 l-16,-9 Z" />
+        <path d="M22,202 l16,-9 l16,9 l0,18 l-16,9 l-16,-9 Z" />
+        <path d="M54,202 l16,-9 l16,9 l0,18 l-16,9 l-16,-9 Z" />
+        <path d="M22,256 l16,-9 l16,9 l0,18 l-16,9 l-16,-9 Z" />
+        <path d="M54,256 l16,-9 l16,9 l0,18 l-16,9 l-16,-9 Z" />
+        <path d="M38,283 l16,-9 l16,9 l0,18 l-16,9 l-16,-9 Z" />
+        <path d="M22,310 l16,-9 l16,9 l0,18 l-16,9 l-16,-9 Z" />
+        <path d="M54,310 l16,-9 l16,9 l0,18 l-16,9 l-16,-9 Z" />
+        <path d="M22,364 l16,-9 l16,9 l0,18 l-16,9 l-16,-9 Z" />
+        <path d="M54,364 l16,-9 l16,9 l0,18 l-16,9 l-16,-9 Z" />
+        <path d="M38,391 l16,-9 l16,9 l0,18 l-16,9 l-16,-9 Z" />
+        <path d="M22,418 l16,-9 l16,9 l0,18 l-16,9 l-16,-9 Z" />
+        <path d="M54,418 l16,-9 l16,9 l0,18 l-16,9 l-16,-9 Z" />
+        <path d="M38,445 l16,-9 l16,9 l0,18 l-16,9 l-16,-9 Z" />
+        <path d="M22,472 l16,-9 l16,9 l0,18 l-16,9 l-16,-9 Z" />
+      </g>
+      <!-- inner gradient fill -->
+      <rect id="ba-shield-inner" class="shield-inner"
+        x="5" y="0" width="88" height="500"/>
+      <!-- main shield face with border -->
+      <rect id="ba-shield-arc" class="shield-arc"
+        x="0" y="0" width="96" height="500"/>
+    </svg>
+    <div class="ba-death" id="ba-death">
+      <div class="ba-death-cross-wrap">
+        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" class="ba-death-cross-svg">
+          <circle cx="50" cy="50" r="48" fill="rgba(230,57,70,0.18)" stroke="#e63946" stroke-width="3"/>
+          <line x1="25" y1="25" x2="75" y2="75" stroke="#e63946" stroke-width="10" stroke-linecap="round"/>
+          <line x1="75" y1="25" x2="25" y2="75" stroke="#e63946" stroke-width="10" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="ba-death-h" id="ba-dh">YOU DIED!</div>
+      <div class="ba-death-s" id="ba-ds">WRONG CHOICE — GAME OVER</div>
+      <div class="ba-death-tip" id="ba-dtip"></div>
+      <button class="ba-retry" onclick="BG.restart()">↺ TRY AGAIN</button>
+    </div>
+  </div>
+  <div class="ba-panel">
+    <div class="ba-panel-hd">
+      <div class="ba-panel-tag" id="ba-atk-tag">⚠ INCOMING ATTACK</div>
+      <div class="ba-panel-atk" id="ba-atk-txt">Get ready...</div>
+    </div>
+    <div class="ba-choices-hd">→ CHOOSE YOUR ACTION</div>
+    <div class="ba-choices" id="ba-choices"></div>
+  </div>
+</div>
+
+<!-- VICTORY -->
+<div id="BV">
+  <div class="bv-parts" id="bv-parts"></div>
+  <!-- Victory popup card -->
+  <div class="bv-popup" id="bv-popup" onclick="BG.enter()">
+    <div class="bv-popup-glow"></div>
+    <div class="bv-popup-inner">
+      <div class="bv-notif" id="bv-notif">🏆 LEVEL 2 UNLOCKED!</div>
+      <!-- Scammer defeated image cross -->
+      <div class="bv-defeat-wrap">
+        <div class="bv-defeat-img-wrap">
+          <img src="image_mode3/fight_s.png" class="bv-defeated-img" alt="Defeated Scammer"/>
+          <svg class="bv-defeat-cross" viewBox="0 0 100 100" fill="none">
+            <circle cx="50" cy="50" r="46" fill="rgba(230,57,70,0.3)" stroke="#e63946" stroke-width="4"/>
+            <line x1="22" y1="22" x2="78" y2="78" stroke="#e63946" stroke-width="12" stroke-linecap="round"/>
+            <line x1="78" y1="22" x2="22" y2="78" stroke="#e63946" stroke-width="12" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+      <div class="bv-ico">🏆</div>
+      <div class="bv-h">SCAMMER DEFEATED!</div>
+      <div class="bv-sub">// CYBER THREAT NEUTRALISED</div>
+      <div class="bv-tip">You reported the scammer to <strong>Cyber Crime</strong> — the most powerful counter against digital fraud.<br><br><strong>Real tip:</strong> Report scams at <strong>cybercrime.gov.in</strong> or call helpline <strong>1930</strong>. Never ignore — report always.</div>
+      <div class="bv-tap-hint">
+        <span class="bv-tap-pulse"></span>
+        TAP ANYWHERE TO CONTINUE →
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end #BG -->
+<!-- ══════════ END BATTLE GAME ══════════ -->
+
+
+<a href="#main-content" class="skip-link">Skip to main content</a>
+<button class="theme-toggle" id="theme-btn" onclick="toggleTheme()" aria-label="Toggle dark and light mode">🌙</button>
+<div class="a11y-bar" role="toolbar" aria-label="Accessibility controls">
+  <span class="a11y-label" aria-hidden="true">A11Y</span>
+  <button class="a11y-btn" data-action="font-sm" onclick="setFont('sm')" aria-label="Small font">A</button>
+  <button class="a11y-btn" data-action="font-md" onclick="setFont('md')" aria-label="Medium font">A+</button>
+  <button class="a11y-btn" data-action="font-lg" onclick="setFont('lg')" aria-label="Large font" style="font-weight:700">A++</button>
+  <div class="a11y-sep" role="separator"></div>
+  <button class="a11y-btn" data-action="contrast" onclick="toggleContrast()" aria-label="Toggle high contrast">⬤ HC</button>
+  <div class="a11y-sep" role="separator"></div>
+  <button class="a11y-btn" data-action="kbd" onclick="showKbdHelp()" aria-label="Keyboard shortcuts">⌨</button>
+</div>
+
+<div id="cin-overlay" role="dialog" aria-label="Attack consequence" aria-live="assertive"><div class="cin-vig"></div><div class="cin-term"><div class="cin-tbar"><div class="cin-dot r"></div><div class="cin-dot a"></div><div class="cin-dot g"></div><span class="cin-tbar-txt">SYSTEM INTRUSION DETECTED</span><span class="cin-tbar-live">● LIVE</span></div><div class="cin-body" id="cin-body"></div><div class="cin-foot" id="cin-foot"><span class="cin-foot-msg">// WHAT JUST HAPPENED TO YOU</span><button class="cin-cont" onclick="closeCinBad()">UNDERSTOOD → CONTINUE</button></div></div></div>
+<div id="cin-good" role="dialog" aria-label="Threat neutralised" aria-live="assertive"><div class="cin-parts" id="cin-parts"></div><div class="cin-shield" id="cin-si">🛡</div><div class="cin-gtitle" id="cin-gt">THREAT NEUTRALISED</div><div class="cin-gsub" id="cin-gs">// EXCELLENT DECISION</div><div class="cin-gtip" id="cin-gtip"></div><div class="cin-pts" id="cin-pts">+50 PTS</div><button class="cin-cont" style="border-color:rgba(46,204,113,.5);color:var(--green);background:rgba(46,204,113,.1);" onclick="closeCinGood()">FINISH LEVEL →</button></div></div>
+
+<!-- ===== MINIGAME OVERLAY ===== -->
+<div id="mg-overlay" role="dialog" aria-label="Mini Challenge" aria-live="polite">
+  <div class="mg-box">
+    <div class="mg-header">
+      <div class="mg-title" id="mg-title">MINI CHALLENGE</div>
+      <div class="mg-badge" id="mg-badge">SECURITY SKILL</div>
+    </div>
+    <div class="mg-body" id="mg-body">
+      <div class="mg-instruction" id="mg-instruction"></div>
+      <div id="mg-content"></div>
+      <div class="mg-result" id="mg-result"></div>
+    </div>
+    <div class="mg-foot">
+      <button class="mg-btn primary" id="mg-submit" onclick="submitMG()">SUBMIT →</button>
+    </div>
+  </div>
+</div>
+
+<div id="hud" class="on" role="banner" aria-label="Game status">
+  <div class="hud-inner">
+    <div class="hud-bar"><div class="hud-bar-label">Security Health <span id="h-val">—</span></div><div class="bar-track"><div class="bar-fill" id="h-fill" style="width:0%;background:var(--green)"></div></div></div>
+    <div class="hud-bar"><div class="hud-bar-label">Trust Level <span id="t-val">—</span></div><div class="bar-track"><div class="bar-fill" id="t-fill" style="width:0%;background:var(--accent)"></div></div></div>
+    <div class="hud-user"><div class="hud-avatar" id="hud-av" aria-hidden="true">?</div><div class="hud-uname" id="hud-uname">PLAYER</div></div>
+    <div class="hud-score-block" aria-live="polite"><div class="sc-num" id="sc-num">—</div><div class="sc-lbl">SCORE</div></div>
+  </div>
+</div>
+
+<div class="app layer" id="main-content" role="main">
+  <div class="breadcrumb" id="breadcrumb" aria-label="Scenario progress"></div>
+  <div class="scenario-header"><div><div class="sh-label" id="sh-label">—</div><div class="sh-title" id="sh-title">—</div><div class="sh-meta" id="sh-meta">—</div></div></div>
+  <div id="scenario-body" aria-live="polite"></div>
+  <div id="feedback-area" aria-live="assertive"></div>
+  <div id="choices-area" style="display:none;"></div>
+</div>
+
+<script src="../shared.js"></script>
+<script>
+// hide main scene until battle won
+document.getElementById('hud').style.display='none';
+document.getElementById('main-content').style.display='none';
+
+var BG=(function(){
+  var ROUNDS=[
+    {
+      n:1,
+      atkTag:'⚠ ROUND 1 ATTACK',
+      atkTxt:'Scammer hurls endless FAKE LINKS!\nChoose your defence!',
+      blockDef:{icon:'🔗',label:'FAKE\nLINK'},
+      choices:[
+        {icon:'🛡',label:'BLOCK THE\nFAKE LINK',safe:true},
+        {icon:'🖱',label:'CLICK THE\nFAKE LINK',safe:false}
+      ],
+      counterIcon:'🛡',counterLabel:'DO NOT\nCLICK IT',
+      dh:'CLICKED THE FAKE LINK!',ds:'DEVICE COMPROMISED',
+      dtip:'Never click unknown links. Scammers disguise malicious URLs to steal your data or install malware.'
+    },
+    {
+      n:2,
+      atkTag:'⚠ ROUND 2 ATTACK',
+      atkTxt:'Wave after wave of FAKE QR!\nBlock and counter-strike!',
+      blockDef:{icon:'📷',label:'FAKE\nQR'},
+      choices:[
+        {icon:'💨',label:'DODGE &\nDESTROY',safe:true},
+        {icon:'📱',label:'SCAN IT',safe:false}
+      ],
+      counterIcon:'💥',counterLabel:'AVOID\nIT',
+      dh:'SCANNED THE FAKE QR!',ds:'ACCOUNT DRAINED',
+      dtip:'Never scan QR codes from unknown sources. Fake QRs redirect to phishing sites.'
+    },
+    {
+      n:3,
+      atkTag:'⚠ ROUND 3 — FINAL BOSS',
+      atkTxt:'INFINITE FAKE CALLS incoming!\nReport to end this scammer!',
+      blockDef:{icon:'📞',label:'FAKE\nCALL'},
+      choices:[
+        {icon:'🚨',label:'REPORT TO\nCYBER CRIME',safe:true},
+        {icon:'📢',label:'ENGAGE\nSCAMMER',safe:false}
+      ],
+      counterIcon:'🚨',counterLabel:'REPORT\nCYBER CRIME',
+      dh:'ENGAGED WITH THE SCAMMER!',ds:'PERSONAL DATA STOLEN',
+      dtip:'Never engage with suspicious callers. Report immediately to cybercrime.gov.in or call 1930.'
+    }
+  ];
+
+  var S={round:0,busy:false,php:3,ehp:3,loopTimers:[],activeBlocks:[],choiceMade:false};
+  function g(id){return document.getElementById(id);}
+
+  function updHP(){
+    g('ba-php').style.width=(S.php/3*100)+'%';
+    g('ba-ehp').style.width=(S.ehp/3*100)+'%';
+    g('ba-phv').textContent=Math.max(0,S.php)+' / 3';
+    g('ba-ehv').textContent=Math.max(0,S.ehp)+' / 3';
+  }
+
+  function msg(txt,cls,dur){
+    var m=g('ba-msg');m.className='ba-fmsg on '+(cls||'');m.textContent=txt;
+    clearTimeout(m._t);m._t=setTimeout(function(){m.classList.remove('on');},dur||2400);
+  }
+
+  /* ── STOP ALL LOOPS & CLEAR FIELD ── */
+  function stopAll(){
+    S.loopTimers.forEach(function(t){clearTimeout(t);clearInterval(t);});
+    S.loopTimers=[];
+  }
+  function clearField(){
+    stopAll();
+    S.activeBlocks.forEach(function(b){if(b.el&&b.el.parentNode)b.el.remove();});
+    S.activeBlocks=[];
+    g('ba-field').querySelectorAll('.ba-scam-block,.ba-shard,.ba-mega-block,.ba-hit-flash,.ba-good-flash').forEach(function(e){e.remove();});
+  }
+
+  /* ────────────────────────────────────────────────────
+     HALF-CIRCLE SHIELD (SVG)
+     The shield is a right-facing D-shape anchored to
+     the player character, built from the player's actual
+     position within the field each time it is raised.
+  ──────────────────────────────────────────────────── */
+  function shieldOn(){
+    /* Full-side shield: the SVG rect already covers x=0..96, y=0..500 (full left column).
+       We just need to scale it from the player's x position in the viewBox so it fills
+       the entire left side of the field. We position the SVG viewBox so x=0..~30% of field. */
+    var field=g('ba-field');
+    var svg=g('ba-shield-svg');
+    var fr=field.getBoundingClientRect();
+    // Make viewBox cover only the left ~30% of the field so rect fills that zone
+    var vbW=Math.round(800*0.30); // ~240 units = left 30% of field
+    svg.setAttribute('viewBox','0 0 '+vbW+' 500');
+    // Update hex group and rects to match
+    g('ba-shield-arc').setAttribute('width', vbW);
+    g('ba-shield-inner').setAttribute('width', vbW-8);
+
+    var arc=g('ba-shield-arc'), inn=g('ba-shield-inner');
+    var hex=g('ba-shield-hex-grp');
+    void arc.getBoundingClientRect();
+    arc.classList.remove('off','impact');
+    inn.classList.remove('off');
+    arc.classList.add('on');
+    inn.classList.add('on');
+    if(hex){hex.classList.remove('off');hex.classList.add('on');}
+  }
+
+  function shieldFlash(){
+    var arc=g('ba-shield-arc');
+    arc.classList.remove('impact');
+    void arc.getBoundingClientRect();
+    arc.classList.add('impact');
+  }
+
+  function shieldOff(){
+    var arc=g('ba-shield-arc'), inn=g('ba-shield-inner');
+    var hex=g('ba-shield-hex-grp');
+    arc.classList.remove('on','impact');
+    inn.classList.remove('on');
+    arc.classList.add('off');
+    inn.classList.add('off');
+    if(hex){hex.classList.remove('on');hex.classList.add('off');}
+  }
+
+  /* ────────────────────────────────────────────────────
+     CONTINUOUS BLOCK STREAM
+     Blocks fly right-to-left from scammer to player.
+     Each block is JS-animated via requestAnimationFrame
+     so we can track positions for shield collision.
+  ──────────────────────────────────────────────────── */
+  function spawnBlock(blockDef){
+    var field=g('ba-field');
+    if(!field) return;
+    var fw=field.clientWidth, fh=field.clientHeight;
+    var bw=Math.round(fw*0.11+40);  // scammer block width  ~100px
+    var bh=Math.round(fh*0.16+20);  // scammer block height ~70px
+    var topPct=15+Math.random()*60;
+    var topPx=fh*topPct/100;
+    var startX=fw+10;
+    var speed=(fw*0.38+Math.random()*fw*0.08); // px/sec — crosses in ~2s
+    var rot=(Math.random()*18-9);
+    var startTime=performance.now();
+
+    var el=document.createElement('div');
+    el.className='ba-scam-block';
+    el.style.cssText='width:'+bw+'px;height:'+bh+'px;position:absolute;top:'+topPx+'px;left:'+startX+'px;transform:rotate('+rot+'deg);transition:none;';
+    el.innerHTML='<div class="bk-crack"></div><div class="bk-icon">'+blockDef.icon+'</div><div class="bk-label">'+blockDef.label.replace(/\n/g,'<br>')+'</div>';
+    field.appendChild(el);
+
+    var record={el:el,dead:false};
+    S.activeBlocks.push(record);
+
+    var raf;
+    function tick(now){
+      if(record.dead){if(el.parentNode)el.remove();return;}
+      var elapsed=(now-startTime)/1000;
+      var x=startX - speed*elapsed;
+      if(x < -bw-10){
+        // looped off left — remove
+        record.dead=true;
+        if(el.parentNode)el.remove();
+        var idx=S.activeBlocks.indexOf(record);
+        if(idx>-1)S.activeBlocks.splice(idx,1);
+        // spawn replacement unless choice made
+        if(!S.choiceMade) spawnBlock(blockDef);
+        return;
+      }
+      el.style.left=x+'px';
+      // Shield collision zone: left ~20% of field
+      if(S.choiceMade && x < fw*0.25 && x > 0){
+        shieldFlash();
+      }
+      raf=requestAnimationFrame(tick);
+    }
+    raf=requestAnimationFrame(tick);
+    record.raf=raf;
+  }
+
+  function startBlockStream(blockDef){
+    var count=S.round+3; // 3, 4, or 5 blocks simultaneously
+    for(var i=0;i<count;i++){
+      (function(delay){
+        var t=setTimeout(function(){
+          if(!S.choiceMade) spawnBlock(blockDef);
+        },delay);
+        S.loopTimers.push(t);
+      })(i*380);
+    }
+  }
+
+  /* ────────────────────────────────────────────────────
+     FREEZE & EXPLODE ALL FLYING BLOCKS
+  ──────────────────────────────────────────────────── */
+  function destroyAllBlocks(onDone){
+    var field=g('ba-field');
+    var cols=['#e63946','#ff6b6b','#ffd166','#ff8c00','#fff'];
+    var total=S.activeBlocks.length;
+    if(total===0){if(onDone)onDone();return;}
+
+    S.activeBlocks.forEach(function(rec,bi){
+      if(rec.dead) return;
+      rec.dead=true;
+      var el=rec.el;
+      if(!el||!el.parentNode) return;
+      var fr=field.getBoundingClientRect();
+      var br=el.getBoundingClientRect();
+      var cx=br.left-fr.left+br.width/2;
+      var cy=br.top -fr.top +br.height/2;
+      // Freeze in place
+      el.style.transition='none';
+      el.style.left=cx+'px';
+      el.style.top=cy+'px';
+      el.style.width=br.width+'px';
+      el.style.height=br.height+'px';
+      el.style.transform='none';
+      // Burst out
+      setTimeout(function(){
+        el.style.transition='opacity .12s, transform .12s';
+        el.style.opacity='0';
+        el.style.transform='scale(1.3)';
+        setTimeout(function(){if(el.parentNode)el.remove();},150);
+      },bi*30);
+      // Shards
+      for(var i=0;i<10;i++){(function(){
+        var sh=document.createElement('div');sh.className='ba-shard';
+        var w=5+Math.random()*13;
+        var angle=Math.random()*Math.PI*2;
+        var dist=30+Math.random()*75;
+        sh.style.cssText=[
+          'left:'+cx+'px','top:'+cy+'px',
+          'width:'+w+'px','height:'+(w*.55)+'px',
+          'background:'+cols[Math.floor(Math.random()*cols.length)],
+          '--sx:'+(Math.cos(angle)*dist)+'px',
+          '--sy:'+(Math.sin(angle)*dist)+'px',
+          '--sRot:'+(Math.random()*720-360)+'deg',
+          '--sDur:'+(0.4+Math.random()*.4)+'s',
+          'animation-delay:'+(bi*.025)+'s'
+        ].join(';');
+        field.appendChild(sh);
+        setTimeout(function(){if(sh.parentNode)sh.remove();},820);
+      })();}
+    });
+    S.activeBlocks=[];
+    setTimeout(function(){if(onDone)onDone();},total*30+220);
+  }
+
+  /* ────────────────────────────────────────────────────
+     MEGA COUNTER BLOCK  (4× scammer block size)
+     Assembles at player, then launches right at scammer.
+  ──────────────────────────────────────────────────── */
+  function fireMegaBlock(icon,label,onHit,onDone){
+    var field=g('ba-field');
+    var ps=g('ba-ps');
+    var fr=field.getBoundingClientRect();
+    var pr=ps.getBoundingClientRect();
+    var cx=pr.left+pr.width/2 -fr.left;
+    var cy=pr.top +pr.height/2-fr.top;
+
+    var bl=document.createElement('div');
+    bl.className='ba-mega-block';
+    /* Centre the mega block on the player */
+    bl.style.left=(cx-210)+'px';
+    bl.style.top =(cy-150)+'px';
+    bl.innerHTML='<div class="bk-icon">'+icon+'</div><div class="bk-label">'+label.replace(/\n/g,'<br>')+'</div>';
+    field.appendChild(bl);
+
+    // Assemble phase
+    requestAnimationFrame(function(){bl.classList.add('assemble');});
+
+    // Launch after assembly
+    setTimeout(function(){
+      var gf=document.createElement('div');gf.className='ba-good-flash';
+      field.appendChild(gf);setTimeout(function(){if(gf.parentNode)gf.remove();},440);
+
+      var travelPx=fr.width-(cx-210)-60;
+      bl.style.setProperty('--mDx',travelPx+'px');
+      bl.classList.remove('assemble');
+      bl.classList.add('launch');
+
+      // Impact scammer ~55% through travel
+      setTimeout(function(){if(onHit)onHit();},660);
+      setTimeout(function(){
+        if(bl.parentNode)bl.remove();
+        if(onDone)onDone();
+      },1080);
+    },720);
+  }
+
+  /* ── UTILS ── */
+  function shakeField(){
+    var f=g('ba-field');f.classList.remove('shake');void f.offsetWidth;f.classList.add('shake');
+    setTimeout(function(){f.classList.remove('shake');},420);
+  }
+  function hitFlash(){
+    var f=g('ba-field'),fl=document.createElement('div');fl.className='ba-hit-flash';
+    f.appendChild(fl);setTimeout(function(){if(fl.parentNode)fl.remove();},380);
+  }
+  function anim(el,cls,dur){el.classList.add(cls);setTimeout(function(){el.classList.remove(cls);},dur||420);}
+
+  /* ── ROUND FLOW ── */
+  function roundIntro(idx){
+    var r=ROUNDS[idx];
+    g('ba-rnd').textContent='ROUND '+r.n+' / 3';
+    var fl=g('ba-flash'),ft=g('ba-ftxt');
+    ft.textContent='ROUND '+r.n;fl.classList.add('on');
+    setTimeout(function(){fl.classList.remove('on');setTimeout(function(){doAttack(idx);},350);},950);
+  }
+
+  function doAttack(idx){
+    var r=ROUNDS[idx];
+    S.choiceMade=false;S.busy=false;
+    g('ba-choices').innerHTML='';
+    g('ba-atk-tag').textContent=r.atkTag;
+    var atxt=g('ba-atk-txt');atxt.className='ba-panel-atk red';
+    atxt.innerHTML=r.atkTxt.replace(/\n/g,'<br>');
+    msg('⚠ SCAMMER ATTACKS! Make your choice!','atk',99999);
+    anim(g('ba-es'),'punch');
+    // Start the endless block stream immediately, show choices simultaneously
+    setTimeout(function(){
+      startBlockStream(r.blockDef);
+      showChoices(idx);
+    },400);
+  }
+
+  function showChoices(idx){
+    var r=ROUNDS[idx];
+    var box=g('ba-choices');box.innerHTML='';
+    r.choices.forEach(function(c){
+      var b=document.createElement('button');
+      b.className='ba-btn '+(c.safe?'safe':'bad');
+      b.innerHTML='<div class="ba-btn-icon">'+c.icon+'</div><div class="ba-btn-label">'+c.label.replace(/\n/g,'<br>')+'</div>';
+      b.onclick=function(){
+        if(S.busy||S.choiceMade) return;
+        S.choiceMade=true; S.busy=true;
+        stopAll(); // stop new spawning
+        box.querySelectorAll('.ba-btn').forEach(function(x){x.disabled=true;});
+        pick(idx,c);
+      };
+      box.appendChild(b);
+    });
+  }
+
+  function pick(idx,c){
+    var r=ROUNDS[idx];
+    var ps=g('ba-ps'), es=g('ba-es');
+    if(!c.safe){
+      /* Wrong — blocks hit player */
+      hitFlash(); shakeField(); anim(ps,'shk');
+      // freeze blocks so they look like they crashed in
+      S.activeBlocks.forEach(function(rec){rec.dead=true;});
+      setTimeout(function(){
+        clearField();
+        ps.classList.add('dead'); S.php=0; updHP();
+        // Show red cross on player
+        var crossDiv=document.createElement('div');
+        crossDiv.className='ba-dead-cross';
+        crossDiv.innerHTML='<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:clamp(60px,10vw,110px);height:clamp(60px,10vw,110px);animation:crossPopIn .5s cubic-bezier(.34,1.56,.64,1) both;filter:drop-shadow(0 0 20px rgba(230,57,70,1));"><circle cx=\"50\" cy=\"50\" r=\"46\" fill=\"rgba(230,57,70,0.25)\" stroke=\"#e63946\" stroke-width=\"4\"/><line x1=\"26\" y1=\"26\" x2=\"74\" y2=\"74\" stroke=\"#e63946\" stroke-width=\"10\" stroke-linecap=\"round\"/><line x1=\"74\" y1=\"26\" x2=\"26\" y2=\"74\" stroke=\"#e63946\" stroke-width=\"10\" stroke-linecap=\"round\"/></svg>';
+        g('ba-ps').appendChild(crossDiv);
+        setTimeout(function(){
+          g('ba-dh').textContent=r.dh;
+          g('ba-ds').textContent=r.ds;
+          g('ba-dtip').textContent=r.dtip;
+          g('ba-death').classList.add('on');
+        },600);
+      },480);
+      return;
+    }
+
+    /* CORRECT CHOICE — full cinematic sequence:
+       1. Shield snaps up
+       2. Blocks crash into shield (flashes) then shatter
+       3. Shield lowers
+       4. Mega block assembles at player
+       5. Mega block launches and smashes scammer
+       6. Next round (or victory)
+    */
+    // Step 1: Raise shield
+    shieldOn();
+    msg('🛡 SHIELD UP — DEFLECTING BLOCKS!','ok',1400);
+
+    // Step 2: Give blocks 900ms to crash into shield visually, then explode them
+    setTimeout(function(){
+      shakeField();
+      destroyAllBlocks(function(){
+        // Step 3: Lower shield
+        shieldOff();
+
+        // Step 4+5: Assemble and fire mega block
+        setTimeout(function(){
+          fireMegaBlock(
+            r.counterIcon||'🛡',
+            r.counterLabel||'COUNTER',
+            function(){ // onHit
+              anim(es,'shk');
+              S.ehp = (idx===ROUNDS.length-1) ? 0 : Math.max(0,S.ehp-1);
+              updHP(); shakeField(); hitFlash();
+              if(idx===ROUNDS.length-1){
+                setTimeout(function(){
+                  es.classList.add('dead');
+                  // Show red cross on scammer
+                  var ecross=document.createElement('div');
+                  ecross.className='ba-dead-cross';
+                  ecross.innerHTML='<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:clamp(60px,10vw,110px);height:clamp(60px,10vw,110px);animation:crossPopIn .5s .2s cubic-bezier(.34,1.56,.64,1) both;filter:drop-shadow(0 0 20px rgba(230,57,70,1));"><circle cx=\"50\" cy=\"50\" r=\"46\" fill=\"rgba(230,57,70,0.25)\" stroke=\"#e63946\" stroke-width=\"4\"/><line x1=\"26\" y1=\"26\" x2=\"74\" y2=\"74\" stroke=\"#e63946\" stroke-width=\"10\" stroke-linecap=\"round\"/><line x1=\"74\" y1=\"26\" x2=\"26\" y2=\"74\" stroke=\"#e63946\" stroke-width=\"10\" stroke-linecap=\"round\"/></svg>';
+                  es.appendChild(ecross);
+                },280);
+              }
+              msg('💥 DIRECT HIT! Scammer STAGGERED!','win',2200);
+            },
+            function(){ // onDone
+              setTimeout(function(){
+                clearField();
+                if(idx===ROUNDS.length-1){ victory(); }
+                else { S.round=idx+1; roundIntro(idx+1); }
+              },500);
+            }
+          );
+        },250);
+      });
+    },900);
+  }
+
+  function victory(){
+    g('BA').classList.remove('on'); g('BA').style.display='none';
+    shieldOff();
+    g('BV').classList.add('on');
+    var pc=g('bv-parts'); pc.innerHTML='';
+    var cols=['#2ecc71','#00b4d8','#ffd166','#e63946','#fff','#a8dadc'];
+    for(var i=0;i<80;i++){(function(){
+      var p=document.createElement('div'); p.className='bvp';
+      p.style.cssText='left:'+Math.random()*100+'%;top:'+Math.random()*100
+        +'%;background:'+cols[Math.floor(Math.random()*cols.length)]
+        +';--vx:'+(Math.random()*360-180)+'px;--vy:'+(Math.random()*360-180)
+        +'px;animation-delay:'+Math.random()*.5+'s;animation-duration:'+(1.3+Math.random()*.9)+'s;';
+      pc.appendChild(p);
+    })();}
+    setTimeout(function(){g('bv-notif').classList.add('drop');},700);
+  }
+
+  function showInstr(){g('BS').classList.add('off');g('BI').classList.add('on');}
+
+  function start(){
+    g('BI').classList.remove('on'); g('BI').style.display='none';
+    S={round:0,busy:false,php:3,ehp:3,loopTimers:[],activeBlocks:[],choiceMade:false};
+    updHP(); shieldOff();
+    g('ba-death').classList.remove('on');
+    g('BA').style.display=''; g('BA').classList.add('on');
+    roundIntro(0);
+  }
+
+  function restart(){
+    g('ba-death').classList.remove('on');
+    [g('ba-ps'),g('ba-es')].forEach(function(s){
+      s.className='ba-sprite';
+      // Remove any red cross overlays
+      s.querySelectorAll('.ba-dead-cross').forEach(function(c){c.remove();});
+    });
+    clearField(); shieldOff();
+    S={round:0,busy:false,php:3,ehp:3,loopTimers:[],activeBlocks:[],choiceMade:false};
+    updHP(); roundIntro(0);
+  }
+
+  function enter(){
+    g('BG').classList.add('off');
+    g('hud').style.display=''; g('main-content').style.display='';
+    var u=(typeof DB!=='undefined')?DB.getCurrent():null;
+    if(!u){window.location.href='../auth.html';return;}
+    g('hud-av').textContent=u.name.charAt(0).toUpperCase();
+    g('hud-uname').textContent=u.name.split(' ')[0].toUpperCase();
+    if(typeof loadState==='function')loadState();
+    if(typeof updateHUD==='function')updateHUD();
+    if(typeof renderScene==='function')renderScene();
+  }
+
+  return{showInstr:showInstr,start:start,restart:restart,enter:enter};
+})();
+
+// Splash screen particles
+(function(){
+  var pc=document.getElementById('sp-particles');
+  if(!pc) return;
+  var cols=['#00b4d8','#0077b6','#90e0ef','#caf0f8','rgba(0,180,216,.3)'];
+  for(var i=0;i<40;i++){(function(){
+    var p=document.createElement('div');
+    var sz=1+Math.random()*2.5;
+    p.style.cssText=[
+      'position:absolute',
+      'width:'+sz+'px','height:'+sz+'px',
+      'border-radius:50%',
+      'background:'+cols[Math.floor(Math.random()*cols.length)],
+      'left:'+Math.random()*100+'%',
+      'top:'+Math.random()*100+'%',
+      'animation:spParticle '+(4+Math.random()*6)+'s '+(Math.random()*4)+'s ease-in-out infinite'
+    ].join(';');
+    pc.appendChild(p);
+  })();}
+  var styleEl=document.createElement('style');
+  styleEl.textContent='@keyframes spParticle{0%,100%{transform:translate(0,0);opacity:0.2;}50%{transform:translate('+'calc('+Math.random()*40-20+'px),calc('+Math.random()*40-20+'px));opacity:0.8;}}';
+  // Use unique keyframes per particle via inline animation instead
+  var styles='';
+  for(var j=0;j<8;j++){
+    var dx=(Math.random()*60-30).toFixed(0),dy=(Math.random()*60-30).toFixed(0);
+    styles+='@keyframes spP'+j+'{0%,100%{transform:translate(0,0);opacity:.15;}50%{transform:translate('+dx+'px,'+dy+'px);opacity:.7;}}';
+  }
+  styleEl.textContent=styles;
+  document.head.appendChild(styleEl);
+  // re-assign varied animations
+  var particles=pc.querySelectorAll('div');
+  particles.forEach(function(p,i){
+    p.style.animation='spP'+(i%8)+' '+(5+Math.random()*6)+'s '+(Math.random()*5)+'s ease-in-out infinite';
+  });
+})();
+</script>
+
+<script>
+const SCENE={
+  type:'call',label:'VIDEO CALL // 20:45',title:'Bank KYC Verification Call',meta:'Friday · Level 3: Deepfake SOS · Scene 2 of 2',
+  caller:{name:'Axis Bank — KYC Team',num:'1800-XXX-XXXX (Unknown)',avatar:'🏦'},
+  script:'"Good evening. I\'m calling from Axis Bank KYC Department. Your annual KYC is due and your account may be suspended by midnight. I\'ll need you to show your PAN card, Aadhaar card on camera, and confirm the OTP we\'ve just sent to complete the process in two minutes."',
+  audioNote:'Facial movements are slightly delayed from speech. Background is a generic stock-photo office. Uniform looks real but lapel badge is blurred.',
+  choices:[
+    {k:'A',text:'Comply — show documents and share the OTP before account suspension',   type:'bad', pts:-60,hp:-40,tp:-35},
+    {k:'B',text:'Refuse, end the call, ring Axis Bank on official number 1860-419-5555', type:'best',pts:+65,hp:0,  tp:+20},
+    {k:'C',text:'Ask for the caller\'s employee ID and official branch code',             type:'good',pts:+40,hp:0,  tp:+15},
+    {k:'D',text:'Hang up immediately without saying anything further',                   type:'good',pts:+35,hp:0,  tp:+10}
+  ],
+  fb:{
+    bad:{icon:'☠',t:'Full Account Takeover',txt:'You showed documents and shared OTP on a deepfake video call. Complete takeover in 8 seconds.',tip:'Banks NEVER conduct KYC via video call. An OTP request during a call = 100% fraud.',
+      cin:{title:'DEEPFAKE KYC CALL — FULL ACCOUNT TAKEOVER',
+        lines:[{p:'[DF ]',t:'Deepfake model: "Bank Officer" — real-time video synthesis',c:'cd'},{p:'[ATK]',t:'PAN card captured via screen recording. OCR running...',c:'cr'},{p:'[ATK]',t:'Aadhaar number extracted: ████ ████ 7823',c:'cr'},{p:'[OTP]',t:'OTP shared by victim. Bank login: AUTHENTICATED',c:'ca'},{p:'[ATK]',t:'Account accessed. Balance: ₹1,84,000',c:'cw'},{p:'[ATK]',t:'NEFT transfer initiated: ₹1,84,000 → external account',c:'cr'},{p:'[SYS]',t:'Total time for complete takeover: 8 seconds.',c:'ca'}],
+        accs:['🪪 PAN Card|PHOTOGRAPHED','🆔 Aadhaar|EXTRACTED','💰 ₹1,84,000|TRANSFERRED','🔐 Account|LOCKED'],
+        dmg:'₹1,84,000',prog:true}},
+    best:{icon:'🏆',t:'Scam Disrupted — Badge!',txt:'Calling the official Axis Bank number verifies everything independently.',tip:'Axis Bank: 1860-419-5555 · SBI: 1800-11-2211 · HDFC: 1800-202-6161. Save them now.'},
+    good:{icon:'🔍',t:'Authentication Attempted',txt:'Requesting employee ID creates friction scammers cannot resolve.',tip:'When a caller increases pressure after you request verification — that\'s your confirmation it\'s a scam.'},
+    warn:{icon:'✅',t:'Clean Exit',txt:'Ending the call without sharing anything is always safe.',tip:'Real banks will never penalise you for calling back on an official number.'}
+  }
+};
+
+/* ── Load baseline from DB-cached user (cv_current) — this reflects the
+      most recent stats shown in the dashboard Stats panel.
+      cv_cumulative is kept as a secondary fallback only. ── */
+const _m3s2User = (()=>{ try{ return JSON.parse(localStorage.getItem('cv_current')||'null'); }catch(e){return null;} })();
+const _m3s2Cum  = (()=>{ try{ return JSON.parse(localStorage.getItem('cv_cumulative')||'null'); }catch(e){return null;} })();
+const _m3s2BaseScore  = _m3s2User ? (_m3s2User.totalScore  || 0) : (_m3s2Cum ? (_m3s2Cum.totalScore  || 0) : 0);
+const _m3s2BaseHealth = _m3s2User ? Math.min(100, Math.max(0, _m3s2User.securityHealth ?? 100)) : (_m3s2Cum ? Math.min(100, Math.max(0, _m3s2Cum.avgHealth ?? 100)) : 100);
+const _m3s2BaseTrust  = _m3s2User ? Math.min(100, Math.max(0, _m3s2User.trustLevel    ?? 100)) : (_m3s2Cum ? Math.min(100, Math.max(0, _m3s2Cum.avgTrust  ?? 100)) : 100);
+
+let G={level:3,idx:1,health:_m3s2BaseHealth,trust:_m3s2BaseTrust,score:_m3s2BaseScore,good:0,bad:0,pending:false};
+// Pre-populate HUD with baseline values as soon as DOM is ready
+document.addEventListener('DOMContentLoaded', ()=>{ try{ loadState(); updateHUD(); }catch(e){} });
+let callActive=false;
+let ringtoneAudio=null;
+let callTimerInterval=null;
+let callSeconds=0;
+let currentChoiceMade=false;
+let scriptAnimationInterval=null;
+
+function loadState(){try{const s=JSON.parse(localStorage.getItem('cv_game_state')||'null');if(s)G={...G,...s};}catch(e){}}
+function saveState(){localStorage.setItem('cv_game_state',JSON.stringify(G));}
+function updateHUD(){
+  const h=Math.max(0,G.health),t=Math.max(0,G.trust);
+  document.getElementById('h-fill').style.width=h+'%';
+  document.getElementById('h-fill').style.background=h>60?'var(--green)':h>30?'var(--amber)':'var(--red)';
+  document.getElementById('h-val').textContent=h+'%';
+  document.getElementById('t-fill').style.width=t+'%';
+  document.getElementById('t-fill').style.background=t>60?'var(--accent)':t>30?'var(--amber)':'var(--red)';
+  document.getElementById('t-val').textContent=t+'%';
+  document.getElementById('sc-num').textContent=Math.max(0,G.score);
+  saveState();
+}
+let audioCtx=null;
+function getCtx(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx;}
+function playRingtoneLoop(){ if(ringtoneAudio){ringtoneAudio.pause();ringtoneAudio=null;} const a=new Audio('ringtone.mpeg'); a.loop=true; a.volume=0.65; a.play().catch(e=>{}); ringtoneAudio=a; }
+function stopRingtoneLoop(){ if(ringtoneAudio){ringtoneAudio.pause();ringtoneAudio.currentTime=0;ringtoneAudio=null;} }
+function playDecline(){ const c=getCtx(),o=c.createOscillator(),g=c.createGain(); o.type='sawtooth'; o.frequency.value=380; o.connect(g); g.connect(c.destination); g.gain.setValueAtTime(0.08,c.currentTime); g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.5); o.start(); o.stop(c.currentTime+0.5); }
+function playAccept(){ const c=getCtx();[0,0.12,0.24].forEach((d,i)=>{ const o=c.createOscillator(),g=c.createGain(); o.type='sine'; o.frequency.value=[523,659,784][i]; o.connect(g); g.connect(c.destination); g.gain.setValueAtTime(0,c.currentTime+d); g.gain.linearRampToValueAtTime(.12,c.currentTime+d+.05); g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d+0.14); o.start(c.currentTime+d); o.stop(c.currentTime+d+0.14);});}
+function playAlarmBad(){ const c=getCtx();[0,.15,.3,.45].forEach(d=>{ const o=c.createOscillator(),g=c.createGain(); o.type='square'; o.frequency.value=220; o.frequency.setValueAtTime(220,c.currentTime+d); o.frequency.setValueAtTime(180,c.currentTime+d+0.07); o.connect(g); g.connect(c.destination); g.gain.setValueAtTime(0.12,c.currentTime+d); g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+d+0.14); o.start(c.currentTime+d); o.stop(c.currentTime+d+0.16);});}
+function playGoodChime(){ const c=getCtx();[523.25,659.25,783.99,1046.50].forEach((f,i)=>{ const o=c.createOscillator(),g=c.createGain(); o.type='sine'; o.frequency.value=f; o.connect(g); g.connect(c.destination); g.gain.setValueAtTime(0,c.currentTime+i*.1); g.gain.linearRampToValueAtTime(.12,c.currentTime+i*.1+.05); g.gain.exponentialRampToValueAtTime(.001,c.currentTime+i*.1+.4); o.start(c.currentTime+i*.1); o.stop(c.currentTime+i*.1+.42);});}
+function makeWaveform(active){ const h=[6,14,10,20,8,16,12,22,6,18,10,14,8,20,12]; return`<div class="call-waveform">${h.map((v,i)=>`<div class="wv-bar ${active?'active':''}" style="height:${active?4:v}px;animation-delay:${i*.06}s"></div>`).join('')}</div>`;}
+
+function renderCallIncoming(){
+  const phoneDiv=document.getElementById('phone-screen');
+  if(!phoneDiv) return;
+  phoneDiv.innerHTML=`
+    <div class="phone-call"><div class="call-status">INCOMING CALL</div><div class="call-avatar" aria-hidden="true">${SCENE.caller.avatar}</div><div class="call-name">${SCENE.caller.name}</div><div class="call-num">${SCENE.caller.num}</div>${makeWaveform(false)}<div class="call-subtitle">Audio simulation active<br>Listen carefully for anomalies</div>
+    <div class="call-btns"><button class="call-btn call-decline" onclick="handleDecline()">📵</button><button class="call-btn call-accept" onclick="handleAccept()">📞</button></div></div>`;
+  stopRingtoneLoop();
+  playRingtoneLoop();
+}
+function handleDecline(){
+  if(callActive || currentChoiceMade) return;
+  stopRingtoneLoop();
+  playDecline();
+  const ps=document.getElementById('phone-screen');
+  if(ps) ps.innerHTML=`<div class="phone-idle"><div style="font-size:2rem;margin-bottom:10px;">📵</div><div style="font-family:var(--font-mono);font-size:.72rem;color:var(--muted);">CALL DECLINED</div></div>`;
+  setTimeout(()=>{
+    if(!callActive && !currentChoiceMade) renderCallIncoming();
+  }, 1800);
+}
+function handleAccept(){
+  if(callActive || currentChoiceMade) return;
+  callActive=true;
+  stopRingtoneLoop();
+  playAccept();
+  callSeconds=0;
+  const ps=document.getElementById('phone-screen');
+  ps.innerHTML=`<div class="phone-answered"><div class="ans-status">● CONNECTED</div><div class="ans-name">${SCENE.caller.name}</div><div class="ans-timer" id="ctd">0:00</div>${makeWaveform(true)}<div class="ans-script-container"><div class="ans-script" id="call-script"></div></div><button class="ans-endcall" onclick="handleEndCall()">📵</button></div>`;
+  if(callTimerInterval) clearInterval(callTimerInterval);
+  callTimerInterval=setInterval(()=>{callSeconds++;const el=document.getElementById('ctd');if(el)el.textContent=`${Math.floor(callSeconds/60)}:${String(callSeconds%60).padStart(2,'0')}`;},1000);
+  const se=document.getElementById('call-script');
+  if(se){
+    let i=0;
+    if(scriptAnimationInterval) clearInterval(scriptAnimationInterval);
+    scriptAnimationInterval=setInterval(()=>{
+      if(!document.getElementById('call-script')){clearInterval(scriptAnimationInterval);return;}
+      document.getElementById('call-script').textContent=SCENE.script.slice(0,i);
+      i+=2;
+      if(i>=SCENE.script.length){
+        clearInterval(scriptAnimationInterval);
+        scriptAnimationInterval=null;
+        document.getElementById('choices-area').style.display='block';
+        document.getElementById('choices-area').scrollIntoView({behavior:'smooth',block:'start'});
+      }
+    }, 35);
+  }
+}
+function handleEndCall(){
+  if(!callActive) return;
+  callActive=false;
+  if(callTimerInterval) clearInterval(callTimerInterval);
+  if(scriptAnimationInterval) clearInterval(scriptAnimationInterval);
+  stopRingtoneLoop();
+  playDecline();
+  const ps=document.getElementById('phone-screen');
+  if(ps) ps.innerHTML=`<div class="phone-idle"><div style="font-size:2rem;margin-bottom:10px;">📵</div><div style="font-family:var(--font-mono);font-size:.72rem;color:var(--muted);">CALL ENDED</div></div>`;
+  setTimeout(()=>{
+    if(!callActive && !currentChoiceMade) renderCallIncoming();
+  }, 1500);
+}
+
+function launchCinBad(cin,onDone){
+  const ov=document.getElementById('cin-overlay'),body=document.getElementById('cin-body'),foot=document.getElementById('cin-foot');
+  body.innerHTML='';foot.classList.remove('show');ov.classList.add('active');playAlarmBad();
+  const title=document.createElement('div');title.style.cssText='font-family:var(--font-disp);font-size:1rem;font-weight:700;color:#e63946;margin-bottom:12px;letter-spacing:-.02em;';title.className='glitch';title.textContent='⚠ '+cin.title;body.appendChild(title);
+  if(cin.accs&&cin.accs.length){const ag=document.createElement('div');ag.className='cin-accs';ag.id='cin-ag';cin.accs.forEach(a=>{const[n,s]=a.split('|');const c=document.createElement('div');c.className='cin-acc';c.innerHTML=`<div class="cin-acc-n">${n}</div><div class="cin-acc-s bad">${s}</div>`;ag.appendChild(c);});body.appendChild(ag);if(cin.prog){const p=document.createElement('div');p.className='cin-prog-wrap';p.id='cin-pw';p.innerHTML=`<div class="cin-prog-lbl">ATTACK PROGRESS</div><div class="cin-prog-track"><div class="cin-prog-fill" id="cin-pf"></div></div>`;body.appendChild(p);}}
+  if(cin.dmg){const d=document.createElement('div');d.className='cin-dmg';d.id='cin-d';d.innerHTML=`<div class="cin-dmg-amt">${cin.dmg}</div><div class="cin-dmg-lbl">ESTIMATED LOSS / EXPOSURE</div>`;body.appendChild(d);}
+  const lc=document.createElement('div');lc.style.marginTop='8px';body.appendChild(lc);
+  let li=0;
+  function nl(){if(li>=cin.lines.length){setTimeout(()=>{const ag=document.getElementById('cin-ag');if(ag){ag.classList.add('show');ag.querySelectorAll('.cin-acc').forEach((c,i)=>setTimeout(()=>c.classList.add('comp'),i*200));}const pw=document.getElementById('cin-pw');if(pw){pw.classList.add('show');setTimeout(()=>{document.getElementById('cin-pf').style.width='100%';},100);}const d=document.getElementById('cin-d');if(d)d.classList.add('show');setTimeout(()=>foot.classList.add('show'),1000);},400);window._cinBadDone=onDone;return;}
+    const line=cin.lines[li];const el=document.createElement('div');el.className='cin-line';el.innerHTML=`<span class="cin-p">${line.p}</span><span class="${line.c}">${line.t}</span>`;lc.appendChild(el);requestAnimationFrame(()=>setTimeout(()=>el.classList.add('show'),20));li++;setTimeout(nl,270+Math.random()*110);}
+  setTimeout(nl,500);
+}
+function closeCinBad(){document.getElementById('cin-overlay').classList.remove('active');if(window._cinBadDone){window._cinBadDone();window._cinBadDone=null;}}
+
+function showRetryPopup(){
+  const failDiv=document.createElement('div');failDiv.className='badge-full-pop active';failDiv.id='failRetryPopup';
+  failDiv.innerHTML=`<div class="badge-card"><div class="badge-icon">⚠️</div><div class="badge-title" style="color:#e63946;">LEVEL FAILED</div><div class="badge-sub">ACCOUNT COMPROMISED</div><div class="badge-insight" style="border-left-color:#e63946;">${SCENE.fb.bad.txt}<br><br><strong>${SCENE.fb.bad.tip}</strong></div><button class="btn-badge" id="retryGameBtn" style="border-color:#e63946;color:#e63946;">⟳ TRY AGAIN</button><button class="btn-badge" id="endGameBtn" style="margin-top:8px;border-color:rgba(255,255,255,.25);color:rgba(255,255,255,.45);font-size:.65rem;">See Results →</button></div>`;
+  document.body.appendChild(failDiv);
+  document.getElementById('retryGameBtn').onclick=()=>{ failDiv.remove(); renderScene(); };
+  document.getElementById('endGameBtn').onclick=()=>{
+    try {
+      const state=JSON.parse(localStorage.getItem('cv_game_state')||'{}');
+      const _totalScore3=Math.max(0,state.score??G.score??0);
+      localStorage.setItem('cv_result',JSON.stringify({
+        level:3,
+        health:Math.max(0,state.health??G.health??100),
+        trust:Math.max(0,state.trust??G.trust??100),
+        score:Math.max(0,_totalScore3-_m3s2BaseScore),
+        baseScore:_m3s2BaseScore,
+        totalScore:_totalScore3,
+        good:state.good??G.good??0,
+        bad:state.bad??G.bad??0
+      }));
+    } catch(e){}
+    window.location.href='../ending.html';
+  };
+}
+
+function showSuccessBadgePopup(){
+  const pop=document.createElement('div');pop.className='badge-full-pop active';pop.id='badgeSuccessPopup';
+  pop.innerHTML=`<div class="badge-card"><div class="badge-icon">🏆</div><div class="badge-title">Scam Disrupted — Badge!</div><div class="badge-sub">DEEPFAKE DETECTOR</div><div class="badge-insight">Calling the official Axis Bank number verifies everything independently.<br><br>✔️ Banks NEVER conduct KYC via video call.<br>✔️ An OTP request during a call = 100% fraud.</div><div class="badge-tip"><strong>// SECURITY TIP</strong><br>Axis Bank: 1860-419-5555 · SBI: 1800-11-2211 · HDFC: 1800-202-6161. Save them now.<br>Banks NEVER conduct KYC via call. An OTP request during a call = 100% fraud.</div><button class="btn-badge" id="levelCompleteBtn">LEVEL COMPLETE →</button></div>`;
+  document.body.appendChild(pop);
+  document.getElementById('levelCompleteBtn').onclick=()=>{
+    pop.remove();
+    // Save result and go to ending screen
+    try {
+      const state = JSON.parse(localStorage.getItem('cv_game_state')||'{}');
+      const _totalScore3 = Math.max(0, state.score ?? G.score ?? 0);
+      const _earnedScore3 = Math.max(0, _totalScore3 - _m3s2BaseScore);
+      localStorage.setItem('cv_result', JSON.stringify({
+        level:      3,
+        health:     Math.max(0, state.health ?? G.health ?? 100),
+        trust:      Math.max(0, state.trust  ?? G.trust  ?? 100),
+        score:      _earnedScore3,
+        baseScore:  _m3s2BaseScore,
+        totalScore: _totalScore3,
+        good:       state.good  ?? G.good  ?? 0,
+        bad:        state.bad   ?? G.bad   ?? 0
+      }));
+    } catch(e){}
+    window.location.href='../ending.html';
+  };
+}
+
+function launchCinGood(fb,pts,onDone){
+  const ov=document.getElementById('cin-good');playGoodChime();
+  document.getElementById('cin-si').textContent=fb.icon||'🛡';
+  document.getElementById('cin-gt').textContent=fb.t;
+  document.getElementById('cin-gs').textContent='// '+(pts>=50?'BEST RESPONSE':'CORRECT DECISION');
+  document.getElementById('cin-gtip').innerHTML=`<strong>Security Insight:</strong> ${fb.tip}`;
+  document.getElementById('cin-pts').textContent='+'+pts+' PTS';
+  const pc=document.getElementById('cin-parts');pc.innerHTML='';
+  for(let i=0;i<30;i++){const p=document.createElement('div');p.className='cin-part';const angle=Math.random()*Math.PI*2,dist=80+Math.random()*200;p.style.cssText=`left:50%;top:50%;--tx:${Math.cos(angle)*dist}px;--ty:${Math.sin(angle)*dist}px;background:${['#2ecc71','#00b4d8','#ffd166'][Math.floor(Math.random()*3)]};animation-delay:${Math.random()*.3}s;animation-duration:${.6+Math.random()*.5}s;`;pc.appendChild(p);}
+  ov.classList.add('active');
+  window._cinGoodDone = () => {
+    if(onDone) onDone();
+    ov.classList.remove('active');
+  };
+}
+function closeCinGood(){
+  if(window._cinGoodDone){
+    window._cinGoodDone();
+  } else {
+    document.getElementById('cin-good').classList.remove('active');
+  }
+}
+
+// ============================================================
+// MINIGAME ENGINE
+// ============================================================
+let mgCurrentChoice = null;
+
+// ---- MG-A: Damage Control Timeline (Choice A — fell for scam) ----
+// You just gave away your documents and OTP. Put the recovery steps in the right order.
+const DC_STEPS = [
+  {text:'Call your bank immediately and freeze/block the account',    correct:1},
+  {text:'Report the fraud to cybercrime.gov.in (helpline 1930)',       correct:2},
+  {text:'Change your net banking password and deregister all devices', correct:3},
+  {text:'Note down all transaction IDs and scammer call details',      correct:4},
+  {text:'Alert family members about the scam pattern',                 correct:5},
+];
+let dcOrder = [];
+let dcDragIdx = null;
+
+function buildMG_A(container){
+  dcOrder = [...DC_STEPS].sort(()=>Math.random()-.5);
+  container.innerHTML=`
+    <div style="font-family:var(--font-mono);font-size:.65rem;color:rgba(255,165,0,.8);background:rgba(255,165,0,.07);border:1px solid rgba(255,165,0,.2);border-radius:6px;padding:9px 13px;margin-bottom:14px;">
+      ⏱ Your account has been compromised. Every second counts — what do you do <em>first</em>?
+    </div>
+    <div class="dc-pool" id="dc-pool">${dcOrder.map((s,i)=>`
+      <div class="dc-step" draggable="true" data-i="${i}"
+        ondragstart="dcDragStart(event,${i})"
+        ondragover="event.preventDefault()"
+        ondrop="dcDrop(event,${i})"
+        ontouchstart="dcTouchStart(event,${i})"
+        ontouchend="dcTouchEnd(event,${i})">
+        <span class="dc-handle">⠿</span>
+        <span class="dc-num" id="dc-num-${i}">${i+1}</span>
+        <span>${s.text}</span>
+      </div>`).join('')}</div>`;
+  document.getElementById('mg-submit').style.display='';
+  document.getElementById('mg-submit').disabled=false;
+  document.getElementById('mg-submit').textContent='SUBMIT →';
+  document.getElementById('mg-submit').onclick=submitDC;
+  // touch support
+  let _touchSrc=null;
+  window.dcTouchStart=(e,i)=>{ _touchSrc=i; e.currentTarget.classList.add('dragging'); };
+  window.dcTouchEnd=(e,i)=>{
+    if(_touchSrc===null) return;
+    const touch=e.changedTouches[0];
+    const els=document.elementsFromPoint(touch.clientX,touch.clientY);
+    const target=els.find(el=>el.classList.contains('dc-step')&&el.dataset.i!=_touchSrc);
+    if(target) dcSwap(_touchSrc,parseInt(target.dataset.i));
+    document.querySelectorAll('.dc-step').forEach(el=>el.classList.remove('dragging'));
+    _touchSrc=null;
+  };
+}
+function dcDragStart(e,i){ dcDragIdx=i; e.dataTransfer.setData('text/plain',i); e.currentTarget.classList.add('dragging'); }
+function dcDrop(e,targetI){
+  e.preventDefault();
+  document.querySelectorAll('.dc-step').forEach(el=>el.classList.remove('dragging'));
+  const srcI = parseInt(e.dataTransfer.getData('text/plain'));
+  dcSwap(srcI, targetI);
+}
+function dcSwap(a,b){
+  if(a===b) return;
+  [dcOrder[a],dcOrder[b]]=[dcOrder[b],dcOrder[a]];
+  const pool=document.getElementById('dc-pool');
+  if(!pool) return;
+  const steps=pool.querySelectorAll('.dc-step');
+  // rebuild text spans only (keep structure)
+  steps[a].querySelector('span:last-child').textContent=dcOrder[a].text;
+  steps[b].querySelector('span:last-child').textContent=dcOrder[b].text;
+}
+function submitDC(){
+  let correct=0;
+  dcOrder.forEach((s,i)=>{ if(s.correct===i+1) correct++; });
+  const pool=document.getElementById('dc-pool');
+  if(pool) pool.querySelectorAll('.dc-step').forEach((el,i)=>{
+    el.classList.remove('correct-pos','wrong-pos');
+    el.classList.add(dcOrder[i].correct===i+1?'correct-pos':'wrong-pos');
+  });
+  const passed = correct>=3;
+  const res=document.getElementById('mg-result');
+  if(res){
+    res.className='mg-result show '+(passed?'ok':'fail');
+    res.innerHTML = passed
+      ? `✅ ${correct}/5 steps in the right order! Quick thinking limits damage.<br><span style="font-size:.65rem;opacity:.7">The first call to your bank is the most critical — every minute a scammer has access costs you more.</span>`
+      : `⚠ ${correct}/5 correct. The right first step is always to <strong>call your bank and freeze the account</strong>.<br><span style="font-size:.65rem;opacity:.7">Save your bank's fraud line (Axis Bank: 1860-419-5555) before you ever need it.</span>`;
+  }
+  const btn=document.getElementById('mg-submit');
+  if(btn){ btn.disabled=true; setTimeout(()=>{ btn.disabled=false; btn.textContent='CONTINUE →'; btn.onclick=closeMG; },600); }
+}
+
+// ---- MG-B: Phishing Email Spotter (Choice B — best, called official number) ----
+// While on hold with the real bank, a suspicious email arrives. Tap all the red flags.
+const PE_FLAGS = [
+  {id:'sender',   text:'axis-kyc-noreply@axisbank-secure.net', flagged:true,  why:'Fake domain — real Axis emails come from @axisbank.com only'},
+  {id:'urgency',  text:'Your account will be permanently closed in 2 hours',  flagged:true,  why:'Artificial deadline is a pressure tactic'},
+  {id:'link',     text:'Click here to complete KYC: http://axisbank-kyc-verify.co.in/login', flagged:true, why:'Unofficial domain — always verify URLs before clicking'},
+  {id:'otp',      text:'Share the OTP sent to your phone to proceed', flagged:true, why:'No legitimate bank email asks you to share an OTP'},
+  {id:'greeting', text:'Dear Valued Customer',  flagged:true,  why:'Generic greeting — your bank knows your name'},
+  {id:'logo',     text:'[AXIS BANK LOGO]',       flagged:false, why:'Logo alone is not suspicious — anyone can copy it'},
+];
+let peSelected = new Set();
+
+function buildMG_B(container){
+  peSelected = new Set();
+  container.innerHTML=`
+    <div class="pe-tally">Tap everything that looks suspicious. Found: <span id="pe-count">0</span></div>
+    <div class="pe-email">
+      <div class="pe-email-header">
+        <div class="pe-header-row"><span class="pe-field">FROM</span><span class="pe-value pe-span" data-id="sender" onclick="peToggle(this)">${PE_FLAGS.find(f=>f.id==='sender').text}</span></div>
+        <div class="pe-header-row"><span class="pe-field">TO</span><span class="pe-value">you@gmail.com</span></div>
+        <div class="pe-header-row"><span class="pe-field">SUBJ</span><span class="pe-value">⚠ Urgent: KYC Verification Required</span></div>
+      </div>
+      <div class="pe-email-body">
+        <p><span class="pe-span" data-id="logo" onclick="peToggle(this)">${PE_FLAGS.find(f=>f.id==='logo').text}</span></p>
+        <p><span class="pe-span" data-id="greeting" onclick="peToggle(this)">Dear Valued Customer,</span></p>
+        <p>We have noticed that your KYC documents are pending verification. <span class="pe-span" data-id="urgency" onclick="peToggle(this)">Your account will be permanently closed in 2 hours</span> if you do not complete the process immediately.</p>
+        <p><span class="pe-span" data-id="link" onclick="peToggle(this)">Click here to complete KYC: http://axisbank-kyc-verify.co.in/login</span></p>
+        <p><span class="pe-span" data-id="otp" onclick="peToggle(this)">Share the OTP sent to your phone to proceed.</span> This is required for your security.</p>
+        <p>Regards,<br>Axis Bank KYC Team</p>
+      </div>
+    </div>`;
+  document.getElementById('mg-submit').style.display='';
+  document.getElementById('mg-submit').disabled=false;
+  document.getElementById('mg-submit').textContent='SUBMIT →';
+  document.getElementById('mg-submit').onclick=submitPE;
+}
+function peToggle(el){
+  const id=el.dataset.id;
+  if(el.classList.contains('correct')||el.classList.contains('missed')) return;
+  if(peSelected.has(id)){ peSelected.delete(id); el.classList.remove('flagged'); }
+  else { peSelected.add(id); el.classList.add('flagged'); }
+  document.getElementById('pe-count').textContent=peSelected.size;
+}
+function submitPE(){
+  const realFlags=PE_FLAGS.filter(f=>f.flagged).map(f=>f.id);
+  let correct=0, falsePositives=0;
+  document.querySelectorAll('.pe-span').forEach(el=>{
+    const id=el.dataset.id;
+    const flag=PE_FLAGS.find(f=>f.id===id);
+    if(!flag) return;
+    if(flag.flagged && peSelected.has(id)){ el.classList.remove('flagged'); el.classList.add('correct'); correct++; }
+    else if(flag.flagged && !peSelected.has(id)){ el.classList.add('missed'); }
+    else if(!flag.flagged && peSelected.has(id)){ el.classList.remove('flagged'); el.classList.add('wrong-pos'); falsePositives++; }
+  });
+  const passed = correct >= 4 && falsePositives === 0;
+  const res=document.getElementById('mg-result');
+  if(res){
+    res.className='mg-result show '+(passed?'ok':'fail');
+    const missedItems=PE_FLAGS.filter(f=>f.flagged&&!peSelected.has(f.id)).map(f=>f.why);
+    res.innerHTML = passed
+      ? `✅ ${correct}/${realFlags.length} red flags caught! Sharp eyes.<br><span style="font-size:.65rem;opacity:.7">Phishing emails always use fake domains, urgency, and OTP requests. Real banks never do this.</span>`
+      : `⚠ ${correct}/${realFlags.length} found${falsePositives>0?`, ${falsePositives} false positive(s)`:''}.<br><span style="font-size:.65rem;opacity:.7">${missedItems[0]||'Review each element carefully next time.'}</span>`;
+  }
+  const btn=document.getElementById('mg-submit');
+  if(btn){ btn.disabled=true; setTimeout(()=>{ btn.disabled=false; btn.textContent='CONTINUE →'; btn.onclick=closeMG; },600); }
+}
+
+// ---- MG-C: Red Flags Scanner (Choice C — asked for employee ID) ----
+const RF_STATEMENTS = [
+  {text:'"Your account will be suspended in 2 minutes unless you verify now."',              flag:true,  why:'Artificial urgency is a manipulation tactic.'},
+  {text:'"I cannot give you my employee ID — it is confidential for security reasons."',    flag:true,  why:'Real bank staff always provide their employee ID on request.'},
+  {text:'"Please do not tell anyone about this call — it is a confidential security audit."',flag:true, why:'Secrecy requests are a hallmark of social engineering.'},
+  {text:'"You can call us back on the number listed on the official Axis Bank website."',    flag:false, why:'Offering an official callback number is legitimate practice.'},
+  {text:'"I will need the OTP sent to your number to complete account verification."',       flag:true,  why:'Banks NEVER ask for OTPs during inbound calls.'},
+  {text:'"Our records show your Aadhaar needs re-submission — please send a photo now."',   flag:true,  why:'Documents are never collected via phone call.'},
+  {text:'"Your case reference is AX-7823. Quote this when you call us back."',               flag:false, why:'Providing a reference number for callbacks is normal.'},
+  {text:'"If you do not comply right now, we will freeze all your linked accounts."',        flag:true,  why:'Threats of immediate punishment are intimidation tactics.'},
+];
+let rfState = {};
+
+function buildMG_C(container){
+  rfState = {idx:0, correct:0, total:0, timerInt:null, timeLeft:30,
+    statements:[...RF_STATEMENTS].sort(()=>Math.random()-.5).slice(0,6), answered:false};
+  container.innerHTML=`
+    <div class="rf-timer-bar"><div class="rf-timer-fill" id="rf-tfill" style="transition:none;width:100%"></div></div>
+    <div class="rf-statement-box"><div class="rf-statement" id="rf-stmt"></div></div>
+    <div class="rf-feedback-flash" id="rf-flash" style="opacity:0;"> </div>
+    <div class="rf-actions">
+      <button class="rf-btn flag" id="rf-flag-btn" onclick="answerRF(true)">🚩 RED FLAG</button>
+      <button class="rf-btn legit" id="rf-legit-btn" onclick="answerRF(false)">✅ LEGITIMATE</button>
+    </div>
+    <div class="rf-progress" id="rf-prog"></div>`;
+  document.getElementById('mg-submit').style.display='none';
+  setTimeout(showRFStatement, 300);
+}
+function showRFStatement(){
+  const s=rfState.statements[rfState.idx];
+  if(!s){ endMG_C(); return; }
+  document.getElementById('rf-stmt').textContent=s.text;
+  document.getElementById('rf-prog').textContent=`Statement ${rfState.idx+1} of ${rfState.statements.length}`;
+  rfState.answered=false; rfState.timeLeft=30;
+  document.querySelectorAll('.rf-btn').forEach(b=>b.disabled=false);
+  // reset timer bar
+  const fill=document.getElementById('rf-tfill');
+  if(fill){ fill.style.transition='none'; fill.style.width='100%'; }
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    if(fill){ fill.style.transition='width 30s linear'; fill.style.width='0%'; }
+  }));
+  clearInterval(rfState.timerInt);
+  rfState.timerInt=setInterval(()=>{
+    rfState.timeLeft--;
+    if(rfState.timeLeft<=0){ clearInterval(rfState.timerInt); if(!rfState.answered) answerRF(null); }
+  },1000);
+}
+function answerRF(userChoice){
+  if(rfState.answered) return;
+  rfState.answered=true;
+  clearInterval(rfState.timerInt);
+  document.querySelectorAll('.rf-btn').forEach(b=>b.disabled=true);
+  const s=rfState.statements[rfState.idx];
+  const correct=userChoice!==null && userChoice===s.flag;
+  rfState.total++; if(correct) rfState.correct++;
+  const flash=document.getElementById('rf-flash');
+  if(flash){
+    flash.style.opacity='1';
+    flash.style.color=correct?'#2ecc71':'#e63946';
+    flash.textContent=userChoice===null?`⏱ Time's up — ${s.why}`:(correct?`✓ ${s.why}`:`✗ ${s.why}`);
+  }
+  rfState.idx++;
+  setTimeout(()=>{ if(flash) flash.style.opacity='0'; setTimeout(showRFStatement,200); },1800);
+}
+function endMG_C(){
+  clearInterval(rfState.timerInt);
+  const passed=rfState.correct>=4;
+  const res=document.getElementById('mg-result');
+  if(res){
+    res.className='mg-result show '+(passed?'ok':'fail');
+    res.innerHTML=passed
+      ? `✅ ${rfState.correct}/${rfState.total} red flags identified! You can read a scammer's script.<br><span style="font-size:.65rem;opacity:.7">Urgency, secrecy, and OTP requests are the three biggest warning signs.</span>`
+      : `⚠ ${rfState.correct}/${rfState.total} — the patterns are subtle but learnable.<br><span style="font-size:.65rem;opacity:.7">Any caller who refuses to give their employee ID or demands secrecy is a scammer.</span>`;
+  }
+  const btn=document.getElementById('mg-submit');
+  if(btn){ btn.style.display=''; btn.disabled=false; btn.textContent='CONTINUE →'; btn.onclick=closeMG; }
+}
+
+// ---- MG-D: Data Safety Sort (Choice D — hung up) ----
+const DS_ITEMS = [
+  {label:'Your full name',            safe:true},
+  {label:'Bank account number',       safe:false},
+  {label:'OTP / One-time password',   safe:false},
+  {label:'Your city / district',      safe:true},
+  {label:'CVV on your card',          safe:false},
+  {label:'Email address',             safe:true},
+  {label:'ATM PIN',                   safe:false},
+  {label:'Aadhaar number',            safe:false},
+  {label:'Your profession',           safe:true},
+  {label:'Internet banking password', safe:false},
+  {label:'Registered mobile number',  safe:false},
+  {label:'Name of your bank',         safe:true},
+];
+let dsState = {};
+
+function buildMG_D(container){
+  dsState={placements:{}, items:[...DS_ITEMS].sort(()=>Math.random()-.5).slice(0,8)};
+  container.innerHTML=`
+    <div style="font-family:var(--font-mono);font-size:.65rem;color:rgba(255,255,255,.38);margin-bottom:12px;line-height:1.5;">A caller is asking for these details. Drag each one to the correct zone — what is safe to share vs what must never leave your hands?</div>
+    <div class="ds-pool" id="ds-pool">${dsState.items.map((it,i)=>`<div class="ds-chip" draggable="true" data-idx="${i}" ondragstart="dsDragStart(event,${i})" ontouchstart="dsTouchStart(event,${i})">${it.label}</div>`).join('')}</div>
+    <div class="ds-grid">
+      <div class="ds-zone ds-zone-safe" id="ds-zone-safe" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="dsDrop(event,'safe')">
+        <div class="ds-zone-label">✅ SAFE TO SHARE</div><div id="ds-safe-items"></div>
+      </div>
+      <div class="ds-zone" id="ds-zone-never" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="dsDrop(event,'never')">
+        <div class="ds-zone-label">🚫 NEVER SHARE</div><div id="ds-never-items"></div>
+      </div>
+    </div>`;
+  document.getElementById('mg-submit').style.display='';
+  document.getElementById('mg-submit').disabled=true;
+  document.getElementById('mg-submit').textContent='SUBMIT →';
+  document.getElementById('mg-submit').onclick=submitDS;
+  let _touchDragIdx=null;
+  window.dsTouchStart=(e,idx)=>{_touchDragIdx=idx;};
+  document.addEventListener('touchend',function _dte(e){
+    if(_touchDragIdx===null) return;
+    const t=e.changedTouches[0];
+    const el=document.elementFromPoint(t.clientX,t.clientY);
+    const zone=el&&(el.closest('#ds-zone-safe')?'safe':el.closest('#ds-zone-never')?'never':null);
+    if(zone) dsPlaceItem(_touchDragIdx,zone);
+    _touchDragIdx=null;
+  },{once:false});
+}
+function dsDragStart(e,idx){ e.dataTransfer.setData('text/plain',idx); }
+function dsDrop(e,zone){ e.preventDefault(); e.currentTarget.classList.remove('drag-over'); dsPlaceItem(parseInt(e.dataTransfer.getData('text/plain')),zone); }
+function dsPlaceItem(idx,zone){
+  if(dsState.placements[idx]) return; // already placed
+  dsState.placements[idx]=zone;
+  document.querySelector(`.ds-chip[data-idx="${idx}"]`)?.remove();
+  const target=document.getElementById(zone==='safe'?'ds-safe-items':'ds-never-items');
+  if(!target) return;
+  const d=document.createElement('div'); d.className='ds-dropped'; d.dataset.idx=idx;
+  d.innerHTML=`<span>${dsState.items[idx].label}</span><span style="cursor:pointer;opacity:.45;font-size:.7rem;margin-left:4px" onclick="dsRemove(${idx})">✕</span>`;
+  target.appendChild(d);
+  checkDSReady();
+}
+function dsRemove(idx){
+  delete dsState.placements[idx];
+  document.querySelector(`.ds-dropped[data-idx="${idx}"]`)?.remove();
+  const pool=document.getElementById('ds-pool');
+  if(pool){
+    const c=document.createElement('div'); c.className='ds-chip'; c.draggable=true; c.dataset.idx=idx;
+    c.textContent=dsState.items[idx].label;
+    c.setAttribute('ondragstart',`dsDragStart(event,${idx})`);
+    c.setAttribute('ontouchstart',`dsTouchStart(event,${idx})`);
+    pool.appendChild(c);
+  }
+  checkDSReady();
+}
+function checkDSReady(){ const btn=document.getElementById('mg-submit'); if(btn) btn.disabled=Object.keys(dsState.placements).length<dsState.items.length; }
+function submitDS(){
+  let correct=0;
+  dsState.items.forEach((it,i)=>{ const p=dsState.placements[i]; if((it.safe&&p==='safe')||(!it.safe&&p==='never')) correct++; });
+  const passed=correct>=Math.ceil(dsState.items.length*0.75);
+  const mistakes=dsState.items.map((it,i)=>{
+    const p=dsState.placements[i];
+    const ok=(it.safe&&p==='safe')||(!it.safe&&p==='never');
+    return ok?null:`${it.label} → ${it.safe?'Safe to share':'Never share'}`;
+  }).filter(Boolean);
+  const res=document.getElementById('mg-result');
+  if(res){
+    res.className='mg-result show '+(passed?'ok':'fail');
+    res.innerHTML=passed
+      ? `✅ ${correct}/${dsState.items.length} correct! You know what to protect.<br><span style="font-size:.65rem;opacity:.7">OTPs, PINs, CVV, and Aadhaar are the crown jewels — never share them verbally.</span>`
+      : `⚠ ${correct}/${dsState.items.length} correct.<br><span style="font-size:.65rem;opacity:.7">${mistakes.slice(0,2).join(' · ')}</span>`;
+  }
+  const btn=document.getElementById('mg-submit');
+  if(btn){ btn.disabled=true; setTimeout(()=>{ btn.disabled=false; btn.textContent='CONTINUE →'; btn.onclick=closeMG; },600); }
+}
+
+// ---- Launcher & Router ----
+function launchMinigame(choiceKey, onDone){
+  mgCurrentChoice=choiceKey;
+  window._mgOnDone=onDone;
+  const cfgs={
+    A:{title:'DAMAGE CONTROL',      badge:'INCIDENT RESPONSE',   instruction:'You complied with the scammer — your documents and OTP are compromised. Every second counts. <strong style="color:#ffd166">Drag the recovery steps into the correct order</strong> to limit the damage.',                         build:buildMG_A},
+    B:{title:'SPOT THE PHISHING EMAIL', badge:'THREAT DETECTION', instruction:'Smart move calling the bank yourself. While on hold, a suspicious email arrives. <strong style="color:#ffd166">Tap everything in the email that looks like a red flag</strong> — sender, links, content.',                  build:buildMG_B},
+    C:{title:'RED FLAGS SCANNER',   badge:'SOCIAL ENGINEERING IQ',instruction:'The caller is still talking. Rate each statement: is it a <strong style="color:#e63946">🚩 RED FLAG</strong> or a <strong style="color:#2ecc71">✅ LEGITIMATE</strong> thing for a real bank employee to say? You have 30 seconds per statement.', build:buildMG_C},
+    D:{title:'DATA SAFETY SORT',    badge:'PRIVACY AWARENESS',   instruction:'Good instinct — you hung up. Now test yourself: <strong style="color:#ffd166">drag each item</strong> to the correct zone. What is safe to share with a caller, and what must never be given out?',                             build:buildMG_D},
+  };
+  const cfg=cfgs[choiceKey];
+  if(!cfg){ onDone(); return; }
+  document.getElementById('mg-title').textContent=cfg.title;
+  document.getElementById('mg-badge').textContent=cfg.badge;
+  document.getElementById('mg-instruction').innerHTML=cfg.instruction;
+  document.getElementById('mg-result').className='mg-result';
+  document.getElementById('mg-result').innerHTML='';
+  document.getElementById('mg-content').innerHTML='';
+  const btn=document.getElementById('mg-submit');
+  btn.textContent='SUBMIT →'; btn.disabled=false; btn.style.display=''; btn.onclick=submitMG;
+  document.getElementById('mg-overlay').classList.add('active');
+  cfg.build(document.getElementById('mg-content'));
+}
+function submitMG(){
+  const k=mgCurrentChoice;
+  if(k==='A') submitDC();
+  else if(k==='B') submitPE();
+  else if(k==='C') return; // auto-advances
+  else if(k==='D') submitDS();
+}
+function closeMG(){
+  document.getElementById('mg-overlay').classList.remove('active');
+  const btn=document.getElementById('mg-submit'); if(btn) btn.onclick=submitMG;
+  if(window._mgOnDone){ window._mgOnDone(); window._mgOnDone=null; }
+}
+
+function handleChoice(c){
+  if(currentChoiceMade || G.pending) return;
+  currentChoiceMade=true; G.pending=true;
+  if(callTimerInterval)clearInterval(callTimerInterval);
+  if(scriptAnimationInterval)clearInterval(scriptAnimationInterval);
+  stopRingtoneLoop();
+  G.health=Math.min(100,Math.max(0,G.health+(c.hp||0)));
+  G.trust=Math.min(100,Math.max(0,G.trust+(c.tp||0)));
+  G.score+=c.pts;
+  if(c.type==='good'||c.type==='best')G.good++; else G.bad++;
+  updateHUD();
+  const fb=SCENE.fb[c.type]||SCENE.fb.good;
+  launchMinigame(c.k, ()=>{
+    if(c.type==='bad' && fb.cin){
+      launchCinBad(fb.cin, ()=>{ showFinalOutcomePopup(c.type, fb); });
+    } else if(c.type==='best'||c.type==='good'){
+      launchCinGood(fb, c.pts, ()=>{ showFinalOutcomePopup(c.type, fb); });
+    } else {
+      showFinalOutcomePopup(c.type, fb);
+    }
+  });
+}
+
+function showFinalOutcomePopup(type, fb){
+  if(type === 'bad'){
+    showRetryPopup();
+  } else if(type === 'best' || type === 'good'){
+    showSuccessBadgePopup();
+  }
+}
+
+function renderScene(){
+  G.pending=false; currentChoiceMade=false; callActive=false;
+  if(callTimerInterval)clearInterval(callTimerInterval);
+  if(scriptAnimationInterval)clearInterval(scriptAnimationInterval);
+  stopRingtoneLoop();
+  document.getElementById('breadcrumb').innerHTML=`<span class="bc-item done">1. Emergency Call — Bhai</span><span class="bc-sep">›</span><span class="bc-item now">2. ${SCENE.title}</span>`;
+  document.getElementById('sh-label').textContent=SCENE.label;
+  document.getElementById('sh-title').textContent=SCENE.title;
+  document.getElementById('sh-meta').textContent=SCENE.meta;
+  document.getElementById('feedback-area').innerHTML='';
+  document.getElementById('choices-area').innerHTML=`
+    <div class="choices-section" role="group" aria-labelledby="choices-lbl">
+      <div class="choices-label" id="choices-lbl">// SELECT YOUR RESPONSE — press 1–4 or Tab+Enter</div>
+      <div class="choice-list">${SCENE.choices.map((c,i)=>`<button class="choice" data-idx="${i}" onclick="handleChoice(${JSON.stringify(c).replace(/"/g,'&quot;')})" aria-label="Option ${c.k}: ${c.text}"><span class="choice-key" aria-hidden="true">${c.k}</span><span>${c.text}</span></button>`).join('')}</div>
+      <div style="font-family:var(--font-mono);font-size:.6rem;color:var(--muted);margin-top:10px;">⌨ Press <kbd style="background:var(--rim);padding:1px 5px;border-radius:2px;">1</kbd>–<kbd style="background:var(--rim);padding:1px 5px;border-radius:2px;">4</kbd> to select</div>
+    </div>`;
+  document.getElementById('choices-area').style.display='none';
+  document.getElementById('scenario-body').innerHTML=`
+    <div class="phone-wrap"><div class="phone"><div class="phone-notch" aria-hidden="true"><div class="phone-notch-pill"></div></div>
+      <div class="phone-screen" id="phone-screen"></div>
+    </div></div>
+    <div style="background:var(--surface);border:1px solid var(--rim);border-radius:6px;padding:14px 16px;margin-bottom:20px;">
+      <div class="t-label" style="margin-bottom:6px;">AUDIO ANALYSIS NOTE</div>
+      <p style="font-size:.84rem;color:var(--body);line-height:1.6;">${SCENE.audioNote}</p>
+    </div>`;
+  renderCallIncoming();
+}
+
+document.addEventListener('keydown',e=>{
+  if(currentChoiceMade || !callActive) return;
+  if(e.key>='1'&&e.key<='4'){const idx=parseInt(e.key)-1;const choices=document.querySelectorAll('.choice:not([disabled])');if(choices[idx])choices[idx].click();}
+  if(e.key==='Escape'){if(document.getElementById('cin-overlay').classList.contains('active'))closeCinBad();if(document.getElementById('cin-good').classList.contains('active'))closeCinGood();}
+});
+// main scene deferred — BG.enter() triggers after battle victory
+</script>
+</body>
+</html>

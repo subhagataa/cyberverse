@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CYBERVERSE — Trace the Unknown</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --accent:#00b4d8;
+  --accent2:#0077b6;
+  --font-mono:'IBM Plex Mono',monospace;
+  --font-disp:'Syne',sans-serif;
+  --font-body:'Space Grotesk',sans-serif;
+}
+
+html,body{
+  width:100%;height:100%;overflow:hidden;
+  background:#000005;
+  color:#fff;
+  font-family:var(--font-body);
+}
+
+#scene{
+  position:relative;
+  width:100vw;
+  height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+
+/* Grid background */
+#scene::before{
+  content:'';
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(0,180,216,0.05) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,180,216,0.05) 1px,transparent 1px);
+  background-size:60px 60px;
+  animation:gridpulse 5s ease-in-out infinite;
+  z-index:0;
+}
+@keyframes gridpulse{0%,100%{opacity:0.5}50%{opacity:1}}
+
+/* HUD corners */
+.corner{
+  position:absolute;
+  width:44px;height:44px;
+  opacity:0;
+  animation:cornerIn 0.6s 2.5s ease forwards;
+}
+@keyframes cornerIn{to{opacity:0.6}}
+.corner--tl{top:28px;left:28px;border-top:1px solid var(--accent);border-left:1px solid var(--accent);}
+.corner--tr{top:28px;right:28px;border-top:1px solid var(--accent);border-right:1px solid var(--accent);}
+.corner--bl{bottom:28px;left:28px;border-bottom:1px solid var(--accent);border-left:1px solid var(--accent);}
+.corner--br{bottom:28px;right:28px;border-bottom:1px solid var(--accent);border-right:1px solid var(--accent);}
+
+/* Corner dots */
+.corner::before{
+  content:'';
+  position:absolute;
+  width:4px;height:4px;
+  border-radius:50%;
+  background:var(--accent);
+}
+.corner--tl::before{top:-2px;left:-2px;}
+.corner--tr::before{top:-2px;right:-2px;}
+.corner--bl::before{bottom:-2px;left:-2px;}
+.corner--br::before{bottom:-2px;right:-2px;}
+
+/* Top status label */
+.top-label{
+  position:absolute;
+  top:32px;left:50%;transform:translateX(-50%);
+  font-family:var(--font-mono);
+  font-size:0.58rem;
+  letter-spacing:0.3em;
+  color:rgba(0,180,216,0.7);
+  opacity:0;
+  text-transform:uppercase;
+  animation:fadeUp 0.8s 2.8s ease forwards;
+  white-space:nowrap;
+  z-index:10;
+}
+@keyframes fadeUp{
+  from{opacity:0;transform:translateX(-50%) translateY(6px)}
+  to{opacity:1;transform:translateX(-50%) translateY(0)}
+}
+
+/* Eye frame */
+#eye-frame{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-56%);
+  width:min(90vw,620px);
+  z-index:2;
+  mix-blend-mode:screen;
+}
+
+.eye-img{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:100%;
+  pointer-events:none;
+}
+
+#eye-closed{
+  opacity:1;
+  z-index:3;
+  transition:opacity 0.3s ease;
+}
+
+#eye-open{
+  opacity:0;
+  z-index:4;
+  clip-path:inset(50% 0 50% 0);
+  will-change: clip-path, opacity;
+}
+
+/* Glow ring */
+#glow-ring{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-56%);
+  width:min(90vw,510px);
+  height:min(90vw,510px);
+  border-radius:50%;
+  border:1px solid rgba(0,180,216,0);
+  z-index:1;
+  pointer-events:none;
+  transition:border-color 2s ease, box-shadow 2s ease;
+}
+#glow-ring.active{
+  border-color:rgba(0,180,216,0.12);
+  box-shadow:0 0 80px 20px rgba(0,80,140,0.25), inset 0 0 60px rgba(0,180,216,0.04);
+}
+
+/* Scanline sweep */
+#scanline{
+  position:absolute;
+  top:0;left:0;right:0;
+  height:2px;
+  background:linear-gradient(90deg,transparent 0%,rgba(0,180,216,0.9) 50%,transparent 100%);
+  opacity:0;
+  z-index:20;
+  pointer-events:none;
+  box-shadow:0 0 8px 2px rgba(0,180,216,0.5);
+}
+
+/* HUD side labels */
+.hud-side{
+  position:absolute;
+  top:50%;transform:translateY(-50%);
+  font-family:var(--font-mono);
+  font-size:0.52rem;
+  letter-spacing:0.18em;
+  color:rgba(0,180,216,0.4);
+  opacity:0;
+  animation:fadeIn 0.8s 3s ease forwards;
+  z-index:10;
+  line-height:2.4;
+  text-transform:uppercase;
+}
+.hud-side--left{left:32px;text-align:left;}
+.hud-side--right{right:32px;text-align:right;}
+
+@keyframes fadeIn{to{opacity:1}}
+
+/* Bottom block */
+#bottom-block{
+  position:absolute;
+  bottom:0;left:50%;transform:translateX(-50%);
+  z-index:10;
+  text-align:center;
+  padding-bottom:52px;
+  width:100%;
+}
+
+/* Title text */
+#text-block{
+  opacity:0;
+  transform:translateY(14px);
+  animation:textReveal 1s 1.6s cubic-bezier(0.16,1,0.3,1) forwards;
+  margin-bottom:36px;
+}
+@keyframes textReveal{to{opacity:1;transform:translateY(0)}}
+
+.cyberverse-logo{
+  font-family:var(--font-disp);
+  font-size:clamp(2.8rem,7vw,5.2rem);
+  font-weight:800;
+  letter-spacing:-0.04em;
+  line-height:1;
+  background:linear-gradient(135deg,#ffffff 0%,var(--accent) 50%,var(--accent2) 100%);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  margin-bottom:10px;
+}
+
+.tagline{
+  font-family:var(--font-mono);
+  font-size:0.7rem;
+  letter-spacing:0.28em;
+  color:var(--accent);
+  text-transform:uppercase;
+  opacity:0.8;
+}
+
+/* Loader */
+#loader{
+  width:260px;
+  margin:0 auto;
+  opacity:0;
+  animation:fadeIn 0.5s 2s ease forwards;
+}
+
+.loader-track{
+  height:1px;
+  background:rgba(255,255,255,0.08);
+  border-radius:1px;
+  overflow:hidden;
+  margin-bottom:12px;
+  position:relative;
+}
+.loader-fill{
+  height:100%;
+  background:linear-gradient(90deg,var(--accent2),var(--accent));
+  border-radius:1px;
+  width:0%;
+  transition:width 0.15s linear;
+  position:relative;
+  overflow:hidden;
+}
+.loader-fill::after{
+  content:'';
+  position:absolute;
+  top:0;left:-40px;bottom:0;width:40px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.7),transparent);
+  animation:shimmer 1s ease-in-out infinite;
+}
+@keyframes shimmer{
+  0%{left:-40px}
+  100%{left:110%}
+}
+
+.loader-label{
+  font-family:var(--font-mono);
+  font-size:0.58rem;
+  letter-spacing:0.14em;
+  color:rgba(255,255,255,0.3);
+  margin-bottom:5px;
+  text-transform:uppercase;
+}
+.loader-step{
+  font-family:var(--font-mono);
+  font-size:0.62rem;
+  color:var(--accent);
+  min-height:16px;
+  opacity:0.9;
+}
+
+/* Bottom status bar */
+.bottom-status{
+  position:absolute;
+  bottom:24px;left:50%;transform:translateX(-50%);
+  font-family:var(--font-mono);
+  font-size:0.5rem;
+  letter-spacing:0.2em;
+  color:rgba(0,180,216,0.3);
+  opacity:0;
+  animation:fadeIn 0.8s 3.2s ease forwards;
+  white-space:nowrap;
+  z-index:10;
+  text-transform:uppercase;
+}
+
+/* Floating particles */
+@keyframes particleFloat{
+  0%,100%{opacity:0;transform:translateY(0) scale(1)}
+  30%{opacity:0.7}
+  60%{opacity:0.3;transform:translateY(-25px) scale(1.2)}
+  80%{opacity:0.5}
+}
+
+/* Data stream lines */
+.data-line{
+  position:absolute;
+  width:1px;
+  background:linear-gradient(to bottom,transparent,rgba(0,180,216,0.3),transparent);
+  animation:datastream linear infinite;
+  opacity:0;
+  z-index:1;
+}
+@keyframes datastream{
+  0%{top:-20%;opacity:0}
+  10%{opacity:1}
+  90%{opacity:0.5}
+  100%{top:120%;opacity:0}
+}
+
+/* Circuit trace lines on corners */
+.circuit-h,.circuit-v{
+  position:absolute;
+  background:rgba(0,180,216,0.2);
+  opacity:0;
+  animation:circuitIn 0.4s 3s ease forwards;
+}
+@keyframes circuitIn{to{opacity:1}}
+.circuit-h{height:1px;width:60px;}
+.circuit-v{width:1px;height:40px;}
+</style>
+</head>
+<body>
+
+<div id="scene">
+  <!-- HUD corners -->
+  <div class="corner corner--tl"></div>
+  <div class="corner corner--tr"></div>
+  <div class="corner corner--bl"></div>
+  <div class="corner corner--br"></div>
+
+  <!-- Circuit traces from corners -->
+  <div class="circuit-h" style="top:28px;left:72px;"></div>
+  <div class="circuit-v" style="top:72px;left:28px;"></div>
+  <div class="circuit-h" style="top:28px;right:72px;"></div>
+  <div class="circuit-v" style="top:72px;right:28px;"></div>
+  <div class="circuit-h" style="bottom:28px;left:72px;"></div>
+  <div class="circuit-v" style="bottom:72px;left:28px;"></div>
+  <div class="circuit-h" style="bottom:28px;right:72px;"></div>
+  <div class="circuit-v" style="bottom:72px;right:28px;"></div>
+
+  <!-- Top label -->
+  <div class="top-label">SYS_INIT &nbsp;//&nbsp; THREAT DETECTION ACTIVE</div>
+
+  <!-- Glow ring -->
+  <div id="glow-ring"></div>
+
+  <!-- HUD side labels -->
+  <div class="hud-side hud-side--left">
+    SCAN_MODE<br>
+    ACTIVE<br>
+    &#xA0;<br>
+    BIOMETRIC<br>
+    VERIFIED<br>
+    &#xA0;<br>
+    LEVEL.3<br>
+    CLEARANCE
+  </div>
+  <div class="hud-side hud-side--right">
+    VER_4.2.1<br>
+    &#xA0;<br>
+    NODES<br>
+    ONLINE<br>
+    &#xA0;<br>
+    ENCRYPT<br>
+    AES-256<br>
+    &#xA0;<br>
+    SECURE
+  </div>
+
+  <!-- Scanline -->
+  <div id="scanline"></div>
+
+  <!-- Eye images -->
+  <div id="eye-frame">
+    <img class="eye-img" id="eye-open" src="eye100.png" alt="">
+    <img class="eye-img" id="eye-closed"   src="eye0.png" alt="">
+  </div>
+
+  <!-- Particles container -->
+  <div id="particles" style="position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden;"></div>
+  <!-- Data stream lines container -->
+  <div id="datalines" style="position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;"></div>
+
+  <!-- Text + Loader -->
+  <div id="bottom-block">
+    <div id="text-block">
+      <div class="cyberverse-logo">CYBERVERSE</div>
+      <div class="tagline">// Trace the Unknown</div>
+    </div>
+    <div id="loader">
+      <div class="loader-track"><div class="loader-fill" id="loader-fill"></div></div>
+      <div class="loader-label">Initialising Simulation Engine</div>
+      <div class="loader-step" id="loader-step"></div>
+    </div>
+  </div>
+
+  <!-- Bottom status -->
+  <div class="bottom-status">CYBERVERSE SIM ENGINE &nbsp;&middot;&nbsp; ALL SYSTEMS NOMINAL &nbsp;&middot;&nbsp; THREAT DB v2.4.1</div>
+</div>
+
+<script>
+const eyeOpen   = document.getElementById('eye-open');
+const eyeClosed = document.getElementById('eye-closed');
+const glowRing  = document.getElementById('glow-ring');
+const scanline  = document.getElementById('scanline');
+
+/* ── Scanline sweep ── */
+function runScanline(onDone) {
+  scanline.style.transition = 'none';
+  scanline.style.top = '-2px';
+  scanline.style.opacity = '1';
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      scanline.style.transition = 'top 0.7s cubic-bezier(0.4,0,0.6,1)';
+      scanline.style.top = '100vh';
+      setTimeout(() => {
+        scanline.style.opacity = '0';
+        if (onDone) onDone();
+      }, 720);
+    });
+  });
+}
+
+/* ── Eye open via clip-path ── */
+function openEyes(progress) {
+
+  const inset = (1 - progress) * 50;
+
+  /* smooth eyelid reveal */
+  eyeOpen.style.clipPath =
+    `inset(${inset.toFixed(2)}% 0 ${inset.toFixed(2)}% 0)`;
+
+  /* gradual fade instead of instant */
+  eyeOpen.style.opacity = progress.toFixed(3);
+
+  /* closed eye fades out smoothly */
+  eyeClosed.style.opacity = (1 - progress).toFixed(3);
+}
+
+/* ── Spawn floating particles ── */
+function spawnParticles() {
+  const c = document.getElementById('particles');
+  const style = document.createElement('style');
+  style.textContent = `@keyframes pf{0%,100%{opacity:0;transform:translateY(0)}30%{opacity:0.7}60%{opacity:0.25;transform:translateY(-30px)}80%{opacity:0.45}}`;
+  document.head.appendChild(style);
+  for (let i = 0; i < 35; i++) {
+    const p = document.createElement('div');
+    const sz = (Math.random() * 2 + 0.8).toFixed(1);
+    const x  = (Math.random() * 100).toFixed(1);
+    const y  = (Math.random() * 100).toFixed(1);
+    const delay = (Math.random() * 4).toFixed(2);
+    const dur   = (Math.random() * 5 + 4).toFixed(2);
+    p.style.cssText = `position:absolute;border-radius:50%;background:var(--accent);` +
+      `left:${x}%;top:${y}%;width:${sz}px;height:${sz}px;opacity:0;` +
+      `animation:pf ${dur}s ${delay}s ease-in-out infinite;`;
+    c.appendChild(p);
+  }
+}
+
+/* ── Spawn data stream lines ── */
+function spawnDataLines() {
+  const c = document.getElementById('datalines');
+  for (let i = 0; i < 8; i++) {
+    const d = document.createElement('div');
+    d.className = 'data-line';
+    const x = (Math.random() * 100).toFixed(1);
+    const h = Math.round(Math.random() * 120 + 60);
+    const delay = (Math.random() * 6).toFixed(2);
+    const dur   = (Math.random() * 5 + 5).toFixed(2);
+    d.style.cssText = `left:${x}%;height:${h}px;` +
+      `animation-duration:${dur}s;animation-delay:${delay}s;`;
+    c.appendChild(d);
+  }
+}
+
+spawnParticles();
+spawnDataLines();
+
+/* ── Main animation timeline ── */
+const STEPS = [
+  'Loading scenario database...',
+  'Initialising AI risk engine...',
+  'Connecting to mock MongoDB...',
+  'Seeding player data...',
+  'Calibrating behavioural model...',
+  'Building adaptive scenario tree...',
+  'Simulation ready ✓'
+];
+
+const fill   = document.getElementById('loader-fill');
+const stepEl = document.getElementById('loader-step');
+
+/* Phase timings (ms) */
+const T_SCAN1    = 500;   /* first scanline */
+const T_EYE_START= 1100;  /* begin opening eyes */
+const T_EYE_DUR  = 2400;  /* eye open duration */
+const T_LOADER   = 1900;  /* loader starts */
+
+const startTime = performance.now();
+let eyeStarted  = false;
+let loaderStarted = false;
+let stepIdx = 0;
+
+/* First scanline */
+setTimeout(() => runScanline(), T_SCAN1);
+
+/* RAF loop for eye animation */
+function rafTick(now) {
+  const elapsed = now - startTime;
+
+  if (elapsed >= T_EYE_START) {
+    if (!eyeStarted) {
+      eyeStarted = true;
+      glowRing.classList.add('active');
+    }
+    const t = Math.min((elapsed - T_EYE_START) / T_EYE_DUR, 1);
+    /* Ease-out expo feel */
+    const eased = t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+    openEyes(eased);
+  }
+
+  if (elapsed < T_EYE_START + T_EYE_DUR + 400) {
+    requestAnimationFrame(rafTick);
+  }
+}
+requestAnimationFrame(rafTick);
+
+/* Loader interval */
+setTimeout(() => {
+  const iv = setInterval(() => {
+    if (stepIdx >= STEPS.length) {
+      clearInterval(iv);
+      setTimeout(() => {
+        runScanline(() => {
+          const u = (typeof DB !== 'undefined') ? DB.getCurrent() : null;
+          window.location.href = u ? 'dashboard.html' : 'auth.html';
+        });
+      }, 1000);
+      return;
+    }
+    const pct = Math.round(((stepIdx + 1) / STEPS.length) * 100);
+    fill.style.width = pct + '%';
+    stepEl.textContent = STEPS[stepIdx];
+    stepIdx++;
+  }, 370);
+}, T_LOADER);
+
+if (typeof DB === 'undefined') {
+  window.DB = { getCurrent: () => null };
+}
+</script>
+</body>
+</html>
