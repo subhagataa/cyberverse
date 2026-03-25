@@ -392,10 +392,11 @@ html,body{
     </div>
   </div>
 
-  <!-- Bottom status -->
+    <!-- Bottom status -->
   <div class="bottom-status">CYBERVERSE SIM ENGINE &nbsp;&middot;&nbsp; ALL SYSTEMS NOMINAL &nbsp;&middot;&nbsp; THREAT DB v2.4.1</div>
 </div>
 
+<script src="shared.js"></script>
 <script>
 const eyeOpen   = document.getElementById('eye-open');
 const eyeClosed = document.getElementById('eye-closed');
@@ -421,26 +422,15 @@ function runScanline(onDone) {
 
 /* ── Eye open via clip-path ── */
 function openEyes(progress) {
-
   const inset = (1 - progress) * 50;
-
-  /* smooth eyelid reveal */
-  eyeOpen.style.clipPath =
-    `inset(${inset.toFixed(2)}% 0 ${inset.toFixed(2)}% 0)`;
-
-  /* gradual fade instead of instant */
+  eyeOpen.style.clipPath = `inset(${inset.toFixed(2)}% 0 ${inset.toFixed(2)}% 0)`;
   eyeOpen.style.opacity = progress.toFixed(3);
-
-  /* closed eye fades out smoothly */
   eyeClosed.style.opacity = (1 - progress).toFixed(3);
 }
 
 /* ── Spawn floating particles ── */
 function spawnParticles() {
   const c = document.getElementById('particles');
-  const style = document.createElement('style');
-  style.textContent = `@keyframes pf{0%,100%{opacity:0;transform:translateY(0)}30%{opacity:0.7}60%{opacity:0.25;transform:translateY(-30px)}80%{opacity:0.45}}`;
-  document.head.appendChild(style);
   for (let i = 0; i < 35; i++) {
     const p = document.createElement('div');
     const sz = (Math.random() * 2 + 0.8).toFixed(1);
@@ -448,9 +438,7 @@ function spawnParticles() {
     const y  = (Math.random() * 100).toFixed(1);
     const delay = (Math.random() * 4).toFixed(2);
     const dur   = (Math.random() * 5 + 4).toFixed(2);
-    p.style.cssText = `position:absolute;border-radius:50%;background:var(--accent);` +
-      `left:${x}%;top:${y}%;width:${sz}px;height:${sz}px;opacity:0;` +
-      `animation:pf ${dur}s ${delay}s ease-in-out infinite;`;
+    p.style.cssText = `position:absolute;border-radius:50%;background:var(--accent);left:${x}%;top:${y}%;width:${sz}px;height:${sz}px;opacity:0;animation:pf ${dur}s ${delay}s ease-in-out infinite;`;
     c.appendChild(p);
   }
 }
@@ -465,11 +453,15 @@ function spawnDataLines() {
     const h = Math.round(Math.random() * 120 + 60);
     const delay = (Math.random() * 6).toFixed(2);
     const dur   = (Math.random() * 5 + 5).toFixed(2);
-    d.style.cssText = `left:${x}%;height:${h}px;` +
-      `animation-duration:${dur}s;animation-delay:${delay}s;`;
+    d.style.cssText = `left:${x}%;height:${h}px;animation-duration:${dur}s;animation-delay:${delay}s;`;
     c.appendChild(d);
   }
 }
+
+// Add CSS animation for particles
+const style = document.createElement('style');
+style.textContent = `@keyframes pf{0%,100%{opacity:0;transform:translateY(0)}30%{opacity:0.7}60%{opacity:0.25;transform:translateY(-30px)}80%{opacity:0.45}}`;
+document.head.appendChild(style);
 
 spawnParticles();
 spawnDataLines();
@@ -478,7 +470,7 @@ spawnDataLines();
 const STEPS = [
   'Loading scenario database...',
   'Initialising AI risk engine...',
-  'Connecting to mock MongoDB...',
+  'Connecting to MongoDB Atlas...',
   'Seeding player data...',
   'Calibrating behavioural model...',
   'Building adaptive scenario tree...',
@@ -489,14 +481,13 @@ const fill   = document.getElementById('loader-fill');
 const stepEl = document.getElementById('loader-step');
 
 /* Phase timings (ms) */
-const T_SCAN1    = 500;   /* first scanline */
-const T_EYE_START= 1100;  /* begin opening eyes */
-const T_EYE_DUR  = 2400;  /* eye open duration */
-const T_LOADER   = 1900;  /* loader starts */
+const T_SCAN1    = 500;
+const T_EYE_START= 1100;
+const T_EYE_DUR  = 2400;
+const T_LOADER   = 1900;
 
 const startTime = performance.now();
 let eyeStarted  = false;
-let loaderStarted = false;
 let stepIdx = 0;
 
 /* First scanline */
@@ -512,7 +503,6 @@ function rafTick(now) {
       glowRing.classList.add('active');
     }
     const t = Math.min((elapsed - T_EYE_START) / T_EYE_DUR, 1);
-    /* Ease-out expo feel */
     const eased = t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
     openEyes(eased);
   }
@@ -530,7 +520,8 @@ setTimeout(() => {
       clearInterval(iv);
       setTimeout(() => {
         runScanline(() => {
-          const u = (typeof DB !== 'undefined') ? DB.getCurrent() : null;
+          // Now DB is loaded from shared.js
+          const u = DB.getCurrent();
           window.location.href = u ? 'dashboard.html' : 'auth.html';
         });
       }, 1000);
@@ -542,10 +533,6 @@ setTimeout(() => {
     stepIdx++;
   }, 370);
 }, T_LOADER);
-
-if (typeof DB === 'undefined') {
-  window.DB = { getCurrent: () => null };
-}
 </script>
 </body>
 </html>
